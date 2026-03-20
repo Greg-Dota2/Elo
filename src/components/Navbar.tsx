@@ -10,6 +10,7 @@ const links = [
   { href: '/teams', label: 'Teams' },
   { href: '/players', label: 'Players' },
   { href: '/rankings', label: 'Rankings' },
+  { href: '/blog', label: 'Blog' },
 ]
 
 export default function Navbar({ isAdmin }: { isAdmin?: boolean }) {

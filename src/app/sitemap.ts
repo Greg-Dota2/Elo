@@ -7,10 +7,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = createAdminClient()
 
   const [{ data: tournaments }, { data: teams }, { data: players }] = await Promise.all([
-    supabase.from('tournaments').select('slug, updated_at').eq('is_published', true),
+    supabase.from('tournaments').select('slug').eq('is_published', true),
     supabase.from('teams').select('slug, created_at').not('slug', 'is', null),
     supabase.from('players').select('slug, created_at').eq('is_published', true).not('slug', 'is', null),
   ])
+
+  const { data: posts } = await supabase
+    .from('blog_posts')
+    .select('slug, updated_at')
+    .eq('is_published', true)
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: SITE_URL, lastModified: new Date(), changeFrequency: 'daily', priority: 1 },
@@ -19,13 +24,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/players`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     { url: `${SITE_URL}/rankings`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.7 },
     { url: `${SITE_URL}/track-record`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
+    { url: `${SITE_URL}/blog`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     { url: `${SITE_URL}/about`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
     { url: `${SITE_URL}/terms-of-use`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
   ]
 
   const tournamentRoutes: MetadataRoute.Sitemap = (tournaments ?? []).map(t => ({
     url: `${SITE_URL}/tournaments/${t.slug}`,
-    lastModified: t.updated_at ? new Date(t.updated_at) : new Date(),
+    lastModified: new Date(),
     changeFrequency: 'daily',
     priority: 0.85,
   }))
@@ -44,5 +50,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }))
 
-  return [...staticRoutes, ...tournamentRoutes, ...teamRoutes, ...playerRoutes]
+  const blogRoutes: MetadataRoute.Sitemap = (posts ?? []).map(p => ({
+    url: `${SITE_URL}/blog/${p.slug}`,
+    lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  }))
+
+  return [...staticRoutes, ...tournamentRoutes, ...teamRoutes, ...playerRoutes, ...blogRoutes]
 }

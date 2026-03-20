@@ -116,6 +116,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <nav className="flex gap-6 text-base font-semibold text-muted-foreground">
                 <Link href="/tournaments" className="hover:text-foreground transition-colors">Tournaments</Link>
                 <Link href="/rankings" className="hover:text-foreground transition-colors">Rankings</Link>
+                <Link href="/blog" className="hover:text-foreground transition-colors">Blog</Link>
                 <Link href="/about" className="hover:text-foreground transition-colors">About Me</Link>
                 <Link href="/terms-of-use" className="hover:text-foreground transition-colors">Terms of Use</Link>
               </nav>

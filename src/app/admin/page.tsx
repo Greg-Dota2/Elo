@@ -22,6 +22,14 @@ export default async function AdminPage() {
 
       <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-6 mb-8">
         <Link
+          href="/admin/blog"
+          className="rounded-lg p-4 text-center transition-colors"
+          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+        >
+          <div className="text-2xl mb-1">✍️</div>
+          <div className="font-semibold text-sm">Blog</div>
+        </Link>
+        <Link
           href="/admin/tournaments/new"
           className="rounded-lg p-4 text-center transition-colors"
           style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
