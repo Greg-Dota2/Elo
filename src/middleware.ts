@@ -8,12 +8,15 @@ export function middleware(req: NextRequest) {
     return NextResponse.next()
   }
 
-  // Protect all /admin routes
-  if (pathname.startsWith('/admin')) {
+  // Protect all /admin UI routes and /api/admin/* API routes
+  if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
     const token = req.cookies.get('admin_token')?.value
     const secret = process.env.ADMIN_PASSWORD
 
     if (!secret || token !== secret) {
+      if (pathname.startsWith('/api/')) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
       const loginUrl = req.nextUrl.clone()
       loginUrl.pathname = '/admin/login'
       return NextResponse.redirect(loginUrl)
@@ -24,5 +27,11 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: [
+    '/admin/:path*',
+    '/api/admin/:path*',
+    '/api/elo/:path*',
+    '/api/import',
+    '/api/schedule/sync',
+  ],
 }
