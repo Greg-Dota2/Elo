@@ -71,7 +71,7 @@ export default function MatchCard({ match, tournament }: Props) {
         {/* ── Header: kicker + tournament + title / time badge ── */}
         <div>
           {/* Kicker + date/BO row */}
-          <div className="flex flex-col gap-2 mb-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col items-center gap-2 mb-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2 min-w-0">
               {tournament?.logo_url && (
                 <Image
@@ -92,7 +92,7 @@ export default function MatchCard({ match, tournament }: Props) {
             </div>
 
             {/* Date + time + BO badge */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-secondary/70 px-3 py-1.5 text-xs font-medium text-muted-foreground self-start sm:self-auto shrink-0">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-secondary/70 px-3 py-1.5 text-xs font-medium text-muted-foreground shrink-0">
               <Clock className="h-3.5 w-3.5" />
               {match.match_date
                 ? new Date(match.match_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
