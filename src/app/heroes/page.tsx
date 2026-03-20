@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { fetchAllHeroes, heroSlug, heroPortraitUrl, ATTR_CONFIG, type HeroPrimaryAttr } from '@/lib/heroes'
+import { fetchAllHeroes, heroSlug, heroPortraitUrl, ATTR_CONFIG, type HeroData, type HeroPrimaryAttr } from '@/lib/heroes'
 
 export const revalidate = 86400
 
@@ -34,7 +34,7 @@ export default async function HeroesPage({
   const { attr = '' } = await searchParams
   const activeAttr = VALID_ATTRS.has(attr) ? attr : ''
 
-  let heroes = []
+  let heroes: HeroData[] = []
   try { heroes = await fetchAllHeroes() } catch { /* api error */ }
 
   const filtered = activeAttr
