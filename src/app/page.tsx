@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { getTournaments, getTournamentStats, getPredictionsByTournament } from '@/lib/queries'
 import MatchCard from '@/components/MatchCard'
 import TournamentCard from '@/components/TournamentCard'
@@ -5,6 +6,17 @@ import Link from 'next/link'
 import Image from 'next/image'
 
 export const revalidate = 60
+
+export const metadata: Metadata = {
+  title: 'Dota2ProTips — Dota 2 Match Predictions',
+  description: 'Free pre-match analysis and winner predictions for pro Dota 2 tournaments. Accuracy tracked, every pick visible.',
+  keywords: [
+    'Dota 2 predictions', 'Dota 2 match predictions', 'Dota 2 match analysis',
+    'Dota 2 esports', 'pro Dota 2', 'Dota 2 tips',
+    'ELO rankings', 'Dota 2 winner prediction', 'Dota 2 betting analysis',
+    'ESL One prediction', 'The International prediction', 'Dota 2 Major',
+  ],
+}
 
 export default async function HomePage() {
   let tournaments: Awaited<ReturnType<typeof getTournaments>> = []

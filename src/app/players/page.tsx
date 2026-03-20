@@ -1,8 +1,15 @@
+import type { Metadata } from 'next'
 import { getPlayers } from '@/lib/queries'
 import Link from 'next/link'
 import type { Player } from '@/lib/types'
 
 export const revalidate = 300
+
+export const metadata: Metadata = {
+  title: 'Dota 2 Pro Players — Profiles & Stats',
+  description: 'Profiles for Tier 1 Dota 2 professional players — position, team, country, and career highlights.',
+  keywords: ['Dota 2 pro players', 'Dota 2 players', 'professional Dota 2', 'Dota 2 roster', 'Dota 2 carry', 'Dota 2 midlaner'],
+}
 
 const POSITION_LABEL: Record<number, string> = { 1: 'Carry', 2: 'Mid', 3: 'Offlane', 4: 'Soft Support', 5: 'Hard Support' }
 const POSITION_COLOR: Record<number, string> = {

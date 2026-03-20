@@ -1,8 +1,15 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export const revalidate = 60
+
+export const metadata: Metadata = {
+  title: 'Dota 2 ELO Rankings',
+  description: 'ELO power rankings for pro Dota 2 teams, updated after every series result.',
+  keywords: ['Dota 2 ELO rankings', 'Dota 2 power rankings', 'best Dota 2 teams', 'Dota 2 team ratings', 'Dota 2 standings'],
+}
 
 const MEDAL = ['🥇', '🥈', '🥉']
 const MEDAL_COLOR = ['var(--gold)', 'var(--silver)', 'var(--bronze)']

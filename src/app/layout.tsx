@@ -26,12 +26,16 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   icons: { icon: '/1.png', apple: '/1.png' },
   title: {
-    default: 'Dota2ProTips — Tier 1 Dota 2 Match Predictions',
+    default: 'Dota2ProTips — Dota 2 Match Predictions',
     template: '%s | Dota2ProTips',
   },
   description:
-    'Free pre-match analysis and winner predictions for every Tier 1 Dota 2 tournament. Accuracy tracked, every pick visible.',
-  keywords: ['Dota 2 predictions', 'Dota 2 match analysis', 'Tier 1 Dota 2', 'Dota 2 esports', 'match predictions', 'ELO rankings'],
+    'Free pre-match analysis and winner predictions for pro Dota 2 tournaments. Accuracy tracked, every pick visible.',
+  keywords: [
+    'Dota 2 predictions', 'Dota 2 match analysis', 'Dota 2 esports',
+    'match predictions', 'ELO rankings', 'Dota 2 tips', 'pro Dota 2', 'Dota 2 winner',
+    'Dota 2 betting analysis', 'Dota 2 tournament predictions', 'dota2protips',
+  ],
   authors: [{ name: 'Greg Spencer', url: SITE_URL }],
   creator: 'Greg Spencer',
   openGraph: {
@@ -39,13 +43,13 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: SITE_URL,
     siteName: 'Dota2ProTips',
-    title: 'Dota2ProTips — Tier 1 Dota 2 Match Predictions',
-    description: 'Free pre-match analysis and winner predictions for every Tier 1 Dota 2 tournament. Accuracy tracked, every pick visible.',
+    title: 'Dota2ProTips — Dota 2 Match Predictions',
+    description: 'Free pre-match analysis and winner predictions for pro Dota 2 tournaments. Accuracy tracked, every pick visible.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Dota2ProTips — Tier 1 Dota 2 Match Predictions',
-    description: 'Free pre-match analysis and winner predictions for every Tier 1 Dota 2 tournament.',
+    title: 'Dota2ProTips — Dota 2 Match Predictions',
+    description: 'Free pre-match analysis and winner predictions for pro Dota 2 tournaments.',
     creator: '@dota2protips',
   },
   robots: {

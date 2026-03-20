@@ -1,7 +1,14 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export const revalidate = 300
+
+export const metadata: Metadata = {
+  title: 'Dota 2 Teams — Profiles & ELO Ratings',
+  description: 'Profiles for pro Dota 2 teams — ELO ratings, rosters, region, and prediction accuracy.',
+  keywords: ['Dota 2 teams', 'pro Dota 2 teams', 'Dota 2 team ELO', 'Dota 2 rosters', 'Team Spirit', 'Team Liquid', 'Gaimin Gladiators', 'Tundra Esports'],
+}
 
 const REGION_FLAG: Record<string, string> = {
   'Western Europe': '🇪🇺',
