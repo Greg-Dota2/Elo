@@ -88,9 +88,9 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* Right: live board preview */}
+          {/* Right: live board preview — hidden on mobile to avoid excessive scroll */}
           {featuredMatches.length > 0 && (
-            <div className="panel-shell relative overflow-hidden p-5 md:p-7">
+            <div className="hidden md:block panel-shell relative overflow-hidden p-5 md:p-7">
               <div className="pointer-events-none absolute right-0 top-0 h-28 w-28 rounded-full blur-3xl" style={{ background: 'hsl(var(--primary) / 0.12)' }} />
 
               {/* Tournament banner */}
