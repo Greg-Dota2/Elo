@@ -50,7 +50,7 @@ interface Props {
 
 function groupByStage(
   predictions: MatchPrediction[]
-): { stageName: string; stageDate: string | null; matches: MatchPrediction[] }[] {
+): { stageName: string; stageDate: string | null; stageOrder: number; matches: MatchPrediction[] }[] {
   const map = new Map<
     string,
     { stageName: string; stageDate: string | null; stageOrder: number; matches: MatchPrediction[] }
