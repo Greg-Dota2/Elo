@@ -74,10 +74,11 @@ export default function MatchCard({ match, tournament }: Props) {
           <div className="flex items-center justify-between gap-2 mb-3">
             <div className="flex items-center gap-2 min-w-0">
               {tournament?.logo_url && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src={tournament.logo_url}
                   alt={tournamentLabel}
+                  width={14}
+                  height={14}
                   className="w-3.5 h-3.5 object-contain rounded shrink-0"
                 />
               )}

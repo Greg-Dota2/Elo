@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
+import NextImage from 'next/image'
 import { useState, useEffect } from 'react'
 import type { Tournament, TournamentStats, MatchPrediction, TeamAccuracy } from '@/lib/types'
 import MatchCard from './MatchCard'
@@ -52,7 +52,7 @@ export default function TournamentCard({ tournament }: Props) {
       {/* ── Banner ── */}
       {tournament.banner_url ? (
         <div className="relative overflow-hidden" style={{ height: 180 }}>
-          <Image src={tournament.banner_url} alt={tournament.name} fill className="object-cover object-center" sizes="(max-width: 768px) 100vw, 900px" />
+          <NextImage src={tournament.banner_url} alt={tournament.name} fill className="object-cover object-center" sizes="(max-width: 768px) 100vw, 900px" />
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 20%, hsl(var(--background) / 0.85) 100%)' }} />
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
             <Link
@@ -73,8 +73,7 @@ export default function TournamentCard({ tournament }: Props) {
           <div>
             <div className="flex items-center gap-2 mb-1">
               {tournament.logo_url && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img loading="lazy" src={tournament.logo_url} alt={tournament.name} className="w-5 h-5 object-contain rounded shrink-0" />
+                <NextImage src={tournament.logo_url} alt={tournament.name} width={20} height={20} className="w-5 h-5 object-contain rounded shrink-0" />
               )}
               <span className="badge badge-accent">Tier 1</span>
               {tournament.start_date && (
@@ -130,8 +129,7 @@ export default function TournamentCard({ tournament }: Props) {
                   <div key={t.team_id} className="flex items-center gap-3 rounded-xl px-3 py-2.5" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
                     <span className="text-xs font-black w-6 shrink-0 tabular-nums" style={{ color: 'var(--text-muted)' }}>{MEDAL[i]}</span>
                     {t.logo_url && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img loading="lazy" src={t.logo_url} alt={t.team_name} className="w-6 h-6 object-contain shrink-0" />
+                      <NextImage src={t.logo_url} alt={t.team_name} width={24} height={24} className="w-6 h-6 object-contain shrink-0" />
                     )}
                     <span className="flex-1 text-sm font-semibold">{t.team_name}</span>
                     <span className="text-sm font-black tabular-nums" style={{ fontFamily: 'var(--font-oxanium), sans-serif', color: (t.accuracy_pct ?? 0) >= 60 ? 'var(--correct)' : 'var(--amber)' }}>

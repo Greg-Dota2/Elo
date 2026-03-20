@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import type { PSStanding, PSMatch } from '@/lib/pandascore'
 
 function teamSlug(name: string) {
@@ -108,11 +109,11 @@ function GroupCard({ group }: { group: GroupData }) {
                   <td className="py-2.5 pr-8">
                     <div className="flex items-center gap-2.5">
                       {s.team.image_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          loading="lazy"
+                        <Image
                           src={s.team.image_url}
                           alt={s.team.name}
+                          width={20}
+                          height={20}
                           className="w-5 h-5 object-contain shrink-0"
                         />
                       ) : (
@@ -148,12 +149,12 @@ function GroupCard({ group }: { group: GroupData }) {
                 {teams.map(t => (
                   <th key={t.id} className="w-16 pb-3 text-center">
                     {t.image_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        loading="lazy"
+                      <Image
                         src={t.image_url}
                         alt={t.name}
                         title={t.name}
+                        width={24}
+                        height={24}
                         className="w-6 h-6 object-contain mx-auto"
                       />
                     ) : (

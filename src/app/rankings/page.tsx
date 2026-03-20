@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export const revalidate = 60
@@ -81,10 +82,11 @@ export default async function RankingsPage() {
                     {/* Logo + name */}
                     <div className="flex items-center gap-3 mb-4">
                       {team.logo_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <Image
                           src={team.logo_url}
                           alt={team.name}
+                          width={40}
+                          height={40}
                           className="w-10 h-10 object-contain rounded-lg shrink-0"
                           style={{ background: 'rgba(255,255,255,0.04)' }}
                         />
@@ -174,10 +176,11 @@ export default async function RankingsPage() {
 
                     {/* Logo */}
                     {team.logo_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <Image
                         src={team.logo_url}
                         alt={team.name}
+                        width={28}
+                        height={28}
                         className="w-7 h-7 object-contain rounded shrink-0 relative"
                       />
                     ) : (
