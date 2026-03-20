@@ -67,7 +67,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <main className="max-w-7xl mx-auto px-4 py-8">{children}</main>
         <CookieBanner />
         <footer className="mt-20 border-t border-border/50">
-          <div className="max-w-5xl mx-auto px-4 py-12 grid gap-10 sm:grid-cols-[1fr_auto]">
+          <div className="max-w-5xl mx-auto px-4 py-12 flex flex-col gap-10 sm:flex-row sm:justify-between">
             {/* Left: brand + tagline + socials */}
             <div>
               <p className="font-display text-xl font-bold tracking-[0.06em] mb-3">
@@ -112,8 +112,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </div>
 
             {/* Right: links + about blurb */}
-            <div className="flex flex-col gap-5 sm:items-end">
-              <nav className="flex gap-6 text-base font-semibold text-muted-foreground">
+            <div className="flex flex-col gap-5">
+              <nav className="flex flex-wrap gap-4 text-base font-semibold text-muted-foreground">
                 <Link href="/tournaments" className="hover:text-foreground transition-colors">Tournaments</Link>
                 <Link href="/rankings" className="hover:text-foreground transition-colors">Rankings</Link>
                 <Link href="/blog" className="hover:text-foreground transition-colors">Blog</Link>

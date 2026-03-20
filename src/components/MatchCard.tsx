@@ -69,34 +69,36 @@ export default function MatchCard({ match, tournament }: Props) {
       <div className="relative z-10 w-full">
 
         {/* ── Header: kicker + tournament + title / time badge ── */}
-        <div className="relative">
-          {/* Kicker pill */}
-          <div className="flex items-center justify-center gap-2 mb-3">
-            {tournament?.logo_url && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={tournament.logo_url}
-                alt={tournamentLabel}
-                className="w-3.5 h-3.5 object-contain rounded shrink-0"
-              />
-            )}
-            {tournament?.slug ? (
-              <Link href={`/tournaments/${tournament.slug}`} className="section-kicker hover:opacity-70 transition-opacity">
-                {tournamentLabel || 'Free Pick'}
-              </Link>
-            ) : (
-              <span className="section-kicker">{tournamentLabel || 'Free Pick'}</span>
-            )}
-          </div>
+        <div>
+          {/* Kicker + date/BO row */}
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <div className="flex items-center gap-2 min-w-0">
+              {tournament?.logo_url && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={tournament.logo_url}
+                  alt={tournamentLabel}
+                  className="w-3.5 h-3.5 object-contain rounded shrink-0"
+                />
+              )}
+              {tournament?.slug ? (
+                <Link href={`/tournaments/${tournament.slug}`} className="section-kicker hover:opacity-70 transition-opacity truncate">
+                  {tournamentLabel || 'Free Pick'}
+                </Link>
+              ) : (
+                <span className="section-kicker truncate">{tournamentLabel || 'Free Pick'}</span>
+              )}
+            </div>
 
-          {/* Time + BO badge — absolute top-right */}
-          <div className="absolute top-0 right-0 inline-flex items-center gap-2 rounded-full border border-border/70 bg-secondary/70 px-3 py-1.5 text-xs font-medium text-muted-foreground">
-            <Clock className="h-3.5 w-3.5" />
-            {match.match_date
-              ? new Date(match.match_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
-              : '–'}
-            <span className="text-muted-foreground/40">·</span>
-            <span className="font-bold">BO{match.best_of}</span>
+            {/* Time + BO badge */}
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-secondary/70 px-3 py-1.5 text-xs font-medium text-muted-foreground shrink-0">
+              <Clock className="h-3.5 w-3.5" />
+              {match.match_date
+                ? new Date(match.match_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+                : '–'}
+              <span className="text-muted-foreground/40">·</span>
+              <span className="font-bold">BO{match.best_of}</span>
+            </div>
           </div>
 
           {/* Big match title */}
