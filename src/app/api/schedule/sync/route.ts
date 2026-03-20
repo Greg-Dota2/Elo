@@ -62,6 +62,7 @@ export async function POST() {
 
     const matchDate = match.begin_at ?? match.scheduled_at
     const matchDateStr = matchDate ? matchDate.split('T')[0] : null
+    const matchTimeStr = matchDate ? matchDate.split('T')[1]?.slice(0, 5) : null
 
     if (existing) {
       // Update twitch_url if PandaScore now has one and we don't
@@ -82,6 +83,7 @@ export async function POST() {
       team_2_id: team2DbId,
       best_of: match.number_of_games,
       match_date: matchDateStr,
+      match_time: matchTimeStr,
       pandascore_match_id: match.id,
       twitch_url: stream,
       is_published: false,

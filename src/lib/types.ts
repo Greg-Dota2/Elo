@@ -61,6 +61,7 @@ export interface MatchPrediction {
   post_commentary: string | null
   is_correct: boolean | null
   match_date: string | null
+  match_time: string | null
   twitch_url: string | null
   opendota_series_id: number | null
   is_published: boolean
