@@ -53,11 +53,6 @@ export async function POST() {
       .eq('pandascore_match_id', match.id)
       .maybeSingle()
 
-    if (existing) {
-      skipped++
-      continue
-    }
-
     // Pick the best stream URL (prefer English official, fallback to first)
     const stream =
       match.streams_list.find((s) => s.main && s.official && s.language === 'en')?.raw_url ??
@@ -68,6 +63,19 @@ export async function POST() {
     const matchDate = match.begin_at ?? match.scheduled_at
     const matchDateStr = matchDate ? matchDate.split('T')[0] : null
 
+    if (existing) {
+      // Update twitch_url if PandaScore now has one and we don't
+      if (stream) {
+        await supabase
+          .from('match_predictions')
+          .update({ twitch_url: stream })
+          .eq('id', existing.id)
+          .is('twitch_url', null)
+      }
+      skipped++
+      continue
+    }
+
     const { error } = await supabase.from('match_predictions').insert({
       tournament_id: tournamentDbId,
       team_1_id: team1DbId,
@@ -75,7 +83,7 @@ export async function POST() {
       best_of: match.number_of_games,
       match_date: matchDateStr,
       pandascore_match_id: match.id,
-      stream_url: stream,
+      twitch_url: stream,
       is_published: false,
     })
 
