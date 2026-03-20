@@ -43,7 +43,7 @@ export default function CookieBanner() {
           <p className="text-xs leading-5" style={{ color: 'var(--text-muted)' }}>
             We use essential cookies to keep the site working. No tracking or advertising cookies are used.{' '}
             <Link href="/terms-of-use" className="underline hover:opacity-70 transition-opacity">
-              Learn more
+              Learn more about our cookie policy
             </Link>
           </p>
         </div>
