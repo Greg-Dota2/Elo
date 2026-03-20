@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import BioRenderer from '@/components/BioRenderer'
+import { heroDisplayNameToSlug } from '@/lib/heroes'
 
 export const revalidate = 300
 
@@ -164,12 +165,13 @@ export default async function PlayerPage({ params }: Props) {
             <p className="section-label mb-3">Signature Heroes</p>
             <div className="flex flex-wrap gap-2">
               {player.signature_heroes.map(hero => (
-                <span
+                <Link
                   key={hero}
-                  className="text-sm font-semibold px-3 py-1.5 rounded-xl border border-border/60 bg-secondary/60 text-foreground"
+                  href={`/heroes/${heroDisplayNameToSlug(hero)}`}
+                  className="text-sm font-semibold px-3 py-1.5 rounded-xl border border-border/60 bg-secondary/60 text-foreground hover:border-primary/40 hover:text-primary transition-colors duration-200"
                 >
                   {hero}
-                </span>
+                </Link>
               ))}
             </div>
           </div>
