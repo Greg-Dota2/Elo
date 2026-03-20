@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import type { Tournament, TournamentStats, MatchPrediction, TeamAccuracy } from '@/lib/types'
 import MatchCard from './MatchCard'
@@ -50,9 +51,8 @@ export default function TournamentCard({ tournament }: Props) {
 
       {/* ── Banner ── */}
       {tournament.banner_url ? (
-        <div className="relative overflow-hidden" style={{ maxHeight: 180 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img loading="lazy" src={tournament.banner_url} alt={tournament.name} className="w-full object-cover object-center" style={{ maxHeight: 180 }} />
+        <div className="relative overflow-hidden" style={{ height: 180 }}>
+          <Image src={tournament.banner_url} alt={tournament.name} fill className="object-cover object-center" sizes="(max-width: 768px) 100vw, 900px" />
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 20%, hsl(var(--background) / 0.85) 100%)' }} />
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
             <Link

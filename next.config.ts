@@ -18,6 +18,7 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: '*.supabase.co' },
       { protocol: 'https', hostname: 'dota2protips.com' },
       { protocol: 'https', hostname: '*.dota2protips.com' },
+      { protocol: 'https', hostname: '**' },
     ],
   },
 };

@@ -2,6 +2,7 @@ import { getTournaments, getTournamentStats, getPredictionsByTournament } from '
 import MatchCard from '@/components/MatchCard'
 import TournamentCard from '@/components/TournamentCard'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export const revalidate = 60
 
@@ -94,9 +95,8 @@ export default async function HomePage() {
 
               {/* Tournament banner */}
               {latest?.banner_url && (
-                <div className="relative -mx-5 md:-mx-7 -mt-5 md:-mt-7 mb-5 overflow-hidden rounded-t-[inherit]" style={{ maxHeight: 120 }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img loading="lazy" src={latest.banner_url} alt={latest.name} className="w-full object-cover object-center" style={{ maxHeight: 120 }} />
+                <div className="relative -mx-5 md:-mx-7 -mt-5 md:-mt-7 mb-5 overflow-hidden rounded-t-[inherit]" style={{ height: 120 }}>
+                  <Image src={latest.banner_url} alt={latest.name} fill priority className="object-cover object-center" sizes="(max-width: 768px) 100vw, 600px" />
                   <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 40%, hsl(var(--card) / 0.85) 100%)' }} />
                 </div>
               )}
@@ -206,9 +206,8 @@ export default async function HomePage() {
             <div className="mb-5">
               {/* Banner */}
               {latest.banner_url && (
-                <div className="relative rounded-2xl overflow-hidden mb-4" style={{ maxHeight: 180 }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img loading="lazy" src={latest.banner_url} alt={latest.name} className="w-full object-cover object-center" style={{ maxHeight: 180 }} />
+                <div className="relative rounded-2xl overflow-hidden mb-4" style={{ height: 180 }}>
+                  <Image src={latest.banner_url} alt={latest.name} fill priority className="object-cover object-center" sizes="(max-width: 768px) 100vw, 800px" />
                   <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 20%, hsl(var(--background) / 0.85) 100%)' }} />
                   {/* Overlay text — centered */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
