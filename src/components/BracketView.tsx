@@ -45,7 +45,7 @@ function BracketCard({ match }: { match: MatchPrediction }) {
         opacity: isLoser ? 0.4 : 1,
       }}>
         {team?.logo_url
-          ? <img src={team.logo_url} alt={team.name ?? ''} style={{ width: 15, height: 15, objectFit: 'contain', flexShrink: 0 }} />
+          ? <img loading="lazy" src={team.logo_url} alt={team.name ?? ''} style={{ width: 15, height: 15, objectFit: 'contain', flexShrink: 0 }} />
           : <div style={{ width: 15, height: 15, borderRadius: 3, background: 'hsl(var(--secondary))', flexShrink: 0 }} />
         }
         <span style={{

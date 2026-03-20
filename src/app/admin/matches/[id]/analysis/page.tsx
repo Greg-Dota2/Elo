@@ -49,7 +49,6 @@ export default function WriteAnalysisPage({ params }: Props) {
         twitch_url: form.get('twitch_url') || null,
         predicted_winner_id: predictedWinnerId,
         predicted_draw: predictedDraw,
-        actual_winner_id: match?.actual_winner_id,
         is_published: form.get('is_published') === 'on',
       }),
     })

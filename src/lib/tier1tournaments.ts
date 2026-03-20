@@ -15,5 +15,5 @@ export const TIER1_TOURNAMENTS = [
   { league_id: 18988, name: 'DreamLeague Season 27',        slug: 'dl-s27',        start_date: '2025-11-10', end_date: '2025-11-23' },
   { league_id: 19269, name: 'DreamLeague Season 28',        slug: 'dl-s28',        start_date: '2026-01-20', end_date: '2026-02-02' },
   { league_id: 19435, name: 'PGL Wallachia 2026 Season 7',  slug: 'pgl-walla-2026-s7', start_date: '2026-03-07', end_date: '2026-03-15' },
-  { league_id: 19422, name: 'ESL One Birmingham 2026',       slug: 'esl-birmingham-2026', start_date: '2026-03-22', end_date: '2026-03-29' },
+  { league_id: 4114,  name: 'ESL One Birmingham 2026',       slug: 'esl-birmingham-2026', start_date: '2026-03-22', end_date: '2026-03-29' },
 ]

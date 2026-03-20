@@ -3,7 +3,7 @@
 import type { MatchPrediction, Team } from '@/lib/types'
 import Image from 'next/image'
 import Link from 'next/link'
-import { winProbability } from '@/lib/elo'
+import { winProbability, seriesWinProbability, drawProbability } from '@/lib/elo'
 import { Clock, TrendingUp, X } from 'lucide-react'
 import { useState } from 'react'
 
@@ -21,19 +21,19 @@ function TeamName({ team, className }: { team: Team; className?: string }) {
 interface Props {
   match: MatchPrediction
   showTournament?: boolean
-  tournament?: { name: string; logo_url: string | null }
+  tournament?: { name: string; slug?: string | null; logo_url: string | null }
 }
 
 function TeamLogo({ logo_url, name, dim }: { logo_url: string | null; name: string; dim?: boolean }) {
   return (
     <div
-      className="flex h-20 w-20 items-center justify-center rounded-[1.35rem] border border-border/70 bg-secondary/75 p-3 transition-opacity duration-300"
+      className="flex h-28 w-28 items-center justify-center rounded-[1.35rem] border border-border/70 bg-secondary/75 p-4 transition-opacity duration-300"
       style={{ opacity: dim ? 0.35 : 1 }}
     >
       {logo_url ? (
-        <Image src={logo_url} alt={name} width={56} height={56} className="h-full w-full object-contain" />
+        <Image src={logo_url} alt={name} width={80} height={80} className="h-full w-full object-contain" />
       ) : (
-        <span className="font-display text-xl font-black text-muted-foreground">
+        <span className="font-display text-2xl font-black text-muted-foreground">
           {name.slice(0, 2).toUpperCase()}
         </span>
       )}
@@ -50,13 +50,18 @@ export default function MatchCard({ match, tournament }: Props) {
   const t1Won = match.actual_winner_id === team_1.id
   const t2Won = match.actual_winner_id === team_2.id
   const pick = match.predicted_winner
+  const predictedDraw = match.predicted_draw
+  const hasPrediction = !!pick || predictedDraw
 
   const { pctA, pctB } =
     team_1.current_elo && team_2.current_elo
       ? winProbability(team_1.current_elo, team_2.current_elo)
       : { pctA: 50, pctB: 50 }
 
-  const confidence = pick?.id === team_1.id ? pctA : pctB
+  const p = pick?.id === team_1.id ? pctA / 100 : pctB / 100
+  const confidence = predictedDraw
+    ? Math.round(drawProbability(pctA / 100) * 100)
+    : Math.round(seriesWinProbability(p, match.best_of ?? 1) * 100)
   const tournamentLabel = tournament?.name ?? match.stage?.name ?? ''
 
   return (
@@ -75,7 +80,13 @@ export default function MatchCard({ match, tournament }: Props) {
                 className="w-3.5 h-3.5 object-contain rounded shrink-0"
               />
             )}
-            <span className="section-kicker">{tournamentLabel || 'Free Pick'}</span>
+            {tournament?.slug ? (
+              <Link href={`/tournaments/${tournament.slug}`} className="section-kicker hover:opacity-70 transition-opacity">
+                {tournamentLabel || 'Free Pick'}
+              </Link>
+            ) : (
+              <span className="section-kicker">{tournamentLabel || 'Free Pick'}</span>
+            )}
           </div>
 
           {/* Time + BO badge — absolute top-right */}
@@ -89,7 +100,7 @@ export default function MatchCard({ match, tournament }: Props) {
           </div>
 
           {/* Big match title */}
-          <h3 className="font-display text-lg font-bold md:text-xl leading-tight text-center">
+          <h3 className="font-display text-xl font-bold md:text-2xl leading-tight text-center">
             <TeamName team={team_1} className={hasResult && t2Won ? 'text-muted-foreground' : 'text-foreground'} />
             {' '}
             <span className="text-muted-foreground">vs</span>
@@ -98,11 +109,26 @@ export default function MatchCard({ match, tournament }: Props) {
           </h3>
         </div>
 
+        {/* ── ELO win probability bar ── */}
+        {team_1.current_elo && team_2.current_elo && (
+          <div className="mt-6">
+            <div className="flex justify-between text-xs font-semibold mb-1.5" style={{ color: 'hsl(var(--muted-foreground))' }}>
+              <span style={{ color: pctA >= 50 ? 'hsl(var(--success))' : '#f59e0b' }}>{pctA}%</span>
+              <span className="uppercase tracking-widest text-[10px]">ELO Win Probability</span>
+              <span style={{ color: pctB >= 50 ? 'hsl(var(--success))' : '#f59e0b' }}>{pctB}%</span>
+            </div>
+            <div className="h-1.5 rounded-full overflow-hidden flex">
+              <div className="h-full" style={{ width: `${pctA}%`, background: pctA >= 50 ? 'hsl(var(--success))' : '#f59e0b' }} />
+              <div className="h-full" style={{ width: `${pctB}%`, background: pctB >= 50 ? 'hsl(var(--success))' : '#f59e0b' }} />
+            </div>
+          </div>
+        )}
+
         {/* ── Teams ── */}
         <div className="mt-8 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
           <div className="flex flex-col items-center gap-3 text-center">
             <TeamLogo logo_url={team_1.logo_url} name={team_1.name} dim={hasResult && t2Won} />
-            <TeamName team={team_1} className={`font-display text-base font-semibold ${hasResult && t2Won ? 'text-muted-foreground' : 'text-foreground'}`} />
+            <TeamName team={team_1} className={`font-display text-lg font-bold ${hasResult && t2Won ? 'text-muted-foreground' : 'text-foreground'}`} />
           </div>
 
           <div className="flex flex-col items-center gap-1 shrink-0">
@@ -110,14 +136,14 @@ export default function MatchCard({ match, tournament }: Props) {
               <>
                 <div className="flex items-center gap-2">
                   <span
-                    className="font-display text-4xl font-black tabular-nums leading-none"
+                    className="font-display text-5xl font-black tabular-nums leading-none"
                     style={{ color: t1Won ? 'hsl(var(--success))' : 'hsl(var(--muted-foreground))' }}
                   >
                     {match.score_team_1}
                   </span>
                   <span className="text-lg font-light text-muted-foreground/40">:</span>
                   <span
-                    className="font-display text-4xl font-black tabular-nums leading-none"
+                    className="font-display text-5xl font-black tabular-nums leading-none"
                     style={{ color: t2Won ? 'hsl(var(--success))' : 'hsl(var(--muted-foreground))' }}
                   >
                     {match.score_team_2}
@@ -132,7 +158,7 @@ export default function MatchCard({ match, tournament }: Props) {
 
           <div className="flex flex-col items-center gap-3 text-center">
             <TeamLogo logo_url={team_2.logo_url} name={team_2.name} dim={hasResult && t1Won} />
-            <TeamName team={team_2} className={`font-display text-base font-semibold ${hasResult && t1Won ? 'text-muted-foreground' : 'text-foreground'}`} />
+            <TeamName team={team_2} className={`font-display text-lg font-bold ${hasResult && t1Won ? 'text-muted-foreground' : 'text-foreground'}`} />
           </div>
         </div>
 
@@ -162,7 +188,7 @@ export default function MatchCard({ match, tournament }: Props) {
         })()}
 
         {/* ── Prediction section ── */}
-        {pick && (
+        {hasPrediction && (
           <div className="mt-8 rounded-[1.5rem] border border-border/70 bg-background/45 p-4 md:p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -172,18 +198,18 @@ export default function MatchCard({ match, tournament }: Props) {
                 <div className="mt-2 flex items-center gap-2">
                   {is_correct === false
                     ? <X className="h-4 w-4 flex-shrink-0" style={{ color: 'hsl(var(--destructive))' }} />
-                    : <TrendingUp className="h-4 w-4 flex-shrink-0 text-success" style={{ color: 'hsl(var(--success))' }} />
+                    : <TrendingUp className="h-4 w-4 flex-shrink-0" style={{ color: predictedDraw ? '#f59e0b' : 'hsl(var(--success))' }} />
                   }
                   <p
                     className="font-display text-2xl font-bold"
-                    style={{ color: is_correct === false ? 'hsl(var(--destructive))' : 'hsl(var(--success))' }}
+                    style={{ color: is_correct === false ? 'hsl(var(--destructive))' : predictedDraw ? '#f59e0b' : 'hsl(var(--success))' }}
                   >
-                    {pick.name}
+                    {pick ? pick.name : 'Draw (1–1)'}
                   </p>
                 </div>
               </div>
 
-              {is_correct !== null ? (
+              {hasResult && is_correct !== null ? (
                 <span
                   className="w-fit rounded-full px-3 py-1.5 text-sm font-semibold border"
                   style={
@@ -194,31 +220,23 @@ export default function MatchCard({ match, tournament }: Props) {
                 >
                   {is_correct ? '✓ Correct' : '✗ Wrong'}
                 </span>
-              ) : (
+              ) : !hasResult ? (
                 <span className="stat-badge-success w-fit">{confidence}% confidence</span>
-              )}
+              ) : null}
             </div>
 
-            {is_correct === null && (
-              <div className="mt-4 h-2 overflow-hidden rounded-full bg-secondary">
-                <div
-                  className="h-full rounded-full bg-primary transition-all duration-700"
-                  style={{ width: `${confidence}%` }}
-                />
-              </div>
-            )}
-
             {match.pre_analysis && (
-              <div className="mt-4">
-                <p className={`text-sm leading-6 text-muted-foreground ${expanded ? '' : 'line-clamp-2'}`}>
+              <div className="mt-5 rounded-xl px-4 py-4" style={{ background: 'hsl(var(--secondary) / 0.5)', border: '1px solid hsl(var(--border) / 0.6)' }}>
+                <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'hsl(var(--muted-foreground) / 0.6)' }}>My take</p>
+                <p className={`text-base leading-7 font-medium text-foreground ${expanded ? '' : 'line-clamp-3'}`}>
                   {match.pre_analysis}
                 </p>
                 <button
                   onClick={() => setExpanded(e => !e)}
-                  className="mt-1.5 text-xs font-semibold transition-colors hover:text-primary"
+                  className="mt-2 text-xs font-semibold transition-colors hover:text-primary"
                   style={{ color: 'hsl(var(--primary) / 0.7)' }}
                 >
-                  {expanded ? '↑ Show less' : '↓ Read full analysis'}
+                  {expanded ? '↑ Show less' : '↓ Read more'}
                 </button>
               </div>
             )}

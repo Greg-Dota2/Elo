@@ -59,7 +59,7 @@ function PlayerCard({ player }: { player: Player }) {
               <div className="flex items-center gap-1.5">
                 {player.team.logo_url && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={player.team.logo_url} alt={player.team.name} className="w-4 h-4 object-contain rounded" />
+                  <img loading="lazy" src={player.team.logo_url} alt={player.team.name} className="w-4 h-4 object-contain rounded" />
                 )}
                 <span className="text-xs font-semibold text-muted-foreground">{player.team.name}</span>
               </div>

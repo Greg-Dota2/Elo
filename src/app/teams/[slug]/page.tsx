@@ -93,7 +93,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ slu
       {team.banner_url && (
         <div className="rounded-2xl overflow-hidden mb-6 border border-border/60" style={{ maxHeight: 260 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={team.banner_url} alt={`${team.name} banner`} className="w-full h-full object-cover" style={{ maxHeight: 260 }} />
+          <img loading="lazy" src={team.banner_url} alt={`${team.name} banner`} className="w-full h-full object-cover" style={{ maxHeight: 260 }} />
         </div>
       )}
 
@@ -102,7 +102,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ slu
         <div className="w-20 h-20 rounded-2xl border border-border/60 bg-secondary/80 flex items-center justify-center shrink-0 overflow-hidden p-2">
           {team.logo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={team.logo_url} alt={team.name} className="w-full h-full object-contain" />
+            <img loading="lazy" src={team.logo_url} alt={team.name} className="w-full h-full object-contain" />
           ) : (
             <span className="font-display text-2xl font-bold text-muted-foreground">
               {team.name.slice(0, 2).toUpperCase()}
@@ -190,7 +190,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ slu
                   <div className="w-9 h-9 rounded-xl border border-border/60 bg-secondary/80 flex items-center justify-center shrink-0 overflow-hidden">
                     {p.photo_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={p.photo_url} alt={p.ign} className="w-full h-full object-cover" />
+                      <img loading="lazy" src={p.photo_url} alt={p.ign} className="w-full h-full object-cover" />
                     ) : (
                       <span className="font-display text-xs font-bold text-muted-foreground">
                         {p.ign.slice(0, 2).toUpperCase()}

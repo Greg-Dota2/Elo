@@ -58,6 +58,63 @@ export async function fetchUpcomingTier1Matches(perPage = 100): Promise<PSMatch[
   return res.json()
 }
 
+export async function fetchRunningTier1Matches(perPage = 50): Promise<PSMatch[]> {
+  const url = new URL(`${BASE}/dota2/matches/running`)
+  url.searchParams.set('token', TOKEN)
+  url.searchParams.set('per_page', String(perPage))
+  url.searchParams.set('filter[league_id]', TIER1_LEAGUE_IDS.join(','))
+  url.searchParams.set('sort', 'scheduled_at')
+
+  const res = await fetch(url.toString(), { next: { revalidate: 60 } })
+  if (!res.ok) throw new Error(`PandaScore error ${res.status}: ${await res.text()}`)
+  return res.json()
+}
+
+export interface PSSubTournament {
+  id: number
+  name: string
+  begin_at: string | null
+  end_at: string | null
+}
+
+export interface PSStanding {
+  rank: number
+  team: PSTeam
+  wins: number
+  draws: number
+  losses: number
+  total: number
+}
+
+export async function fetchSubTournamentsForLeague(leagueId: number): Promise<PSSubTournament[]> {
+  const url = new URL(`${BASE}/dota2/tournaments`)
+  url.searchParams.set('token', TOKEN)
+  url.searchParams.set('filter[league_id]', String(leagueId))
+  url.searchParams.set('per_page', '50')
+  const res = await fetch(url.toString(), { next: { revalidate: 3600 } })
+  if (!res.ok) return []
+  return res.json()
+}
+
+export async function fetchTournamentStandings(tournamentId: number): Promise<PSStanding[]> {
+  const url = new URL(`${BASE}/dota2/tournaments/${tournamentId}/standings`)
+  url.searchParams.set('token', TOKEN)
+  const res = await fetch(url.toString(), { next: { revalidate: 300 } })
+  if (!res.ok) return []
+  return res.json()
+}
+
+export async function fetchMatchesForSubTournament(tournamentId: number): Promise<PSMatch[]> {
+  const url = new URL(`${BASE}/dota2/matches`)
+  url.searchParams.set('token', TOKEN)
+  url.searchParams.set('filter[tournament_id]', String(tournamentId))
+  url.searchParams.set('per_page', '100')
+  url.searchParams.set('sort', 'scheduled_at')
+  const res = await fetch(url.toString(), { next: { revalidate: 300 } })
+  if (!res.ok) return []
+  return res.json()
+}
+
 export async function fetchRecentTier1Matches(perPage = 50): Promise<PSMatch[]> {
   const url = new URL(`${BASE}/dota2/matches/past`)
   url.searchParams.set('token', TOKEN)

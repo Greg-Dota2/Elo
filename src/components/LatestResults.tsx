@@ -34,7 +34,7 @@ function MatchRow({ m }: { m: PSMatch }) {
           <div className="flex items-center gap-2 min-w-0">
             {m.league.image_url && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={m.league.image_url} alt={m.league.name} className="w-4 h-4 object-contain shrink-0" />
+              <img loading="lazy" src={m.league.image_url} alt={m.league.name} className="w-4 h-4 object-contain shrink-0" />
             )}
             <span className="text-xs font-semibold truncate" style={{ color: 'hsl(var(--muted-foreground))' }}>
               {m.serie.full_name}
@@ -71,7 +71,7 @@ function MatchRow({ m }: { m: PSMatch }) {
           <div className="flex items-center gap-2 flex-1 justify-end min-w-0">
             {teamA?.image_url && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={teamA.image_url} alt={teamA.name} className="w-5 h-5 object-contain shrink-0" />
+              <img loading="lazy" src={teamA.image_url} alt={teamA.name} className="w-5 h-5 object-contain shrink-0" />
             )}
             <span
               className="font-display font-bold text-sm truncate"
@@ -102,7 +102,7 @@ function MatchRow({ m }: { m: PSMatch }) {
           <div className="flex items-center gap-2 flex-1 min-w-0">
             {teamB?.image_url && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={teamB.image_url} alt={teamB.name} className="w-5 h-5 object-contain shrink-0" />
+              <img loading="lazy" src={teamB.image_url} alt={teamB.name} className="w-5 h-5 object-contain shrink-0" />
             )}
             <span
               className="font-display font-bold text-sm truncate"

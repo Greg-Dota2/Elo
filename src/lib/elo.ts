@@ -63,8 +63,37 @@ export function calculateElo(
   }
 }
 
-// Win probability as percentage string for display
+// Per-game win probability for display on the ELO bar
 export function winProbability(eloA: number, eloB: number): { pctA: number; pctB: number } {
   const pA = Math.round(expectedScore(eloA, eloB) * 100)
   return { pctA: pA, pctB: 100 - pA }
+}
+
+// Series win probability given per-game probability p and best-of format
+export function seriesWinProbability(p: number, bestOf: number): number {
+  const q = 1 - p
+  if (bestOf === 1) return p
+  if (bestOf === 2) return p * p                          // must win both games
+  if (bestOf === 3) return p * p * (3 - 2 * p)           // win 2-0 or 2-1
+  if (bestOf === 5) return p * p * p * (10 - 15 * p + 6 * p * p) // win 3-0, 3-1, or 3-2
+  // Generic fallback: simulate
+  let prob = 0
+  const target = Math.ceil(bestOf / 2)
+  for (let w = target; w <= bestOf; w++) {
+    for (let l = 0; l < target && w + l <= bestOf; l++) {
+      if (w + l < bestOf) continue
+      const ways = factorial(w + l - 1) / (factorial(w - 1) * factorial(l))
+      prob += ways * Math.pow(p, w) * Math.pow(q, l)
+    }
+  }
+  return prob
+}
+
+function factorial(n: number): number {
+  return n <= 1 ? 1 : n * factorial(n - 1)
+}
+
+// Draw probability in BO2: exactly 1 win each
+export function drawProbability(p: number): number {
+  return 2 * p * (1 - p)
 }

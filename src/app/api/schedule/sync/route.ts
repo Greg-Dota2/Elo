@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { fetchUpcomingTier1Matches } from '@/lib/pandascore'
+import { TIER1_TOURNAMENTS } from '@/lib/tier1tournaments'
 
 export async function POST() {
   const supabase = createAdminClient()
@@ -170,6 +171,9 @@ async function resolveTournament(
     return bySlug.id
   }
 
+  // Look up dates from our known tournament list by league_id
+  const known = TIER1_TOURNAMENTS.find(t => t.league_id === match.league.id)
+
   // Create new tournament record (draft)
   const { data: created } = await supabase
     .from('tournaments')
@@ -179,6 +183,7 @@ async function resolveTournament(
       tier: 1,
       logo_url,
       is_published: false,
+      ...(known ? { start_date: known.start_date, end_date: known.end_date } : {}),
     })
     .select('id')
     .single()

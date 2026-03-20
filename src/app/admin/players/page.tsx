@@ -40,7 +40,7 @@ export default async function AdminPlayersPage() {
               >
                 {p.photo_url && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={p.photo_url} alt={p.ign} className="w-8 h-8 rounded-lg object-cover shrink-0" />
+                  <img loading="lazy" src={p.photo_url} alt={p.ign} className="w-8 h-8 rounded-lg object-cover shrink-0" />
                 )}
                 <div className="flex-1 min-w-0">
                   <span className="font-bold">{p.ign}</span>

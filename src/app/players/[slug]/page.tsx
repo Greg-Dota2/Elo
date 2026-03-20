@@ -115,7 +115,7 @@ export default async function PlayerPage({ params }: Props) {
                   <div className="flex items-center gap-2">
                     {player.team.logo_url && (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={player.team.logo_url} alt={player.team.name} className="w-5 h-5 object-contain rounded" />
+                      <img loading="lazy" src={player.team.logo_url} alt={player.team.name} className="w-5 h-5 object-contain rounded" />
                     )}
                     {player.team.slug ? (
                       <Link href={`/teams/${player.team.slug}`} className="font-semibold text-foreground hover:text-primary transition-colors">

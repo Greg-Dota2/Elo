@@ -19,6 +19,8 @@ export default function EditTournamentPage({ params }: Props) {
   const [importing, setImporting] = useState(false)
   const [importResult, setImportResult] = useState<string>('')
   const [saving, setSaving] = useState(false)
+  const [saveResult, setSaveResult] = useState<string>('')
+  const [deleting, setDeleting] = useState(false)
   // New stage form
   const [newStageName, setNewStageName] = useState('')
   const [newStageOrder, setNewStageOrder] = useState('')
@@ -77,6 +79,16 @@ export default function EditTournamentPage({ params }: Props) {
     setMatches(prev => prev.map(m => m.id === matchId ? { ...m, is_published: !current } : m))
   }
 
+  async function clearResult(matchId: string) {
+    if (!confirm('Clear the result for this match? This resets score, winner and correct/wrong status.')) return
+    await fetch('/api/admin/matches', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: matchId, score_team_1: null, score_team_2: null, actual_winner_id: null, is_correct: null }),
+    })
+    setMatches(prev => prev.map(m => m.id === matchId ? { ...m, score_team_1: null, score_team_2: null, actual_winner_id: null, is_correct: null } : m))
+  }
+
   async function assignStage(matchId: string, stageId: string | null) {
     await fetch('/api/admin/matches', {
       method: 'PATCH',
@@ -116,16 +128,47 @@ export default function EditTournamentPage({ params }: Props) {
     setStages(prev => prev.filter(s => s.id !== stageId))
   }
 
+  async function deleteMatch(matchId: string) {
+    if (!confirm('Delete this match permanently?')) return
+    await fetch('/api/admin/matches', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: matchId }),
+    })
+    setMatches(prev => prev.filter(m => m.id !== matchId))
+  }
+
+  async function handleDeleteTournament() {
+    if (!confirm(`Delete "${tournament?.name}" and ALL its matches? This cannot be undone.`)) return
+    setDeleting(true)
+    const res = await fetch('/api/admin/tournaments', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: tournamentId }),
+    })
+    if (res.ok) {
+      router.push('/admin')
+    } else {
+      const data = await res.json()
+      alert(`Error: ${data.error}`)
+      setDeleting(false)
+    }
+  }
+
   async function handleSaveSettings(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setSaving(true)
+    setSaveResult('')
     const form = new FormData(e.currentTarget)
-    await fetch('/api/admin/tournaments', {
+    const res = await fetch('/api/admin/tournaments', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         id: tournamentId,
+        name: form.get('name') || tournament?.name,
         is_published: form.get('is_published') === 'on',
+        start_date: form.get('start_date') || null,
+        end_date: form.get('end_date') || null,
         logo_url: form.get('logo_url') || null,
         banner_url: form.get('banner_url') || null,
         telegram_url: form.get('telegram_url') || null,
@@ -134,8 +177,14 @@ export default function EditTournamentPage({ params }: Props) {
         format: form.get('format') || null,
       }),
     })
+    const data = await res.json()
     setSaving(false)
-    router.refresh()
+    if (!res.ok) {
+      setSaveResult(`✗ Error: ${data.error}`)
+    } else {
+      setTournament(data)
+      setSaveResult('✓ Saved')
+    }
   }
 
   if (!tournament) return <p style={{ color: 'var(--text-muted)' }}>Loading...</p>
@@ -289,15 +338,20 @@ export default function EditTournamentPage({ params }: Props) {
                     </div>
 
                     <div className="flex gap-1 shrink-0">
-                      {!hasAnalysis && (
-                        <Link href={`/admin/matches/${m.id}/analysis`} className="text-xs px-2 py-1 rounded" style={{ background: 'rgba(232,77,28,0.15)', color: 'var(--accent)' }}>
-                          Write
-                        </Link>
-                      )}
-                      {hasAnalysis && !hasResult && (
-                        <Link href={`/admin/matches/${m.id}/result`} className="text-xs px-2 py-1 rounded" style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}>
-                          Result
-                        </Link>
+                      <Link href={`/admin/matches/${m.id}/analysis`} className="text-xs px-2 py-1 rounded" style={{ background: 'rgba(232,77,28,0.15)', color: 'var(--accent)' }}>
+                        {hasAnalysis ? 'Edit' : 'Write'}
+                      </Link>
+                      <Link href={`/admin/matches/${m.id}/result`} className="text-xs px-2 py-1 rounded" style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}>
+                        Result
+                      </Link>
+                      {hasResult && (
+                        <button
+                          onClick={() => clearResult(m.id)}
+                          className="text-xs px-2 py-1 rounded"
+                          style={{ background: 'rgba(239,68,68,0.08)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}
+                        >
+                          Clear result
+                        </button>
                       )}
                       <button
                         onClick={() => togglePublish(m.id, m.is_published)}
@@ -305,6 +359,13 @@ export default function EditTournamentPage({ params }: Props) {
                         style={{ background: m.is_published ? 'rgba(34,197,94,0.1)' : 'var(--surface-2)', color: m.is_published ? 'var(--correct)' : 'var(--text-muted)' }}
                       >
                         {m.is_published ? 'Published' : 'Publish'}
+                      </button>
+                      <button
+                        onClick={() => deleteMatch(m.id)}
+                        className="text-xs px-2 py-1 rounded"
+                        style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}
+                      >
+                        Del
                       </button>
                     </div>
                   </div>
@@ -318,7 +379,18 @@ export default function EditTournamentPage({ params }: Props) {
       {/* ── Tournament Settings ── */}
       <div className="rounded-lg p-5" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
         <h2 className="font-semibold mb-4">Tournament Settings</h2>
-        <form onSubmit={handleSaveSettings} className="grid gap-4">
+        <form key={tournament.name} onSubmit={handleSaveSettings} className="grid gap-4">
+          <Field label="Tournament name">
+            <input name="name" type="text" defaultValue={tournament.name} className={inputClass} />
+          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Start date">
+              <input name="start_date" type="date" defaultValue={tournament.start_date ?? ''} className={inputClass} />
+            </Field>
+            <Field label="End date">
+              <input name="end_date" type="date" defaultValue={tournament.end_date ?? ''} className={inputClass} />
+            </Field>
+          </div>
           <Field label="Overview text">
             <textarea name="overview" rows={3} defaultValue={tournament.overview ?? ''} className={inputClass} />
           </Field>
@@ -341,10 +413,63 @@ export default function EditTournamentPage({ params }: Props) {
             <input name="is_published" type="checkbox" defaultChecked={tournament.is_published} className="w-4 h-4" />
             <span>Published</span>
           </label>
-          <button type="submit" disabled={saving} className="px-4 py-2 rounded font-semibold text-sm w-fit disabled:opacity-50" style={{ background: 'var(--accent)', color: '#fff' }}>
-            {saving ? 'Saving...' : 'Save Settings'}
-          </button>
+          <div className="flex items-center gap-3">
+            <button type="submit" disabled={saving} className="px-4 py-2 rounded font-semibold text-sm w-fit disabled:opacity-50" style={{ background: 'var(--accent)', color: '#fff' }}>
+              {saving ? 'Saving...' : 'Save Settings'}
+            </button>
+            {saveResult && (
+              <span className="text-sm font-medium" style={{ color: saveResult.startsWith('✓') ? 'var(--correct)' : 'var(--wrong)' }}>
+                {saveResult}
+              </span>
+            )}
+          </div>
         </form>
+      </div>
+
+      {/* ── Danger Zone ── */}
+      <div className="rounded-lg p-5 mt-6" style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.25)' }}>
+        <h2 className="font-semibold mb-4 text-red-400">Danger Zone</h2>
+        <div className="flex flex-col gap-3">
+          <div>
+            <p className="text-sm font-medium mb-1" style={{ color: 'var(--text)' }}>Clear all results</p>
+            <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>
+              Resets scores, winners and correct/wrong for every match in this tournament. The cron job will re-fill them from PandaScore once matches are played.
+            </p>
+            <button
+              onClick={async () => {
+                if (!confirm(`Clear all results for "${tournament.name}"?`)) return
+                const res = await fetch('/api/admin/results/clear', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ tournament_id: tournamentId }),
+                })
+                if (res.ok) {
+                  setMatches(prev => prev.map(m => ({ ...m, score_team_1: null, score_team_2: null, actual_winner_id: null, is_correct: null })))
+                  alert('Results cleared.')
+                }
+              }}
+              className="px-4 py-2 rounded font-semibold text-sm"
+              style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' }}
+            >
+              Clear results for &quot;{tournament.name}&quot;
+            </button>
+          </div>
+          <hr style={{ borderColor: 'rgba(239,68,68,0.2)' }} />
+          <div>
+            <p className="text-sm font-medium mb-1" style={{ color: 'var(--text)' }}>Delete tournament</p>
+            <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>
+              Permanently deletes this tournament and all its matches. Cannot be undone.
+            </p>
+            <button
+              onClick={handleDeleteTournament}
+              disabled={deleting}
+              className="px-4 py-2 rounded font-semibold text-sm disabled:opacity-50"
+              style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' }}
+            >
+              {deleting ? 'Deleting...' : `Delete "${tournament.name}"`}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )

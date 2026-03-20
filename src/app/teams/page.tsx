@@ -91,7 +91,7 @@ export default async function TeamsPage() {
                   <div className="w-10 h-10 rounded-xl border border-border/60 bg-secondary/80 flex items-center justify-center shrink-0 overflow-hidden p-1">
                     {team.logo_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={team.logo_url} alt={team.name} className="w-full h-full object-contain" />
+                      <img loading="lazy" src={team.logo_url} alt={team.name} className="w-full h-full object-contain" />
                     ) : (
                       <span className="font-display text-xs font-bold text-muted-foreground">
                         {team.name.slice(0, 2).toUpperCase()}
@@ -184,7 +184,7 @@ export default async function TeamsPage() {
                     <div className="w-7 h-7 rounded-lg border border-border/40 bg-secondary/60 flex items-center justify-center shrink-0">
                       {team.logo_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={team.logo_url} alt={team.name} className="w-full h-full object-contain p-0.5" />
+                        <img loading="lazy" src={team.logo_url} alt={team.name} className="w-full h-full object-contain p-0.5" />
                       ) : (
                         <span className="font-display text-xs font-bold text-muted-foreground">
                           {team.name.slice(0, 2).toUpperCase()}

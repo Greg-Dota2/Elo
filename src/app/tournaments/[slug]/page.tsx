@@ -9,7 +9,13 @@ import {
 } from '@/lib/queries'
 import TournamentContent from '@/components/TournamentContent'
 import type { MatchPrediction } from '@/lib/types'
-// StatsTable is now rendered inside TournamentContent
+import {
+  fetchUpcomingTier1Matches,
+  fetchRunningTier1Matches,
+  fetchTournamentStandings,
+} from '@/lib/pandascore'
+import GroupStageView, { type GroupData } from '@/components/GroupStageView'
+import { format, isSameDay } from 'date-fns'
 
 export const revalidate = 60
 
@@ -75,11 +81,60 @@ export default async function TournamentPage({ params }: Props) {
     notFound()
   }
 
-  const [predictions, stats, teamAccuracy] = await Promise.all([
+  const [predictions, stats, teamAccuracy, upcomingPS, runningPS] = await Promise.all([
     getPredictionsByTournament(tournament.id).catch(() => []),
     getTournamentStats(tournament.id).catch(() => null),
     getTeamAccuracy(tournament.id, 3).catch(() => []),
+    fetchUpcomingTier1Matches(50).catch(() => []),
+    fetchRunningTier1Matches(20).catch(() => []),
   ])
+
+  // Filter PandaScore matches to this tournament by matching slug
+  const psMatches = [...runningPS, ...upcomingPS].filter(m => {
+    const psSlug = `${m.league.name}-${m.serie.full_name}`
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '')
+    return psSlug === tournament.slug
+  })
+
+  // Group by PandaScore sub-tournament (group)
+  const scheduleByGroup = psMatches.reduce<Record<string, typeof psMatches>>((acc, m) => {
+    const key = String(m.tournament.id)
+    if (!acc[key]) acc[key] = []
+    acc[key].push(m)
+    return acc
+  }, {})
+
+  // Build group stage data: fetch standings per sub-tournament, fall back to teams from matches
+  const groupsData: GroupData[] = await Promise.all(
+    Object.entries(scheduleByGroup).map(async ([subId, matches]) => {
+      const sub = matches[0].tournament
+      const standings = await fetchTournamentStandings(Number(subId)).catch(() => [])
+
+      // If no standings yet, derive team list from match opponents
+      const derivedStandings = standings.length > 1 ? standings : (() => {
+        const seen = new Map<number, typeof standings[0]['team']>()
+        for (const m of matches) {
+          for (const opp of m.opponents) {
+            if (!seen.has(opp.opponent.id)) {
+              seen.set(opp.opponent.id, opp.opponent)
+            }
+          }
+        }
+        return Array.from(seen.values()).map((team, i) => ({
+          rank: i + 1,
+          team,
+          wins: 0,
+          draws: 0,
+          losses: 0,
+          total: 0,
+        }))
+      })()
+
+      return { id: Number(subId), name: sub.name, standings: derivedStandings, matches }
+    })
+  ).then(groups => groups.filter(g => g.standings.length > 1))
 
   const stages = groupByStage(predictions)
 
@@ -201,6 +256,82 @@ export default async function TournamentPage({ params }: Props) {
           <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
             {tournament.format}
           </p>
+        </div>
+      )}
+
+      {/* ── Group Stage ── */}
+      <GroupStageView groups={groupsData} />
+
+      {/* ── Upcoming Schedule (PandaScore) ── */}
+      {Object.keys(scheduleByGroup).length > 0 && (
+        <div className="mb-6">
+          <p className="section-label mb-4">{runningPS.length > 0 ? 'Live & Upcoming Matches' : 'Upcoming Matches'}</p>
+          <div className="grid gap-4">
+            {Object.entries(scheduleByGroup).map(([, matches], blockIdx) => {
+              const t = matches[0].tournament
+              const league = matches[0].league
+              const dates = matches.map(m => new Date(m.scheduled_at ?? m.begin_at ?? ''))
+              const minDate = new Date(Math.min(...dates.map(d => d.getTime())))
+              const maxDate = new Date(Math.max(...dates.map(d => d.getTime())))
+              const dateRange = isSameDay(minDate, maxDate)
+                ? format(minDate, 'MMM d')
+                : `${format(minDate, 'MMM d')} – ${format(maxDate, 'MMM d')}`
+              return (
+                <div key={t.id} className="rounded-2xl overflow-hidden" style={{ background: 'hsl(var(--card) / 0.6)', border: '1px solid hsl(var(--border) / 0.6)', animationDelay: `${blockIdx * 0.07}s` }}>
+                  <div className="px-5 py-3 flex items-center gap-3" style={{ borderBottom: '1px solid hsl(var(--border) / 0.5)' }}>
+                    {league.image_url && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img loading="lazy" src={league.image_url} alt={league.name} className="w-5 h-5 object-contain shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold tracking-widest uppercase" style={{ color: 'hsl(var(--primary))' }}>{league.name}</p>
+                      <p className="text-sm font-bold text-foreground truncate">{t.name}</p>
+                    </div>
+                    <span className="text-xs shrink-0 tabular-nums text-muted-foreground">{dateRange}</span>
+                  </div>
+                  {(() => {
+                    // Group matches by day
+                    const byDay = new Map<string, typeof matches>()
+                    for (const m of matches) {
+                      const day = m.scheduled_at ? format(new Date(m.scheduled_at), 'MMM d') : 'TBD'
+                      if (!byDay.has(day)) byDay.set(day, [])
+                      byDay.get(day)!.push(m)
+                    }
+                    return Array.from(byDay.entries()).map(([day, dayMatches]) => (
+                      <div key={day}>
+                        {/* Day header */}
+                        <div className="px-5 py-2 text-xs font-bold uppercase tracking-widest" style={{ background: 'hsl(var(--secondary) / 0.35)', borderBottom: '1px solid hsl(var(--border) / 0.4)', color: 'hsl(var(--primary))' }}>
+                          {day}
+                        </div>
+                        {dayMatches.map((m, i) => {
+                          const teamA = m.opponents[0]?.opponent
+                          const teamB = m.opponents[1]?.opponent
+                          const time = m.scheduled_at ? format(new Date(m.scheduled_at), 'HH:mm') : '–'
+                          return (
+                            <div key={m.id} className="px-5 py-2.5 flex items-center gap-3 text-sm" style={{ borderBottom: i < dayMatches.length - 1 ? '1px solid hsl(var(--border) / 0.4)' : 'none', background: i % 2 !== 0 ? 'hsl(var(--secondary) / 0.2)' : 'transparent' }}>
+                              <span className="w-12 text-xs shrink-0 tabular-nums text-muted-foreground">{time}</span>
+                              <div className="flex items-center gap-1.5 flex-1 justify-end min-w-0">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                {teamA?.image_url && <img loading="lazy" src={teamA.image_url} alt={teamA.name} className="w-4 h-4 object-contain shrink-0" />}
+                                <span className="font-semibold truncate text-foreground">{teamA?.name ?? 'TBD'}</span>
+                              </div>
+                              <span className="text-xs font-black px-2 shrink-0 text-muted-foreground/40">VS</span>
+                              <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                {teamB?.image_url && <img loading="lazy" src={teamB.image_url} alt={teamB.name} className="w-4 h-4 object-contain shrink-0" />}
+                                <span className="font-semibold truncate text-foreground">{teamB?.name ?? 'TBD'}</span>
+                              </div>
+                              <span className="text-xs shrink-0 px-2 py-0.5 rounded" style={{ background: 'hsl(var(--secondary))', color: 'hsl(var(--muted-foreground))' }}>BO{m.number_of_games}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    ))
+                  })()}
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
 

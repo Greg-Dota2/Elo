@@ -3,6 +3,7 @@ import { getAllTournamentsAdmin } from '@/lib/queries'
 import RecalcEloButton from './RecalcEloButton'
 import SeedEloButton from './SeedEloButton'
 import SyncScheduleButton from './SyncScheduleButton'
+import SyncResultsButton from './SyncResultsButton'
 
 export default async function AdminPage() {
   let tournaments: Awaited<ReturnType<typeof getAllTournamentsAdmin>> = []
@@ -55,6 +56,7 @@ export default async function AdminPage() {
         <RecalcEloButton />
         <SeedEloButton />
         <SyncScheduleButton />
+        <SyncResultsButton />
       </div>
 
       <h2 className="text-sm font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-muted)' }}>

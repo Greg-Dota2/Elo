@@ -15,6 +15,7 @@ export default async function RankingsPage() {
     .from('teams')
     .select('id, name, region, logo_url, current_elo, slug')
     .eq('is_active', true)
+    .not('current_elo', 'is', null)
     .order('current_elo', { ascending: false })
 
   const topElo = teams?.[0]?.current_elo ?? 1500
@@ -27,7 +28,7 @@ export default async function RankingsPage() {
         <p className="section-label mb-2">Dota 2 Tier 1</p>
         <h1 className="text-3xl font-black tracking-tight mb-1">ELO Rankings</h1>
         <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-          Base 1500 · updated after every series result
+          Updated after every series result
         </p>
       </div>
 

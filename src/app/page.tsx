@@ -1,11 +1,7 @@
 import { getTournaments, getTournamentStats, getPredictionsByTournament } from '@/lib/queries'
-import { fetchUpcomingTier1Matches, fetchRecentTier1Matches, PSMatch } from '@/lib/pandascore'
 import MatchCard from '@/components/MatchCard'
 import TournamentCard from '@/components/TournamentCard'
-import LatestResults from '@/components/LatestResults'
 import Link from 'next/link'
-import { format, isSameDay, isFuture, parseISO } from 'date-fns'
-import { TIER1_TOURNAMENTS } from '@/lib/tier1tournaments'
 
 export const revalidate = 60
 
@@ -26,28 +22,7 @@ export default async function HomePage() {
     ? await getTournamentStats(latest.id).catch(() => null)
     : null
 
-  const featuredMatches = latestMatches.slice(0, 12)
-
-  const [upcomingPS, recentPS] = await Promise.all([
-    fetchUpcomingTier1Matches(30).catch(() => [] as PSMatch[]),
-    fetchRecentTier1Matches(20).catch(() => [] as PSMatch[]),
-  ])
-
-  const upcomingByTournament = upcomingPS.reduce<Record<string, PSMatch[]>>((acc, m) => {
-    const key = String(m.tournament.id)
-    if (!acc[key]) acc[key] = []
-    acc[key].push(m)
-    return acc
-  }, {})
-
-  const recentByDate = recentPS.reduce<Record<string, PSMatch[]>>((acc, m) => {
-    const d = m.begin_at ?? m.scheduled_at
-    if (!d) return acc
-    const key = format(new Date(d), 'MMM d, yyyy').toUpperCase()
-    if (!acc[key]) acc[key] = []
-    acc[key].push(m)
-    return acc
-  }, {})
+  const featuredMatches = latestMatches
 
   return (
     <div className="fade-in-up">
@@ -65,17 +40,16 @@ export default async function HomePage() {
           {/* Left */}
           <div>
             <span className="section-kicker mb-5 inline-flex items-center gap-1.5">
-              ✦ Free · Tier 1 Only
+              ✦ Where the real Dota happens.
             </span>
 
             <h1 className="font-display text-5xl font-bold leading-[0.95] md:text-7xl lg:text-[5.2rem] mb-6">
-              Free Dota 2 picks with a{' '}
-              <span className="gradient-text">cleaner</span>,{' '}
-              faster match-day experience.
+              My Dota 2{' '}
+              <span className="gradient-text">Predictions.</span>
             </h1>
 
             <p className="text-lg leading-8 text-muted-foreground md:text-xl max-w-2xl mb-8">
-              Pre-match analysis and winner predictions for every Tier 1 match — written before the draft, tracked after. Every pick free, every time.
+              This is a space where I put my predictions on upcoming matches. I predict based on my experience and the performance of Pro Teams — and I comment on every single one, with an aftermath added after each match.
             </p>
 
             <div className="flex flex-col gap-4 sm:flex-row mb-10">
@@ -84,23 +58,23 @@ export default async function HomePage() {
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full font-bold text-base transition-opacity hover:opacity-85"
                 style={{ background: 'hsl(var(--primary))', color: 'hsl(var(--background))' }}
               >
-                See today&apos;s board →
+                See the picks →
               </Link>
               <Link
-                href="/rankings"
+                href="/track-record"
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full font-bold text-base border transition-colors hover:border-primary/50 text-muted-foreground"
                 style={{ borderColor: 'hsl(var(--border))' }}
               >
-                View track record
+                Track record
               </Link>
             </div>
 
             {/* 3 principle cards */}
             <div className="grid gap-3 sm:grid-cols-3">
               {[
-                { icon: '🛡', title: 'Always free', text: 'No locked cards, no premium copy, no dead-end clicks.' },
-                { icon: '⚡', title: 'Fast to scan', text: 'The whole slate is organised for quick reads before match start.' },
-                { icon: '🕐', title: 'Built for match day', text: 'Clear timing, confidence, and picks on desktop and mobile.' },
+                { icon: '🛡', title: 'Always free', text: 'No paywalls, no accounts, nothing to unlock. Just open the site and read.' },
+                { icon: '✍️', title: 'Before the draft', text: 'I commit before the heroes are even picked. No backdating, no excuses.' },
+                { icon: '📊', title: 'Tracked publicly', text: 'Every correct and every wrong call is on display. I have nowhere to hide.' },
               ].map(p => (
                 <div key={p.title} className="panel-shell p-4">
                   <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl" style={{ background: 'hsl(var(--secondary))' }}>
@@ -122,7 +96,7 @@ export default async function HomePage() {
               {latest?.banner_url && (
                 <div className="relative -mx-5 md:-mx-7 -mt-5 md:-mt-7 mb-5 overflow-hidden rounded-t-[inherit]" style={{ maxHeight: 120 }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={latest.banner_url} alt={latest.name} className="w-full object-cover object-center" style={{ maxHeight: 120 }} />
+                  <img loading="lazy" src={latest.banner_url} alt={latest.name} className="w-full object-cover object-center" style={{ maxHeight: 120 }} />
                   <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 40%, hsl(var(--card) / 0.85) 100%)' }} />
                 </div>
               )}
@@ -133,7 +107,15 @@ export default async function HomePage() {
                   <span className="section-kicker mb-3 inline-flex items-center gap-1.5">
                     ● Latest picks
                   </span>
-                  <h2 className="font-display text-3xl font-bold md:text-4xl">{latest?.name ?? 'Recent picks'}</h2>
+                  <div className="flex items-center gap-3">
+                    {latest?.logo_url && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img loading="lazy" src={latest.logo_url} alt={latest.name} className="w-8 h-8 object-contain shrink-0 rounded" />
+                    )}
+                    <Link href={`/tournaments/${latest?.slug}`} className="font-display text-3xl font-bold md:text-4xl hover:text-primary transition-colors">
+                      {latest?.name ?? 'Recent picks'}
+                    </Link>
+                  </div>
                 </div>
                 {latestStats && latestStats.accuracy_pct !== null && (
                   <span className="text-sm font-semibold px-3 py-1.5 rounded-full shrink-0" style={{ background: 'hsl(var(--success) / 0.12)', color: 'hsl(var(--success))' }}>
@@ -151,53 +133,49 @@ export default async function HomePage() {
                   return (
                     <div
                       key={m.id}
-                      className="flex items-center justify-between gap-4 rounded-[1.4rem] border px-4 py-4"
+                      className="rounded-[1.4rem] border px-5 py-5"
                       style={{ borderColor: 'hsl(var(--border) / 0.7)', background: 'hsl(var(--secondary) / 0.55)' }}
                     >
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {/* Team 1 */}
-                          <div className="flex items-center gap-1.5">
-                            {t1?.logo_url && (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img src={t1.logo_url} alt={t1.name} className="w-5 h-5 object-contain shrink-0" />
-                            )}
-                            <span className="font-display font-semibold text-foreground text-sm">
-                              {t1?.slug ? <Link href={`/teams/${t1.slug}`} className="hover:text-primary transition-colors">{t1?.name}</Link> : t1?.name}
-                            </span>
-                          </div>
-                          <span className="text-muted-foreground font-normal text-xs">vs</span>
-                          {/* Team 2 */}
-                          <div className="flex items-center gap-1.5">
-                            {t2?.logo_url && (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img src={t2.logo_url} alt={t2.name} className="w-5 h-5 object-contain shrink-0" />
-                            )}
-                            <span className="font-display font-semibold text-foreground text-sm">
-                              {t2?.slug ? <Link href={`/teams/${t2.slug}`} className="hover:text-primary transition-colors">{t2?.name}</Link> : t2?.name}
-                            </span>
-                          </div>
-                        </div>
-                        {m.pre_analysis && (
-                          <p className="mt-1 text-xs text-muted-foreground line-clamp-1">{m.pre_analysis}</p>
-                        )}
-                      </div>
-                      {pick && (
-                        <div
-                          className="rounded-full border px-2.5 py-1.5 flex items-center gap-1.5 shrink-0"
-                          style={{
-                            borderColor: 'hsl(var(--border) / 0.7)',
-                            background: 'hsl(var(--background) / 0.55)',
-                            color: m.is_correct === false ? 'hsl(var(--destructive))' : 'hsl(var(--muted-foreground))',
-                          }}
-                        >
-                          {pick.logo_url && (
+                      {/* Teams row */}
+                      <div className="flex items-center gap-3 flex-wrap mb-4">
+                        <div className="flex items-center gap-2.5">
+                          {t1?.logo_url && (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={pick.logo_url} alt={pick.name} className="w-4 h-4 object-contain" />
+                            <img loading="lazy" src={t1.logo_url} alt={t1.name} className="w-8 h-8 object-contain shrink-0" />
                           )}
-                          <span className="text-xs font-semibold uppercase tracking-[0.14em]">
-                            {pick.short_name ?? pick.name}
+                          <span className="font-display font-bold text-foreground text-xl">
+                            {t1?.slug ? <Link href={`/teams/${t1.slug}`} className="hover:text-primary transition-colors">{t1?.name}</Link> : t1?.name}
                           </span>
+                        </div>
+                        <span className="text-muted-foreground font-normal text-base">vs</span>
+                        <div className="flex items-center gap-2.5">
+                          {t2?.logo_url && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img loading="lazy" src={t2.logo_url} alt={t2.name} className="w-8 h-8 object-contain shrink-0" />
+                          )}
+                          <span className="font-display font-bold text-foreground text-xl">
+                            {t2?.slug ? <Link href={`/teams/${t2.slug}`} className="hover:text-primary transition-colors">{t2?.name}</Link> : t2?.name}
+                          </span>
+                        </div>
+                      </div>
+                      {/* Analysis */}
+                      {m.pre_analysis && (
+                        <p className="text-base text-muted-foreground line-clamp-2 mb-4 leading-7">{m.pre_analysis}</p>
+                      )}
+                      {/* Pick */}
+                      {(pick || m.predicted_draw) && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground/60 uppercase tracking-widest">Pick</span>
+                          <div
+                            className="rounded-full border px-3 py-1.5 flex items-center gap-2"
+                            style={{ borderColor: 'hsl(var(--border) / 0.7)', background: 'hsl(var(--background) / 0.55)', color: 'hsl(var(--muted-foreground))' }}
+                          >
+                            {pick?.logo_url && (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img loading="lazy" src={pick.logo_url} alt={pick.name} className="w-5 h-5 object-contain" />
+                            )}
+                            <span className="text-base font-semibold">{pick ? (pick.short_name ?? pick.name) : 'Draw (1–1)'}</span>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -207,9 +185,9 @@ export default async function HomePage() {
 
               {/* Footer blurb */}
               <div className="rounded-[1.6rem] border p-5" style={{ borderColor: 'hsl(var(--border) / 0.7)', background: 'hsl(var(--background) / 0.45)' }}>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground mb-2">Why it feels better</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground mb-2">What you get here</p>
                 <p className="font-display text-xl leading-tight text-foreground">
-                  No locked picks. No clutter. Just fast reads with stronger visual rhythm.
+                  One pick per match. My honest read, written before the draft. No fluff, no hedging.
                 </p>
               </div>
             </div>
@@ -217,122 +195,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── Upcoming Tournaments (PandaScore or fallback) ── */}
-      {Object.keys(upcomingByTournament).length > 0 && (
-        <div className="mb-10">
-          <p className="section-label mb-4">Upcoming Matches</p>
-          <div className="grid gap-4">
-            {Object.entries(upcomingByTournament).slice(0, 3).map(([, matches], blockIdx) => {
-              const t = matches[0].tournament
-              const league = matches[0].league
-              const dates = matches.map(m => new Date(m.scheduled_at ?? m.begin_at ?? ''))
-              const minDate = new Date(Math.min(...dates.map(d => d.getTime())))
-              const maxDate = new Date(Math.max(...dates.map(d => d.getTime())))
-              const dateRange = isSameDay(minDate, maxDate)
-                ? format(minDate, 'MMM d')
-                : `${format(minDate, 'MMM d')} – ${format(maxDate, 'MMM d')}`
-
-              return (
-                <div
-                  key={t.id}
-                  className="rounded-2xl overflow-hidden fade-in-up"
-                  style={{
-                    background: 'hsl(var(--card) / 0.6)',
-                    border: '1px solid hsl(var(--border) / 0.6)',
-                    animationDelay: `${blockIdx * 0.07}s`,
-                  }}
-                >
-                  {/* Tournament header */}
-                  <div className="px-5 py-3 flex items-center gap-3" style={{ borderBottom: '1px solid hsl(var(--border) / 0.5)' }}>
-                    {league.image_url && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={league.image_url} alt={league.name} className="w-5 h-5 object-contain shrink-0" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold tracking-widest uppercase" style={{ color: 'hsl(var(--primary))' }}>{league.name}</p>
-                      <p className="text-sm font-bold text-foreground truncate">{t.name}</p>
-                    </div>
-                    <span className="text-xs shrink-0 tabular-nums text-muted-foreground">{dateRange}</span>
-                  </div>
-
-                  {/* Match rows */}
-                  {matches.slice(0, 6).map((m, i) => {
-                    const teamA = m.opponents[0]?.opponent
-                    const teamB = m.opponents[1]?.opponent
-                    const time = m.scheduled_at ? format(new Date(m.scheduled_at), 'HH:mm') : '–'
-                    const dateStr = m.scheduled_at ? format(new Date(m.scheduled_at), 'MMM d') : ''
-                    return (
-                      <div
-                        key={m.id}
-                        className="px-5 py-2.5 flex items-center gap-3 text-sm"
-                        style={{
-                          borderBottom: i < Math.min(matches.length, 6) - 1 ? '1px solid hsl(var(--border) / 0.4)' : 'none',
-                          background: i % 2 !== 0 ? 'hsl(var(--secondary) / 0.2)' : 'transparent',
-                        }}
-                      >
-                        <span className="w-20 text-xs shrink-0 tabular-nums text-muted-foreground">{dateStr} {time}</span>
-                        <div className="flex items-center gap-1.5 flex-1 justify-end min-w-0">
-                          {teamA?.image_url && (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={teamA.image_url} alt={teamA.name} className="w-4 h-4 object-contain shrink-0" />
-                          )}
-                          <span className="font-semibold truncate text-foreground">{teamA?.name ?? 'TBD'}</span>
-                        </div>
-                        <span className="text-xs font-black px-2 shrink-0 text-muted-foreground/40">VS</span>
-                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                          {teamB?.image_url && (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={teamB.image_url} alt={teamB.name} className="w-4 h-4 object-contain shrink-0" />
-                          )}
-                          <span className="font-semibold truncate text-foreground">{teamB?.name ?? 'TBD'}</span>
-                        </div>
-                        <span className="text-xs shrink-0 px-2 py-0.5 rounded" style={{ background: 'hsl(var(--secondary))', color: 'hsl(var(--muted-foreground))' }}>
-                          BO{m.number_of_games}
-                        </span>
-                      </div>
-                    )
-                  })}
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* ── Fallback: upcoming from our list when PandaScore has nothing ── */}
-      {Object.keys(upcomingByTournament).length === 0 && (() => {
-        const upcoming = TIER1_TOURNAMENTS
-          .filter(t => isFuture(parseISO(t.start_date)))
-          .slice(0, 3)
-        if (!upcoming.length) return null
-        return (
-          <div className="mb-10">
-            <p className="section-label mb-4">Upcoming Tournaments</p>
-            <div className="grid gap-3">
-              {upcoming.map(t => (
-                <div
-                  key={t.slug}
-                  className="rounded-2xl px-5 py-4 flex items-center gap-4"
-                  style={{ background: 'hsl(var(--card) / 0.6)', border: '1px solid hsl(var(--border) / 0.6)' }}
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="font-display font-bold text-foreground truncate">{t.name}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {format(parseISO(t.start_date), 'MMM d')} – {format(parseISO(t.end_date), 'MMM d, yyyy')}
-                    </p>
-                  </div>
-                  <span
-                    className="text-xs px-2.5 py-1 rounded-full font-semibold shrink-0"
-                    style={{ background: 'hsl(var(--primary) / 0.12)', color: 'hsl(var(--primary))' }}
-                  >
-                    Coming Soon
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )
-      })()}
 
       {/* ── Latest tournament predictions ── */}
       {tournaments.length > 0 && (
@@ -344,19 +206,19 @@ export default async function HomePage() {
             <div className="mb-5">
               {/* Banner */}
               {latest.banner_url && (
-                <div className="relative rounded-2xl overflow-hidden mb-4" style={{ maxHeight: 60 }}>
+                <div className="relative rounded-2xl overflow-hidden mb-4" style={{ maxHeight: 180 }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={latest.banner_url} alt={latest.name} className="w-full object-cover object-center" style={{ maxHeight: 60 }} />
-                  <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 30%, hsl(var(--background) / 0.75) 100%)' }} />
-                  {/* Overlay text */}
-                  <div className="absolute bottom-0 left-0 right-0 px-5 py-3 flex items-end justify-between gap-4">
+                  <img loading="lazy" src={latest.banner_url} alt={latest.name} className="w-full object-cover object-center" style={{ maxHeight: 180 }} />
+                  <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 20%, hsl(var(--background) / 0.85) 100%)' }} />
+                  {/* Overlay text — centered */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
                     <Link
                       href={`/tournaments/${latest.slug}`}
-                      className="font-bold text-lg text-white hover:opacity-80 transition-opacity drop-shadow"
+                      className="font-display font-black text-4xl text-white hover:opacity-80 transition-opacity drop-shadow text-center"
                     >
                       {latest.name}
                     </Link>
-                    <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex items-center gap-3">
                       {latestStats && latestStats.total_predictions > 0 && (
                         <span className="text-sm px-2.5 py-1 rounded-lg font-semibold" style={{ background: 'var(--correct-dim)', color: 'var(--correct)', border: '1px solid var(--correct-border)' }}>
                           {latestStats.accuracy_pct}% accuracy
@@ -372,18 +234,23 @@ export default async function HomePage() {
 
               {/* Fallback: no banner */}
               {!latest.banner_url && (
-                <div className="flex items-center justify-between mb-5">
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <Link href={`/tournaments/${latest.slug}`} className="font-bold text-lg hover:text-white transition-colors" style={{ color: 'var(--text)' }}>
+                <div className="rounded-2xl px-7 py-6 mb-5 flex items-center justify-between gap-4" style={{ background: 'hsl(var(--card) / 0.6)', border: '1px solid hsl(var(--border) / 0.6)' }}>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: 'hsl(var(--primary))' }}>Latest Tournament</p>
+                    <Link href={`/tournaments/${latest.slug}`} className="font-display font-bold text-3xl hover:opacity-80 transition-opacity" style={{ color: 'var(--text)' }}>
                       {latest.name}
                     </Link>
                     {latestStats && latestStats.total_predictions > 0 && (
-                      <span className="text-sm px-2.5 py-1 rounded-lg font-semibold" style={{ background: 'var(--correct-dim)', color: 'var(--correct)', border: '1px solid var(--correct-border)' }}>
-                        {latestStats.accuracy_pct}% accuracy
-                      </span>
+                      <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+                        {latestStats.total_predictions} predictions · <span style={{ color: 'var(--correct)' }}>{latestStats.accuracy_pct}% accuracy</span>
+                      </p>
                     )}
                   </div>
-                  <Link href={`/tournaments/${latest.slug}`} className="text-sm font-medium transition-colors hover:text-white shrink-0" style={{ color: 'var(--accent)' }}>
+                  <Link
+                    href={`/tournaments/${latest.slug}`}
+                    className="shrink-0 px-5 py-2.5 rounded-full font-semibold text-sm transition-opacity hover:opacity-80"
+                    style={{ background: 'hsl(var(--primary))', color: 'hsl(var(--background))' }}
+                  >
                     View all →
                   </Link>
                 </div>
@@ -428,13 +295,6 @@ export default async function HomePage() {
         </>
       )}
 
-      {/* ── Latest Results (PandaScore) ── */}
-      {recentPS.length > 0 && (
-        <div>
-          <p className="section-label mb-4">Latest Results</p>
-          <LatestResults matchesByDate={recentByDate} />
-        </div>
-      )}
     </div>
   )
 }

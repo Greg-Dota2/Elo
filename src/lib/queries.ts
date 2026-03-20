@@ -8,9 +8,14 @@ export async function getTournaments() {
     .from('tournaments')
     .select('*')
     .eq('is_published', true)
-    .order('start_date', { ascending: false })
   if (error) throw error
-  return data
+  // Sort descending by start_date, nulls last
+  return (data ?? []).sort((a, b) => {
+    if (!a.start_date && !b.start_date) return 0
+    if (!a.start_date) return 1
+    if (!b.start_date) return -1
+    return a.start_date > b.start_date ? -1 : 1
+  })
 }
 
 export async function getTournamentBySlug(slug: string) {
@@ -51,8 +56,9 @@ export async function getPredictionsByTournament(
     )
     .eq('tournament_id', tournamentId)
     .eq('is_published', true)
-    .order('stage_id', { ascending: false })
-    .order('match_order', { ascending: true })
+    .order('match_date', { ascending: true })
+    .order('match_order', { ascending: true, nullsFirst: false })
+    .order('pandascore_match_id', { ascending: true, nullsFirst: false })
   if (error) throw error
   return data as MatchPrediction[]
 }

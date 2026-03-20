@@ -36,7 +36,7 @@ export default async function AdminTeamsPage() {
               <div className="w-8 h-8 rounded-lg border flex items-center justify-center shrink-0 overflow-hidden" style={{ borderColor: 'var(--border)', background: 'var(--surface-2)' }}>
                 {team.logo_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={team.logo_url} alt={team.name} className="w-full h-full object-contain p-0.5" />
+                  <img loading="lazy" src={team.logo_url} alt={team.name} className="w-full h-full object-contain p-0.5" />
                 ) : (
                   <span className="text-xs font-bold" style={{ color: 'var(--text-muted)' }}>
                     {team.name.slice(0, 2).toUpperCase()}
