@@ -102,13 +102,13 @@ export default function MatchCard({ match, tournament }: Props) {
           </div>
 
           {/* Big match title */}
-          <h3 className="font-display text-xl font-bold md:text-2xl leading-tight text-center">
+          <p className="font-display text-xl font-bold md:text-2xl leading-tight text-center">
             <TeamName team={team_1} className={hasResult && t2Won ? 'text-muted-foreground' : 'text-foreground'} />
             {' '}
             <span className="text-muted-foreground">vs</span>
             {' '}
             <TeamName team={team_2} className={hasResult && t1Won ? 'text-muted-foreground' : 'text-foreground'} />
-          </h3>
+          </p>
         </div>
 
         {/* ── ELO win probability bar ── */}

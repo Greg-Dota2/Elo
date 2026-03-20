@@ -62,7 +62,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en" className={`dark ${manrope.variable} ${oxanium.variable}`}>
-      <body>
+      <body suppressHydrationWarning>
         <Navbar isAdmin={isAdmin} />
         <main className="max-w-7xl mx-auto px-4 py-8">{children}</main>
         <CookieBanner />

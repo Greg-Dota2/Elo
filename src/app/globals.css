@@ -59,9 +59,9 @@
     --correct:        hsl(154, 71%, 49%);
     --correct-dim:    hsl(154, 71%, 49%, 0.09);
     --correct-border: hsl(154, 71%, 49%, 0.22);
-    --wrong:        hsl(0, 84%, 60%);
-    --wrong-dim:    hsl(0, 84%, 60%, 0.09);
-    --wrong-border: hsl(0, 84%, 60%, 0.22);
+    --wrong:        hsl(0, 90%, 68%);
+    --wrong-dim:    hsl(0, 90%, 68%, 0.09);
+    --wrong-border: hsl(0, 90%, 68%, 0.22);
     --amber:        hsl(35, 94%, 64%);
     --amber-dim:    hsl(35, 94%, 64%, 0.1);
     --amber-border: hsl(35, 94%, 64%, 0.25);
