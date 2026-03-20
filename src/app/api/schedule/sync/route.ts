@@ -49,7 +49,7 @@ export async function POST() {
     // Deduplicate by pandascore_match_id
     const { data: existing } = await supabase
       .from('match_predictions')
-      .select('id')
+      .select('id, twitch_url, match_time')
       .eq('pandascore_match_id', match.id)
       .maybeSingle()
 
@@ -65,13 +65,11 @@ export async function POST() {
     const matchTimeStr = matchDate ? matchDate.split('T')[1]?.slice(0, 5) : null
 
     if (existing) {
-      // Update twitch_url if PandaScore now has one and we don't
-      if (stream) {
-        await supabase
-          .from('match_predictions')
-          .update({ twitch_url: stream })
-          .eq('id', existing.id)
-          .is('twitch_url', null)
+      const updates: Record<string, string> = {}
+      if (stream && !existing.twitch_url) updates.twitch_url = stream
+      if (matchTimeStr && !existing.match_time) updates.match_time = matchTimeStr
+      if (Object.keys(updates).length) {
+        await supabase.from('match_predictions').update(updates).eq('id', existing.id)
       }
       skipped++
       continue

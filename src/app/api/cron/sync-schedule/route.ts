@@ -42,26 +42,29 @@ export async function GET(req: NextRequest) {
       match.streams_list[0]?.raw_url ??
       null
 
+    const matchDate = match.begin_at ?? match.scheduled_at
+    const matchDateStr = matchDate ? matchDate.split('T')[0] : null
+    const matchTimeStr = matchDate ? matchDate.split('T')[1]?.slice(0, 5) : null
+
     const { data: existing } = await supabase
       .from('match_predictions')
-      .select('id, twitch_url')
+      .select('id, twitch_url, match_time')
       .eq('pandascore_match_id', match.id)
       .maybeSingle()
 
     if (existing) {
-      if (stream && !existing.twitch_url) {
-        await supabase.from('match_predictions').update({ twitch_url: stream }).eq('id', existing.id)
-        log.push(`🔗 Updated Twitch URL for match ${match.id}`)
+      const updates: Record<string, string> = {}
+      if (stream && !existing.twitch_url) updates.twitch_url = stream
+      if (matchTimeStr && !existing.match_time) updates.match_time = matchTimeStr
+      if (Object.keys(updates).length) {
+        await supabase.from('match_predictions').update(updates).eq('id', existing.id)
+        log.push(`🔗 Updated ${Object.keys(updates).join(', ')} for match ${match.id}`)
         updated++
       } else {
         skipped++
       }
       continue
     }
-
-    const matchDate = match.begin_at ?? match.scheduled_at
-    const matchDateStr = matchDate ? matchDate.split('T')[0] : null
-    const matchTimeStr = matchDate ? matchDate.split('T')[1]?.slice(0, 5) : null
 
     const { error } = await supabase.from('match_predictions').insert({
       tournament_id: tournamentDbId,
