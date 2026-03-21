@@ -23,9 +23,6 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      // ── Blog listing ──────────────────────────────────────────────────────
-      { source: '/blog', destination: '/blog', permanent: true },
-
       // ── Teams ─────────────────────────────────────────────────────────────
       { source: '/mouz-esports',   destination: '/teams/mouz-esports',   permanent: true },
       { source: '/xtreme-gaming',  destination: '/teams/xtreme-gaming',  permanent: true },
