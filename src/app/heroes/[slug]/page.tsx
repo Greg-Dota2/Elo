@@ -45,7 +45,8 @@ export async function generateMetadata({
     const cfg = ATTR_CONFIG[hero.primary_attr]
     const title = `${hero.localized_name} — Dota 2 Hero Guide`
     const article = ['Agility', 'Intelligence'].includes(cfg.label) ? 'an' : 'a'
-    const description = `${hero.localized_name} is ${article} ${cfg.label} hero in Dota 2. ${hero.attack_type} attacker. Abilities, stats, and lore on Dota2ProTips.`
+    const roles = hero.roles.slice(0, 3).join(', ')
+    const description = `${hero.localized_name} is ${article} ${cfg.label} hero in Dota 2. ${hero.attack_type} ${roles}. Full abilities, stats, counters, and item builds on Dota2ProTips.`
     return {
       title,
       description,
