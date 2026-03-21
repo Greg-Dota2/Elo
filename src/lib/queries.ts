@@ -164,7 +164,7 @@ export async function getPlayersBySignatureHero(heroName: string): Promise<Playe
     .eq('is_published', true)
     .contains('signature_heroes', [heroName])
     .order('ign')
-  return (data ?? []) as Player[]
+  return (data ?? []) as unknown as Player[]
 }
 
 export async function getAllPlayersAdmin(): Promise<Player[]> {
