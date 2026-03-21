@@ -1,5 +1,10 @@
 import type { TournamentStats, TeamAccuracy } from '@/lib/types'
 import Image from 'next/image'
+import Link from 'next/link'
+
+function teamSlug(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+}
 
 interface Props {
   stats: TournamentStats
@@ -128,9 +133,9 @@ export default function StatsTable({ stats, teamAccuracy }: Props) {
                 {/* Name + bar */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-semibold truncate" style={{ color: 'var(--text)' }}>
+                    <Link href={`/teams/${teamSlug(row.team_name)}`} className="text-xs font-semibold truncate hover:text-primary transition-colors" style={{ color: 'var(--text)' }}>
                       {row.team_name}
-                    </span>
+                    </Link>
                     <span
                       className="text-xs font-bold tabular-nums ml-2 shrink-0"
                       style={{ color: 'var(--correct)' }}

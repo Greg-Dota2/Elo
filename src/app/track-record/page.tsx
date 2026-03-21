@@ -38,11 +38,12 @@ export default async function TrackRecordPage() {
       return tb > ta ? 1 : -1
     })
 
-  // Totals
+  // Totals — accuracy only counts resolved picks (correct + wrong), not pending ones
   const totalPredictions = rows.reduce((s, r) => s + r.total_predictions, 0)
   const totalCorrect = rows.reduce((s, r) => s + r.correct, 0)
   const totalWrong = rows.reduce((s, r) => s + r.wrong, 0)
-  const overallPct = totalPredictions > 0 ? Math.round((totalCorrect / totalPredictions) * 100) : 0
+  const totalResolved = totalCorrect + totalWrong
+  const overallPct = totalResolved > 0 ? Math.round((totalCorrect / totalResolved) * 100) : 0
 
   return (
     <div className="fade-in-up max-w-3xl mx-auto py-8">
@@ -85,7 +86,9 @@ export default async function TrackRecordPage() {
 
           {rows.map((row, i) => {
             const t = tournamentMap[row.tournament_id] ?? null
+            const resolved = row.correct + row.wrong
             const pct = row.accuracy_pct ?? 0
+            const pending = resolved === 0
             return (
               <div
                 key={row.tournament_id}
@@ -127,12 +130,18 @@ export default async function TrackRecordPage() {
 
                 {/* Accuracy */}
                 <div className="flex flex-col items-center gap-1">
-                  <span className="text-base font-black tabular-nums" style={{ fontFamily: 'var(--font-oxanium), sans-serif', color: pct >= 60 ? 'var(--correct)' : '#f59e0b' }}>
-                    {pct}%
-                  </span>
-                  <div className="w-14 h-1 rounded-full overflow-hidden" style={{ background: 'var(--surface-3)' }}>
-                    <div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct >= 60 ? 'var(--correct)' : '#f59e0b' }} />
-                  </div>
+                  {pending ? (
+                    <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--text-muted)' }}>—</span>
+                  ) : (
+                    <>
+                      <span className="text-base font-black tabular-nums" style={{ fontFamily: 'var(--font-oxanium), sans-serif', color: pct >= 60 ? 'var(--correct)' : '#f59e0b' }}>
+                        {pct}%
+                      </span>
+                      <div className="w-14 h-1 rounded-full overflow-hidden" style={{ background: 'var(--surface-3)' }}>
+                        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct >= 60 ? 'var(--correct)' : '#f59e0b' }} />
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             )

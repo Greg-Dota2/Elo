@@ -320,19 +320,24 @@ export default async function TournamentPage({ params }: Props) {
                           const teamA = m.opponents[0]?.opponent
                           const teamB = m.opponents[1]?.opponent
                           const time = m.scheduled_at ? format(new Date(m.scheduled_at), 'HH:mm') : '–'
+                          const psTeamSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
                           return (
                             <div key={m.id} className="px-5 py-2.5 flex items-center gap-3 text-sm" style={{ borderBottom: i < dayMatches.length - 1 ? '1px solid hsl(var(--border) / 0.4)' : 'none', background: i % 2 !== 0 ? 'hsl(var(--secondary) / 0.2)' : 'transparent' }}>
                               <span className="w-12 text-xs shrink-0 tabular-nums text-muted-foreground">{time}</span>
                               <div className="flex items-center gap-1.5 flex-1 justify-end min-w-0">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 {teamA?.image_url && <img loading="lazy" src={teamA.image_url} alt={teamA.name} className="w-4 h-4 object-contain shrink-0" />}
-                                <span className="font-semibold truncate text-foreground">{teamA?.name ?? 'TBD'}</span>
+                                {teamA ? (
+                                  <Link href={`/teams/${psTeamSlug(teamA.name)}`} className="font-semibold truncate text-foreground hover:text-primary transition-colors">{teamA.name}</Link>
+                                ) : <span className="font-semibold truncate text-foreground">TBD</span>}
                               </div>
                               <span className="text-xs font-black px-2 shrink-0 text-muted-foreground/40">VS</span>
                               <div className="flex items-center gap-1.5 flex-1 min-w-0">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 {teamB?.image_url && <img loading="lazy" src={teamB.image_url} alt={teamB.name} className="w-4 h-4 object-contain shrink-0" />}
-                                <span className="font-semibold truncate text-foreground">{teamB?.name ?? 'TBD'}</span>
+                                {teamB ? (
+                                  <Link href={`/teams/${psTeamSlug(teamB.name)}`} className="font-semibold truncate text-foreground hover:text-primary transition-colors">{teamB.name}</Link>
+                                ) : <span className="font-semibold truncate text-foreground">TBD</span>}
                               </div>
                               <span className="text-xs shrink-0 px-2 py-0.5 rounded" style={{ background: 'hsl(var(--secondary))', color: 'hsl(var(--muted-foreground))' }}>BO{m.number_of_games}</span>
                             </div>
