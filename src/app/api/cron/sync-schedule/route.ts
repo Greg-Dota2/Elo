@@ -114,7 +114,7 @@ export async function GET(req: NextRequest) {
       const byName = teamByName.get(o.name.toLowerCase())
       if (byName && !teamByPsId.has(o.id)) {
         teamByPsId.set(o.id, byName)
-        namePatchPromises.push(supabase.from('teams').update({ pandascore_team_id: o.id }).eq('id', byName))
+        namePatchPromises.push(supabase.from('teams').update({ pandascore_team_id: o.id }).eq('id', byName).then())
       }
     }
   }
