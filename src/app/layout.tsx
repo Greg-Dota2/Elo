@@ -67,6 +67,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" className={`dark ${manrope.variable} ${oxanium.variable}`}>
       <head>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-MZ7PBDBXH5" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-MZ7PBDBXH5');`,
+          }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
