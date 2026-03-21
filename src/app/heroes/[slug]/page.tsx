@@ -342,9 +342,9 @@ export default async function HeroPage({
           {/* Roles */}
           <div className="flex flex-wrap gap-1.5 mb-5">
             {hero.roles.map(role => (
-              <span key={role} className="text-xs text-muted-foreground border border-border/50 px-2.5 py-0.5 rounded-full">
+              <Link key={role} href={`/heroes?role=${encodeURIComponent(role)}`} className="text-xs text-muted-foreground border border-border/50 px-2.5 py-0.5 rounded-full hover:border-primary/40 hover:text-primary transition-colors">
                 {role}
-              </span>
+              </Link>
             ))}
           </div>
 

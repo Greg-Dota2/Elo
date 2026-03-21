@@ -30,17 +30,17 @@ const ATTR_TABS = [
 export default async function HeroesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ attr?: string }>
+  searchParams: Promise<{ attr?: string; role?: string }>
 }) {
-  const { attr = '' } = await searchParams
+  const { attr = '', role = '' } = await searchParams
   const activeAttr = VALID_ATTRS.has(attr) ? attr : ''
 
   let heroes: HeroData[] = []
   try { heroes = await fetchAllHeroes() } catch { /* api error */ }
 
-  const filtered = activeAttr
-    ? heroes.filter(h => h.primary_attr === activeAttr)
-    : heroes
+  const filtered = heroes
+    .filter(h => !activeAttr || h.primary_attr === activeAttr)
+    .filter(h => !role || h.roles.includes(role))
 
   return (
     <div className="fade-in-up">
@@ -49,7 +49,7 @@ export default async function HeroesPage({
         <p className="section-label mb-2">Game Knowledge</p>
         <h1 className="text-3xl font-black tracking-tight mb-1">Dota 2 Heroes</h1>
         <p className="text-sm text-muted-foreground">
-          {heroes.length} heroes · click any hero for abilities &amp; stats
+          {filtered.length}{filtered.length !== heroes.length ? ` of ${heroes.length}` : ''} heroes · click any hero for abilities &amp; stats
         </p>
       </div>
 
@@ -78,6 +78,19 @@ export default async function HeroesPage({
           )
         })}
       </div>
+
+      {/* Active role filter badge */}
+      {role && (
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-xs text-muted-foreground">Filtered by role:</span>
+          <Link
+            href={activeAttr ? `/heroes?attr=${activeAttr}` : '/heroes'}
+            className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border border-primary/40 text-primary bg-primary/10 hover:bg-primary/20 transition-colors"
+          >
+            {role} ×
+          </Link>
+        </div>
+      )}
 
       {/* Hero grid */}
       {filtered.length === 0 ? (
