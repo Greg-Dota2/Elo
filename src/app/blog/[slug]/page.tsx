@@ -71,8 +71,41 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     entities
   )
 
+  const SITE_URL = 'https://dota2protips.com'
+
   return (
     <div className="fade-in-up max-w-2xl mx-auto py-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([
+            {
+              '@context': 'https://schema.org',
+              '@type': 'BlogPosting',
+              headline: post.title,
+              description: post.excerpt ?? undefined,
+              image: post.cover_image_url ?? undefined,
+              datePublished: post.published_at ?? post.created_at,
+              dateModified: post.updated_at ?? post.published_at ?? post.created_at,
+              author: { '@type': 'Person', name: 'Greg Spencer', url: SITE_URL },
+              publisher: {
+                '@type': 'Organization',
+                name: 'Dota2ProTips',
+                logo: { '@type': 'ImageObject', url: `${SITE_URL}/1.png` },
+              },
+              url: `${SITE_URL}/blog/${slug}`,
+            },
+            {
+              '@context': 'https://schema.org',
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Blog', item: `${SITE_URL}/blog` },
+                { '@type': 'ListItem', position: 2, name: post.title, item: `${SITE_URL}/blog/${slug}` },
+              ],
+            },
+          ]),
+        }}
+      />
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 mb-6 text-xs" style={{ color: 'var(--text-muted)' }}>
         <Link href="/blog" className="hover:text-white transition-colors">Blog</Link>

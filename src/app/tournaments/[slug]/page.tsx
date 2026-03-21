@@ -140,6 +140,19 @@ export default async function TournamentPage({ params }: Props) {
 
   return (
     <div className="fade-in-up">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Tournaments', item: 'https://dota2protips.com/tournaments' },
+              { '@type': 'ListItem', position: 2, name: tournament.name, item: `https://dota2protips.com/tournaments/${slug}` },
+            ],
+          }),
+        }}
+      />
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 mb-6 text-xs" style={{ color: 'var(--text-muted)' }}>
         <Link

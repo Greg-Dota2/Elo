@@ -62,7 +62,7 @@ export default async function RankingsPage() {
                 return (
                   <Link
                     key={team.id}
-                    href={team.slug ? `/teams/${team.slug}` : '#'}
+                    href={team.slug ? `/teams/${team.slug}` : '/teams'}
                     className="rounded-2xl p-5 relative overflow-hidden fade-in-up block hover:brightness-110 transition-all"
                     style={{
                       background: MEDAL_BG[i],
@@ -156,7 +156,7 @@ export default async function RankingsPage() {
                 return (
                   <Link
                     key={team.id}
-                    href={team.slug ? `/teams/${team.slug}` : '#'}
+                    href={team.slug ? `/teams/${team.slug}` : '/teams'}
                     className="flex items-center gap-4 px-4 py-3 relative overflow-hidden transition-colors duration-150 hover:bg-primary/5"
                     style={{
                       background: idx % 2 === 0 ? 'var(--surface)' : 'var(--surface-2)',

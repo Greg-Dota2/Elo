@@ -4,13 +4,18 @@ import Link from 'next/link'
 import {
   fetchAllHeroes,
   fetchHeroDetail,
+  fetchHeroMatchups,
   heroSlug,
   heroPortraitUrl,
   ATTR_CONFIG,
   decodeBehavior,
   formatLevelValues,
+  interpolateAbilityDesc,
   type ValveAbility,
+  type HeroData,
 } from '@/lib/heroes'
+import { getPlayersBySignatureHero } from '@/lib/queries'
+import type { Player } from '@/lib/types'
 import AbilityIcon from '@/components/AbilityIcon'
 
 export const revalidate = 86400
@@ -62,8 +67,8 @@ function AbilityCard({ ability }: { ability: ValveAbility }) {
 
   const badges: { label: string; className: string }[] = []
   if (ability.ability_is_innate) badges.push({ label: 'Innate', className: 'text-amber-400 bg-amber-400/10 border-amber-400/20' })
-  if (ability.ability_is_granted_by_scepter) badges.push({ label: 'Aghanim\'s Scepter', className: 'text-cyan-400 bg-cyan-400/10 border-cyan-400/20' })
-  if (ability.ability_is_granted_by_shard) badges.push({ label: 'Aghanim\'s Shard', className: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20' })
+  if (ability.ability_has_scepter || ability.ability_is_granted_by_scepter) badges.push({ label: 'Aghanim\'s Scepter', className: 'text-cyan-400 bg-cyan-400/10 border-cyan-400/20' })
+  if (ability.ability_has_shard || ability.ability_is_granted_by_shard) badges.push({ label: 'Aghanim\'s Shard', className: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20' })
 
   return (
     <div className="rounded-2xl border border-border/60 bg-card/60 p-5">
@@ -111,7 +116,10 @@ function AbilityCard({ ability }: { ability: ValveAbility }) {
 
       {/* Description */}
       {ability.desc_loc && (
-        <p className="text-sm text-muted-foreground leading-relaxed mb-3">{ability.desc_loc}</p>
+        <p
+          className="text-sm text-muted-foreground leading-relaxed mb-3"
+          dangerouslySetInnerHTML={{ __html: interpolateAbilityDesc(ability.desc_loc, ability.special_values) }}
+        />
       )}
 
       {/* Scaling stats */}
@@ -136,7 +144,7 @@ function AbilityCard({ ability }: { ability: ValveAbility }) {
           {ability.notes_loc.map((note, i) => (
             <li key={i} className="text-xs text-muted-foreground/60 flex gap-1.5">
               <span className="shrink-0 mt-0.5">·</span>
-              <span>{note.replace(/%(\w+)%%%/g, '$1')}</span>
+              <span dangerouslySetInnerHTML={{ __html: interpolateAbilityDesc(note.replace(/%(\w+)%%%/g, '$1'), ability.special_values) }} />
             </li>
           ))}
         </ul>
@@ -144,10 +152,39 @@ function AbilityCard({ ability }: { ability: ValveAbility }) {
 
       {/* Lore */}
       {ability.lore_loc && (
-        <p className="text-xs text-muted-foreground/50 italic pt-3 border-t border-border/40 leading-relaxed">
-          {ability.lore_loc}
-        </p>
+        <p
+          className="text-xs text-muted-foreground/50 italic pt-3 border-t border-border/40 leading-relaxed"
+          dangerouslySetInnerHTML={{ __html: ability.lore_loc }}
+        />
       )}
+    </div>
+  )
+}
+
+function UpgradeCard({ ability, type }: { ability: ValveAbility; type: 'scepter' | 'shard' }) {
+  const upgradeDesc = type === 'scepter' ? ability.scepter_loc : ability.shard_loc
+  const colorClass = type === 'scepter' ? 'text-cyan-400 border-cyan-400/30 bg-cyan-400/5' : 'text-emerald-400 border-emerald-400/30 bg-emerald-400/5'
+
+  return (
+    <div className={`rounded-2xl border p-5 ${colorClass}`}>
+      <div className="flex items-start gap-4">
+        <div className="w-14 h-14 rounded-xl border border-border/60 bg-secondary/60 shrink-0 overflow-hidden">
+          <AbilityIcon name={ability.name} displayName={ability.name_loc} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-display font-bold text-base leading-tight mb-1.5 text-foreground">
+            {ability.name_loc}
+          </h3>
+          {upgradeDesc ? (
+            <p
+              className="text-sm text-muted-foreground leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: interpolateAbilityDesc(upgradeDesc, ability.special_values) }}
+            />
+          ) : (
+            <p className="text-sm text-muted-foreground/60 italic">Upgrades this ability.</p>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
@@ -159,7 +196,7 @@ export default async function HeroPage({
 }) {
   const { slug } = await params
 
-  let heroes, detail
+  let heroes
   try {
     heroes = await fetchAllHeroes()
   } catch {
@@ -169,16 +206,42 @@ export default async function HeroPage({
   const hero = heroes.find(h => heroSlug(h.name) === slug)
   if (!hero) notFound()
 
-  try {
-    detail = await fetchHeroDetail(hero.id)
-  } catch {
-    detail = null
-  }
+  const [detailResult, matchupsResult, signaturePlayersResult] = await Promise.allSettled([
+    fetchHeroDetail(hero.id),
+    fetchHeroMatchups(hero.id),
+    getPlayersBySignatureHero(hero.localized_name),
+  ])
+
+  const detail = detailResult.status === 'fulfilled' ? detailResult.value : null
+  const matchups = matchupsResult.status === 'fulfilled' ? matchupsResult.value : []
+  const signaturePlayers: Player[] = signaturePlayersResult.status === 'fulfilled' ? signaturePlayersResult.value : []
+
+  const heroById = Object.fromEntries(heroes.map(h => [h.id, h]))
+  const sorted = [...matchups].sort((a, b) => b.win_rate - a.win_rate)
+  const bestAgainst = sorted.slice(0, 5).map(m => heroById[m.hero_id]).filter(Boolean)
+  const worstAgainst = sorted.slice(-5).reverse().map(m => heroById[m.hero_id]).filter(Boolean)
 
   const cfg = ATTR_CONFIG[hero.primary_attr]
 
-  // Separate innate from regular abilities, skip scepter/shard grants (shown inline on base ability)
-  const regularAbilities = (detail?.abilities ?? []).filter(
+  const allAbilities = detail?.abilities ?? []
+
+  // Abilities granted as new abilities by Aghanim's
+  const scepterGrantedAbilities = allAbilities.filter(a => a.ability_is_granted_by_scepter)
+  const shardGrantedAbilities = allAbilities.filter(a => a.ability_is_granted_by_shard)
+
+  // Base abilities that get upgraded (but not new grants)
+  const scepterUpgradedAbilities = allAbilities.filter(
+    a => a.ability_has_scepter && !a.ability_is_innate && !a.ability_is_granted_by_scepter && !a.ability_is_granted_by_shard
+  )
+  const shardUpgradedAbilities = allAbilities.filter(
+    a => a.ability_has_shard && !a.ability_is_innate && !a.ability_is_granted_by_scepter && !a.ability_is_granted_by_shard
+  )
+
+  const hasScepter = scepterGrantedAbilities.length > 0 || scepterUpgradedAbilities.length > 0
+  const hasShard = shardGrantedAbilities.length > 0 || shardUpgradedAbilities.length > 0
+
+  // Separate innate from regular abilities, exclude granted abilities (shown in dedicated sections)
+  const regularAbilities = allAbilities.filter(
     a => !a.ability_is_granted_by_scepter && !a.ability_is_granted_by_shard
   )
   const innateAbilities = regularAbilities.filter(a => a.ability_is_innate)
@@ -199,8 +262,23 @@ export default async function HeroPage({
     },
   ]
 
+  const SITE_URL = 'https://dota2protips.com'
+
   return (
     <div className="fade-in-up">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Heroes', item: `${SITE_URL}/heroes` },
+              { '@type': 'ListItem', position: 2, name: hero.localized_name, item: `${SITE_URL}/heroes/${slug}` },
+            ],
+          }),
+        }}
+      />
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 mb-6 text-xs text-muted-foreground">
         <Link href="/heroes" className="hover:text-foreground transition-colors">Heroes</Link>
@@ -271,6 +349,94 @@ export default async function HeroPage({
         </div>
       </div>
 
+      {/* Matchups */}
+      {(bestAgainst.length > 0 || worstAgainst.length > 0) && (
+        <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {bestAgainst.length > 0 && (
+            <div className="rounded-2xl border border-border/60 bg-card/60 p-5">
+              <p className="section-label mb-3 text-green-400">Strong Against</p>
+              <div className="flex flex-col gap-2">
+                {bestAgainst.map(h => {
+                  const hSlug = heroSlug(h.name)
+                  const hCfg = ATTR_CONFIG[h.primary_attr]
+                  return (
+                    <Link key={h.id} href={`/heroes/${hSlug}`} className="flex items-center gap-3 rounded-xl hover:bg-secondary/40 transition-colors p-1.5 -mx-1.5">
+                      <div className="w-12 h-7 rounded-lg overflow-hidden shrink-0 border border-border/40">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={heroPortraitUrl(hSlug)} alt={h.localized_name} className="w-full h-full object-cover object-center" />
+                      </div>
+                      <span className="text-sm font-semibold flex-1">{h.localized_name}</span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${hCfg.color} ${hCfg.bg} ${hCfg.border}`}>{hCfg.short}</span>
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+          {worstAgainst.length > 0 && (
+            <div className="rounded-2xl border border-border/60 bg-card/60 p-5">
+              <p className="section-label mb-3 text-red-400">Weak Against</p>
+              <div className="flex flex-col gap-2">
+                {worstAgainst.map(h => {
+                  const hSlug = heroSlug(h.name)
+                  const hCfg = ATTR_CONFIG[h.primary_attr]
+                  return (
+                    <Link key={h.id} href={`/heroes/${hSlug}`} className="flex items-center gap-3 rounded-xl hover:bg-secondary/40 transition-colors p-1.5 -mx-1.5">
+                      <div className="w-12 h-7 rounded-lg overflow-hidden shrink-0 border border-border/40">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={heroPortraitUrl(hSlug)} alt={h.localized_name} className="w-full h-full object-cover object-center" />
+                      </div>
+                      <span className="text-sm font-semibold flex-1">{h.localized_name}</span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${hCfg.color} ${hCfg.bg} ${hCfg.border}`}>{hCfg.short}</span>
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Signature players */}
+      {signaturePlayers.length > 0 && (
+        <div className="mb-6">
+          <p className="section-label mb-3">Pro Players Known For This Hero</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {signaturePlayers.map(p => {
+              const posLabel: Record<number, string> = { 1: 'Carry', 2: 'Mid', 3: 'Offlane', 4: 'Soft Support', 5: 'Hard Support' }
+              return (
+                <Link
+                  key={p.slug}
+                  href={`/players/${p.slug}`}
+                  className="flex items-center gap-3 rounded-xl border border-border/60 bg-card/60 px-4 py-3 hover:bg-secondary/40 transition-colors"
+                >
+                  {p.photo_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={p.photo_url} alt={p.ign} className="w-10 h-10 rounded-full object-cover shrink-0 border border-border/40" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-secondary/60 border border-border/40 flex items-center justify-center text-sm font-bold shrink-0">
+                      {p.ign.slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm truncate">{p.ign}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {p.team?.name ?? ''}
+                      {p.team?.name && p.position ? ' · ' : ''}
+                      {p.position ? posLabel[p.position] : ''}
+                    </p>
+                  </div>
+                  {p.team?.logo_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={p.team.logo_url} alt={p.team.name} className="w-7 h-7 object-contain shrink-0 rounded" />
+                  )}
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Facets */}
       {detail?.facets && detail.facets.length > 0 && (
         <div className="mb-6">
@@ -300,11 +466,57 @@ export default async function HeroPage({
 
       {/* Main abilities */}
       {mainAbilities.length > 0 && (
-        <div>
+        <div className="mb-6">
           <p className="section-label mb-3">Abilities</p>
           <div className="space-y-3">
             {mainAbilities.map(ability => (
               <AbilityCard key={ability.id} ability={ability} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Aghanim's Scepter */}
+      {hasScepter && (
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/items/ultimate_scepter.png"
+              alt="Aghanim's Scepter"
+              className="w-7 h-7 rounded object-cover"
+            />
+            <p className="section-label">Aghanim&apos;s Scepter</p>
+          </div>
+          <div className="space-y-3">
+            {scepterGrantedAbilities.map(ability => (
+              <AbilityCard key={ability.id} ability={ability} />
+            ))}
+            {scepterUpgradedAbilities.map(ability => (
+              <UpgradeCard key={ability.id} ability={ability} type="scepter" />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Aghanim's Shard */}
+      {hasShard && (
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/items/aghanims_shard.png"
+              alt="Aghanim's Shard"
+              className="w-7 h-7 rounded object-cover"
+            />
+            <p className="section-label">Aghanim&apos;s Shard</p>
+          </div>
+          <div className="space-y-3">
+            {shardGrantedAbilities.map(ability => (
+              <AbilityCard key={ability.id} ability={ability} />
+            ))}
+            {shardUpgradedAbilities.map(ability => (
+              <UpgradeCard key={ability.id} ability={ability} type="shard" />
             ))}
           </div>
         </div>

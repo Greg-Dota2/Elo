@@ -7,6 +7,17 @@ export const revalidate = 60
 export const metadata: Metadata = {
   title: 'Track Record',
   description: 'Full prediction history across every Tier 1 Dota 2 tournament — accuracy, correct picks, and results.',
+  openGraph: {
+    title: 'Track Record | Dota2ProTips',
+    description: 'Full prediction history across every Tier 1 Dota 2 tournament — accuracy, correct picks, and results.',
+    url: '/track-record',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Track Record | Dota2ProTips',
+    description: 'Full prediction history across every Tier 1 Dota 2 tournament — accuracy, correct picks, and results.',
+  },
+  alternates: { canonical: '/track-record' },
 }
 
 export default async function TrackRecordPage() {
@@ -92,7 +103,7 @@ export default async function TrackRecordPage() {
                   )}
                   <div className="min-w-0">
                     <Link
-                      href={t?.slug ? `/tournaments/${t.slug}` : '#'}
+                      href={t?.slug ? `/tournaments/${t.slug}` : '/tournaments'}
                       className="font-semibold text-sm hover:text-primary transition-colors truncate block"
                     >
                       {t?.name ?? '—'}

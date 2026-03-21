@@ -84,6 +84,19 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ slu
 
   return (
     <div className="fade-in-up">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Teams', item: 'https://dota2protips.com/teams' },
+              { '@type': 'ListItem', position: 2, name: team.name, item: `https://dota2protips.com/teams/${slug}` },
+            ],
+          }),
+        }}
+      />
       {/* Back */}
       <Link href="/teams" className="inline-flex items-center gap-1 text-sm mb-6 hover:text-primary transition-colors" style={{ color: 'var(--text-muted)' }}>
         ← All Teams

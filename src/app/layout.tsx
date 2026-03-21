@@ -66,6 +66,25 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en" className={`dark ${manrope.variable} ${oxanium.variable}`}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'Dota2ProTips',
+              url: SITE_URL,
+              logo: `${SITE_URL}/1.png`,
+              sameAs: [
+                'https://x.com/Dota2ProTips',
+                'https://www.facebook.com/Dota2ProTips',
+                'https://t.me/dota2protips',
+              ],
+            }),
+          }}
+        />
+      </head>
       <body suppressHydrationWarning>
         <Navbar isAdmin={isAdmin} />
         <main className="max-w-7xl mx-auto px-4 py-8">{children}</main>

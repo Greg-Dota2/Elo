@@ -156,6 +156,17 @@ export async function getPlayerBySlug(slug: string): Promise<Player> {
   return data as Player
 }
 
+export async function getPlayersBySignatureHero(heroName: string): Promise<Player[]> {
+  const supabase = createAdminClient()
+  const { data } = await supabase
+    .from('players')
+    .select('ign, slug, photo_url, position, team:teams(name, slug, logo_url)')
+    .eq('is_published', true)
+    .contains('signature_heroes', [heroName])
+    .order('ign')
+  return (data ?? []) as Player[]
+}
+
 export async function getAllPlayersAdmin(): Promise<Player[]> {
   const supabase = createAdminClient()
   const { data, error } = await supabase

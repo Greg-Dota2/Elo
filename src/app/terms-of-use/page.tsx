@@ -3,6 +3,17 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'Terms of Use',
   description: 'How predictions are made, how ELO ratings are calculated, and what this site is all about.',
+  openGraph: {
+    title: 'Terms of Use | Dota2ProTips',
+    description: 'How predictions are made, how ELO ratings are calculated, and what this site is all about.',
+    url: '/terms-of-use',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Terms of Use | Dota2ProTips',
+    description: 'How predictions are made, how ELO ratings are calculated, and what this site is all about.',
+  },
+  alternates: { canonical: '/terms-of-use' },
 }
 
 export default function HowItWorksPage() {

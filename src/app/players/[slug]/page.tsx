@@ -60,6 +60,19 @@ export default async function PlayerPage({ params }: Props) {
 
   return (
     <div className="fade-in-up">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Players', item: 'https://dota2protips.com/players' },
+              { '@type': 'ListItem', position: 2, name: player.ign, item: `https://dota2protips.com/players/${slug}` },
+            ],
+          }),
+        }}
+      />
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 mb-6 text-xs text-muted-foreground">
         <Link href="/players" className="hover:text-foreground transition-colors">Players</Link>

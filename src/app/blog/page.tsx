@@ -7,6 +7,17 @@ export const revalidate = 60
 export const metadata: Metadata = {
   title: 'Blog',
   description: 'Dota 2 analysis, thoughts, and breakdowns by Greg Spencer.',
+  openGraph: {
+    title: 'Blog | Dota2ProTips',
+    description: 'Dota 2 analysis, thoughts, and breakdowns by Greg Spencer.',
+    url: '/blog',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Blog | Dota2ProTips',
+    description: 'Dota 2 analysis, thoughts, and breakdowns by Greg Spencer.',
+  },
+  alternates: { canonical: '/blog' },
 }
 
 export default async function BlogPage() {

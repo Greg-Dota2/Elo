@@ -51,6 +51,8 @@ export interface ValveAbility {
   ability_has_shard: boolean
   ability_is_granted_by_scepter: boolean
   ability_is_granted_by_shard: boolean
+  scepter_loc?: string  // upgrade description for Aghanim's Scepter
+  shard_loc?: string    // upgrade description for Aghanim's Shard
 }
 
 export interface ValveFacet {
@@ -143,6 +145,22 @@ export function formatLevelValues(values: number[]): string {
   return values.join(' / ')
 }
 
+/** Replace %var_name% tokens in ability description text with values from special_values */
+export function interpolateAbilityDesc(
+  text: string,
+  specialValues: ValveSpecialValue[]
+): string {
+  if (!text) return text
+  const lookup = Object.fromEntries(specialValues.map(sv => [sv.name.toLowerCase(), sv]))
+  return text.replace(/%([^%]+)%/g, (match, key) => {
+    const sv = lookup[key.toLowerCase()]
+    if (!sv) return match
+    const vals = sv.values_float.map(v => Math.round(v * 100) / 100)
+    const formatted = formatLevelValues(vals)
+    return sv.is_percentage ? formatted + '%' : formatted
+  })
+}
+
 export async function fetchAllHeroes(): Promise<HeroData[]> {
   const res = await fetch(`${OPENDOTA_BASE}/heroes`, {
     next: { revalidate: 86400 },
@@ -152,6 +170,24 @@ export async function fetchAllHeroes(): Promise<HeroData[]> {
   return Object.values(data)
     .filter(h => h.id > 0 && h.localized_name)
     .sort((a, b) => a.localized_name.localeCompare(b.localized_name))
+}
+
+export interface HeroMatchup {
+  hero_id: number
+  games_played: number
+  wins: number
+  win_rate: number
+}
+
+export async function fetchHeroMatchups(heroId: number): Promise<HeroMatchup[]> {
+  const res = await fetch(`https://api.opendota.com/api/heroes/${heroId}/matchups`, {
+    next: { revalidate: 86400 },
+  })
+  if (!res.ok) throw new Error('Failed to fetch hero matchups')
+  const data: Array<{ hero_id: number; games_played: number; wins: number }> = await res.json()
+  return data
+    .filter(m => m.games_played >= 100)
+    .map(m => ({ ...m, win_rate: m.wins / m.games_played }))
 }
 
 export async function fetchHeroDetail(heroId: number): Promise<ValveHeroDetail> {

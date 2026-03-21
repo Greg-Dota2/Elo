@@ -3,6 +3,17 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'About Me',
   description: 'Greg Spencer — Dota 2 enthusiast, ex semi-pro, and the person behind every pick on Dota2ProTips.',
+  openGraph: {
+    title: 'About Me | Dota2ProTips',
+    description: 'Greg Spencer — Dota 2 enthusiast, ex semi-pro, and the person behind every pick on Dota2ProTips.',
+    url: '/about',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'About Me | Dota2ProTips',
+    description: 'Greg Spencer — Dota 2 enthusiast, ex semi-pro, and the person behind every pick on Dota2ProTips.',
+  },
+  alternates: { canonical: '/about' },
 }
 
 export default function AboutPage() {
