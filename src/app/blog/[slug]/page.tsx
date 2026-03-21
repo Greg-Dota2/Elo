@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 export const revalidate = 60
 
@@ -143,10 +144,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
       {/* Body */}
       <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
         components={{
           h1: ({ children }) => <h1 className="font-display text-3xl font-black mt-8 mb-4" style={{ color: 'var(--text)' }}>{children}</h1>,
           h2: ({ children }) => <h2 className="font-display text-2xl font-bold mt-8 mb-3" style={{ color: 'var(--text)' }}>{children}</h2>,
-          h3: ({ children }) => <h3 className="font-display text-xl font-bold mt-6 mb-2" style={{ color: 'var(--text)' }}>{children}</h3>,
+          h3: ({ children }) => <h3 className="font-display text-xl font-bold mt-6 mb-2" style={{ color: 'hsl(var(--primary))' }}>{children}</h3>,
           p: ({ children }) => <p className="text-base leading-8 mb-5" style={{ color: 'var(--text)' }}>{children}</p>,
           strong: ({ children }) => <strong className="font-bold" style={{ color: 'var(--text)' }}>{children}</strong>,
           em: ({ children }) => <em className="italic">{children}</em>,
@@ -157,6 +159,20 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           hr: () => <hr className="my-8" style={{ borderColor: 'var(--border)' }} />,
           a: ({ href, children }) => <a href={href} className="underline hover:opacity-70 transition-opacity" style={{ color: 'hsl(var(--primary))' }}>{children}</a>,
           code: ({ children }) => <code className="px-1.5 py-0.5 rounded text-sm font-mono" style={{ background: 'var(--surface-2)', color: 'hsl(var(--primary))' }}>{children}</code>,
+          img: ({ src, alt }) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={src} alt={alt ?? ''} className="w-full rounded-xl my-6 object-cover" loading="lazy" />
+          ),
+          table: ({ children }) => (
+            <div className="overflow-x-auto mb-6">
+              <table className="w-full text-sm border-collapse">{children}</table>
+            </div>
+          ),
+          thead: ({ children }) => <thead style={{ background: 'var(--surface-2)' }}>{children}</thead>,
+          tbody: ({ children }) => <tbody>{children}</tbody>,
+          tr: ({ children }) => <tr style={{ borderBottom: '1px solid var(--border)' }}>{children}</tr>,
+          th: ({ children }) => <th className="text-left px-4 py-2 font-bold text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>{children}</th>,
+          td: ({ children }) => <td className="px-4 py-2.5" style={{ color: 'var(--text)' }}>{children}</td>,
         }}
       >
         {processed}
