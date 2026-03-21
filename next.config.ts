@@ -109,6 +109,10 @@ const nextConfig: NextConfig = {
       { source: '/pgl-wallachia-season-5-group-stage-day-3-predictions',    destination: '/tournaments/pgl-wallachia-season-5',    permanent: true },
       { source: '/pgl-wallachia-season-5-group-stage-day-4-predictions',    destination: '/tournaments/pgl-wallachia-season-5',    permanent: true },
 
+      // ── Dead team slugs ───────────────────────────────────────────────────
+      { source: '/teams/aurora',  destination: '/teams/aurora-gaming', permanent: true },
+      { source: '/teams/rekonix', destination: '/teams',               permanent: true },
+
       // ── Blog/news articles with no equivalent → home ──────────────────────
       { source: '/mirana-lore',                                   destination: '/', permanent: true },
       { source: '/slark-the-shadow-of-dark-reef',                 destination: '/', permanent: true },

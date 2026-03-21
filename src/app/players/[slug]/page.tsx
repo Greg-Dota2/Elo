@@ -14,7 +14,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const posLabel: Record<number, string> = { 1: 'Carry', 2: 'Mid', 3: 'Offlane', 4: 'Soft Support', 5: 'Hard Support' }
     const role = player.position ? posLabel[player.position] : null
     const team = player.team?.name
-    const title = `${player.ign}${player.full_name ? ` (${player.full_name})` : ''} — Dota 2 Player`
+    const baseTitle = `${player.ign} — Dota 2 Player`
+    const withFull = player.full_name ? `${player.ign} (${player.full_name}) — Dota 2 Player` : baseTitle
+    const title = (withFull.length + 16) <= 70 ? withFull : baseTitle
     const description = player.bio
       ? player.bio.replace(/^#+\s*/gm, '').slice(0, 155)
       : `${player.ign} is a professional Dota 2 player${role ? `, ${role}` : ''}${team ? ` for ${team}` : ''}. Profile, stats and career on Dota2ProTips.`

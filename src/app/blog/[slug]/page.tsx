@@ -146,7 +146,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          h1: ({ children }) => <h1 className="font-display text-3xl font-black mt-8 mb-4" style={{ color: 'var(--text)' }}>{children}</h1>,
+          h1: ({ children }) => <h2 className="font-display text-3xl font-black mt-8 mb-4" style={{ color: 'var(--text)' }}>{children}</h2>,
           h2: ({ children }) => <h2 className="font-display text-2xl font-bold mt-8 mb-3" style={{ color: 'var(--text)' }}>{children}</h2>,
           h3: ({ children }) => <h3 className="font-display text-xl font-bold mt-6 mb-2" style={{ color: 'hsl(var(--primary))' }}>{children}</h3>,
           p: ({ children }) => <p className="text-base leading-8 mb-5" style={{ color: 'var(--text)' }}>{children}</p>,
