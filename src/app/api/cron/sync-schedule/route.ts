@@ -107,7 +107,7 @@ export async function GET(req: NextRequest) {
   }
 
   // Also patch existing teams that were matched by name but missing pandascore_team_id
-  const namePatchPromises: Promise<unknown>[] = []
+  const namePatchPromises: PromiseLike<unknown>[] = []
   for (const match of matches) {
     for (const o of match.opponents.map(op => op.opponent)) {
       if (!o?.id) continue
