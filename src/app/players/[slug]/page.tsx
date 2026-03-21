@@ -168,6 +168,18 @@ export default async function PlayerPage({ params }: Props) {
                   </span>
                 </div>
               )}
+              <div>
+                <p className="section-label mb-1">Rank</p>
+                <div className="flex items-center gap-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="https://www.opendota.com/assets/images/dota2/rank_icons/rank_icon_8.png"
+                    alt="Immortal"
+                    className="w-8 h-8 object-contain"
+                  />
+                  <span className="text-foreground font-semibold">Immortal</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

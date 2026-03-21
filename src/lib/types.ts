@@ -89,6 +89,7 @@ export interface Player {
   achievements: string | null
   previous_teams: string | null
   liquipedia_url: string | null
+  opendota_id: number | null
   is_published: boolean
   created_at: string
   // joined
