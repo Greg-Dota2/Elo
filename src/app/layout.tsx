@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     template: '%s | Dota2ProTips',
   },
   description:
-    'Free pre-match analysis and winner predictions for pro Dota 2 tournaments. Accuracy tracked, every pick visible.',
+    'Expert Dota 2 match predictions for Tier 1 pro tournaments — pre-match analysis, ELO rankings, and accuracy tracked across every pick. See who wins before they play.',
   keywords: [
     'Dota 2 predictions', 'Dota 2 match analysis', 'Dota 2 esports',
     'match predictions', 'ELO rankings', 'Dota 2 tips', 'pro Dota 2', 'Dota 2 winner',
@@ -44,13 +44,15 @@ export const metadata: Metadata = {
     url: SITE_URL,
     siteName: 'Dota2ProTips',
     title: 'Dota2ProTips — Dota 2 Match Predictions',
-    description: 'Free pre-match analysis and winner predictions for pro Dota 2 tournaments. Accuracy tracked, every pick visible.',
+    description: 'Expert Dota 2 match predictions for Tier 1 pro tournaments — pre-match analysis, ELO rankings, and accuracy tracked across every pick.',
+    images: [{ url: `${SITE_URL}/og.png`, width: 1200, height: 630, alt: 'Dota2ProTips — Dota 2 Match Predictions' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Dota2ProTips — Dota 2 Match Predictions',
-    description: 'Free pre-match analysis and winner predictions for pro Dota 2 tournaments.',
+    description: 'Expert Dota 2 match predictions for Tier 1 pro tournaments — pre-match analysis, ELO rankings, accuracy tracked.',
     creator: '@dota2protips',
+    images: [`${SITE_URL}/og.png`],
   },
   robots: {
     index: true,
@@ -76,18 +78,32 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'Organization',
-              name: 'Dota2ProTips',
-              url: SITE_URL,
-              logo: `${SITE_URL}/1.png`,
-              sameAs: [
-                'https://x.com/Dota2ProTips',
-                'https://www.facebook.com/Dota2ProTips',
-                'https://t.me/dota2protips',
-              ],
-            }),
+            __html: JSON.stringify([
+              {
+                '@context': 'https://schema.org',
+                '@type': 'WebSite',
+                name: 'Dota2ProTips',
+                url: SITE_URL,
+                description: 'Expert Dota 2 match predictions for Tier 1 pro tournaments — pre-match analysis, ELO rankings, and accuracy tracked across every pick.',
+                potentialAction: {
+                  '@type': 'SearchAction',
+                  target: { '@type': 'EntryPoint', urlTemplate: `${SITE_URL}/players?q={search_term_string}` },
+                  'query-input': 'required name=search_term_string',
+                },
+              },
+              {
+                '@context': 'https://schema.org',
+                '@type': 'Organization',
+                name: 'Dota2ProTips',
+                url: SITE_URL,
+                logo: `${SITE_URL}/1.png`,
+                sameAs: [
+                  'https://x.com/Dota2ProTips',
+                  'https://www.facebook.com/Dota2ProTips',
+                  'https://t.me/dota2protips',
+                ],
+              },
+            ]),
           }}
         />
       </head>

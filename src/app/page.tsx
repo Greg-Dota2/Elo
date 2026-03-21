@@ -9,7 +9,7 @@ export const revalidate = 60
 
 export const metadata: Metadata = {
   title: 'Dota2ProTips — Dota 2 Match Predictions',
-  description: 'Free pre-match analysis and winner predictions for pro Dota 2 tournaments. Accuracy tracked, every pick visible.',
+  description: 'Expert Dota 2 match predictions for Tier 1 pro tournaments — pre-match analysis, ELO rankings, and accuracy tracked across every pick. See who wins before they play.',
   keywords: [
     'Dota 2 predictions', 'Dota 2 match predictions', 'Dota 2 match analysis',
     'Dota 2 esports', 'pro Dota 2', 'Dota 2 tips',
