@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const team = player.team?.name
     const title = `${player.ign}${player.full_name ? ` (${player.full_name})` : ''} — Dota 2 Player`
     const description = player.bio
-      ? player.bio.replace(/^#+ /gm, '').slice(0, 155)
+      ? player.bio.replace(/^#+\s*/gm, '').slice(0, 155)
       : `${player.ign} is a professional Dota 2 player${role ? `, ${role}` : ''}${team ? ` for ${team}` : ''}. Profile, stats and career on Dota2ProTips.`
     return {
       title,

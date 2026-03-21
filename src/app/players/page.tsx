@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { getPlayers } from '@/lib/queries'
 import Link from 'next/link'
 import type { Player } from '@/lib/types'
+import { Suspense } from 'react'
+import PlayersFilter from '@/components/PlayersFilter'
 
 export const revalidate = 300
 
@@ -88,37 +90,56 @@ function PlayerCard({ player }: { player: Player }) {
   )
 }
 
-export default async function PlayersPage() {
+const POS_ORDER = [1, 2, 3, 4, 5]
+
+export default async function PlayersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ pos?: string }>
+}) {
+  const { pos } = await searchParams
+  const filterPos = pos ? Number(pos) : null
+
   let players: Player[] = []
   try { players = await getPlayers() } catch { /* db error */ }
 
-  // Group by team
-  const byTeam = new Map<string, { teamName: string; players: Player[] }>()
+  // Apply position filter
+  const filtered = filterPos ? players.filter(p => p.position === filterPos) : players
+
+  // Group by team, sort roster within each team by position (1→2→3→4→5)
+  const byTeam = new Map<string, { teamName: string; teamLogo: string | null; players: Player[] }>()
   const noTeam: Player[] = []
-  for (const p of players) {
+  for (const p of filtered) {
     if (p.team) {
       const k = p.team.id
-      if (!byTeam.has(k)) byTeam.set(k, { teamName: p.team.name, players: [] })
+      if (!byTeam.has(k)) byTeam.set(k, { teamName: p.team.name, teamLogo: p.team.logo_url ?? null, players: [] })
       byTeam.get(k)!.players.push(p)
     } else {
       noTeam.push(p)
     }
   }
+  // Sort within each team by position order
+  for (const group of byTeam.values()) {
+    group.players.sort((a, b) => (POS_ORDER.indexOf(a.position ?? 99)) - (POS_ORDER.indexOf(b.position ?? 99)))
+  }
   const groups = Array.from(byTeam.values()).sort((a, b) => a.teamName.localeCompare(b.teamName))
 
   return (
     <div className="fade-in-up">
-      <div className="mb-8">
+      <div className="mb-6">
         <p className="section-label mb-2">Tier 1 Scene</p>
         <h1 className="text-3xl font-black tracking-tight mb-1">Dota 2 Players</h1>
-        <p className="text-sm text-muted-foreground">{players.length} player profiles</p>
+        <p className="text-sm text-muted-foreground">{filtered.length} player profiles</p>
       </div>
 
-      {players.length === 0 ? (
+      <Suspense>
+        <PlayersFilter />
+      </Suspense>
+
+      {filtered.length === 0 ? (
         <div className="rounded-2xl p-12 text-center border border-border/60 bg-card/40">
-          <p className="text-4xl mb-3">🎮</p>
-          <p className="font-semibold mb-1">No player profiles yet</p>
-          <p className="text-sm text-muted-foreground">Add players via the admin panel.</p>
+          <p className="font-semibold mb-1">No players found</p>
+          <p className="text-sm text-muted-foreground">Try a different filter.</p>
         </div>
       ) : (
         <div className="space-y-10">
