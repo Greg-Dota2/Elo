@@ -44,7 +44,8 @@ export async function generateMetadata({
     if (!hero) return { title: 'Hero Not Found' }
     const cfg = ATTR_CONFIG[hero.primary_attr]
     const title = `${hero.localized_name} — Dota 2 Hero Guide`
-    const description = `${hero.localized_name} is a ${cfg.label} hero in Dota 2. ${hero.attack_type} attacker. Abilities, stats, and lore on Dota2ProTips.`
+    const article = ['Agility', 'Intelligence'].includes(cfg.label) ? 'an' : 'a'
+    const description = `${hero.localized_name} is ${article} ${cfg.label} hero in Dota 2. ${hero.attack_type} attacker. Abilities, stats, and lore on Dota2ProTips.`
     return {
       title,
       description,
