@@ -148,9 +148,9 @@ export default async function PlayerPage({ params }: Props) {
               {player.position && (
                 <div>
                   <p className="section-label mb-1">Role</p>
-                  <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${posColor}`}>
+                  <Link href={`/players?pos=${player.position}`} className={`text-xs font-bold px-2.5 py-1 rounded-full border hover:opacity-80 transition-opacity ${posColor}`}>
                     {POSITION_LABEL[player.position]}
-                  </span>
+                  </Link>
                 </div>
               )}
               {player.nationality && (
