@@ -27,6 +27,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description: post.excerpt ?? undefined,
       ...(post.cover_image_url ? { images: [{ url: post.cover_image_url }] } : {}),
     },
+    twitter: {
+      card: post.cover_image_url ? 'summary_large_image' : 'summary',
+      title: post.title,
+      description: post.excerpt ?? undefined,
+      ...(post.cover_image_url ? { images: [post.cover_image_url] } : {}),
+    },
     alternates: { canonical: `/blog/${slug}` },
   }
 }
@@ -127,18 +133,30 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       )}
 
       {/* Header */}
-      <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
-        {new Date(post.published_at ?? post.created_at).toLocaleDateString('en-GB', {
-          day: 'numeric', month: 'long', year: 'numeric',
-        })}
-      </p>
       <h1 className="font-display text-4xl font-black tracking-tight leading-tight mb-6">{post.title}</h1>
 
       {post.excerpt && (
-        <p className="text-lg leading-8 mb-8 font-medium" style={{ color: 'var(--text-muted)' }}>
+        <p className="text-lg leading-8 mb-6 font-medium" style={{ color: 'var(--text-muted)' }}>
           {post.excerpt}
         </p>
       )}
+
+      {/* Author byline */}
+      <div className="flex items-center gap-3 mb-8">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/Greg.jpg" alt="Greg Spencer" className="w-10 h-10 rounded-full object-cover shrink-0" />
+        <div>
+          <Link href="/about" className="text-xs font-semibold hover:text-primary transition-colors" style={{ color: 'var(--text)' }}>Greg Spencer</Link>
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+            Ex semi-pro · watches every pro game, every tournament, no exceptions
+          </p>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+            {new Date(post.published_at ?? post.created_at).toLocaleDateString('en-GB', {
+              day: 'numeric', month: 'long', year: 'numeric',
+            })}
+          </p>
+        </div>
+      </div>
 
       <hr className="mb-8" style={{ borderColor: 'var(--border)' }} />
 

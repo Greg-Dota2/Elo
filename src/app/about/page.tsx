@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 
 export const metadata: Metadata = {
   title: 'About Me',
@@ -19,29 +20,58 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <div className="fade-in-up max-w-2xl mx-auto py-8">
-      <p className="section-label mb-3">The person behind the picks</p>
-      <h1 className="font-display text-4xl font-black tracking-tight mb-8">About Me</h1>
+      {/* Profile header */}
+      <div className="flex items-center gap-5 mb-8">
+        <Image
+          src="/Greg.jpg"
+          alt="Greg Spencer"
+          width={88}
+          height={88}
+          className="rounded-full object-cover shrink-0"
+          style={{ width: 88, height: 88 }}
+        />
+        <div>
+          <p className="section-label mb-1">The person behind the picks</p>
+          <h1 className="font-display text-4xl font-black tracking-tight">About Me</h1>
+        </div>
+      </div>
 
       <div
         className="rounded-2xl p-7 mb-6 text-base leading-8 space-y-5"
         style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}
       >
         <p>
-          I am Greg and I am a Dota 2 enthusiast, just like you. I love the game and more than that —{' '}
+          I am Greg and I am a Dota 2 enthusiast, just like you. I love the game — but more than that,{' '}
           <span className="font-semibold" style={{ color: 'var(--text)' }}>I LOVE to watch the pro games.</span>{' '}
-          Don&apos;t ask me why, I just do.
+          Don&apos;t ask me why. I just do. Always have.
         </p>
         <p>
-          I also played Dota semi-pro. Back in the day I had a high MMR — 6k — which was serious
-          at the time (the highest was W33 with 8k, so don&apos;t laugh).
+          I played Dota semi-pro. I was serious about it — high MMR, grinding every day, studying the game
+          the way other people study for exams. I knew the heroes, the itemization, the timings, the drafts.
+          I lived it. And that foundation never really went away.
         </p>
         <p>
-          Now I&apos;m older, meaning I have a family, so playing is out of the picture. But watching?
+          Now I&apos;m older, I have a family, and the grind is not something I can do anymore. But watching?
           Guys, I watch <span className="font-semibold" style={{ color: 'var(--text)' }}>everything.</span>{' '}
-          I consider myself something of an expert on pro Dota — I know every team and every player.
+          Every tournament, every series, every patch note. I follow every tier 1 team, I know every player —
+          their playstyles, their tendencies, who they work well with, who they clash with. To me, pro Dota
+          is one of the most fascinating competitive games in the world and I will never stop watching it.
         </p>
         <p>
-          In the end, I hope to create some memories with you and build the best Dota 2 content out there.
+          That&apos;s where this site comes from. I wanted a place where I could track everything properly —
+          team ELO rankings that actually reflect recent form, tournament coverage that goes deeper than a
+          scoreline, player profiles that tell you who these people really are as competitors. And a blog
+          where I can break down what I&apos;m seeing, call out the drafts that impressed me, and point at
+          the things other people are missing.
+        </p>
+        <p>
+          Everything on this site is me. Every pick, every ranking, every write-up. I do not have a team
+          of writers or an algorithm spitting out content. It is just me, watching the games, thinking
+          about what I saw, and writing it down.
+        </p>
+        <p>
+          I hope you find it useful. And if you love pro Dota even half as much as I do —{' '}
+          <span className="font-semibold" style={{ color: 'var(--text)' }}>welcome. You&apos;re in the right place.</span>
         </p>
       </div>
 

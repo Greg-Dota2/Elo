@@ -67,13 +67,20 @@ export default async function BlogPage() {
                   {post.title}
                 </h2>
                 {post.excerpt && (
-                  <p className="text-sm leading-6 line-clamp-2" style={{ color: 'var(--text-muted)' }}>
+                  <p className="text-sm leading-6 line-clamp-2 mb-4" style={{ color: 'var(--text-muted)' }}>
                     {post.excerpt}
                   </p>
                 )}
-                <p className="text-xs font-semibold mt-3" style={{ color: 'hsl(var(--primary))' }}>
-                  Read more →
-                </p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/Greg.jpg" alt="Greg Spencer" className="w-7 h-7 rounded-full object-cover shrink-0" />
+                    <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>Greg Spencer</span>
+                  </div>
+                  <p className="text-xs font-semibold" style={{ color: 'hsl(var(--primary))' }}>
+                    Read more →
+                  </p>
+                </div>
               </div>
             </Link>
           ))}

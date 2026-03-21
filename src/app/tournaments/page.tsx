@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   title: 'Dota 2 Tournaments — Predictions & Results',
   description: 'Browse pro Dota 2 tournaments with pre-match predictions, winner picks, and accuracy stats. Every pick recorded before the draft.',
   keywords: ['Dota 2 tournaments', 'pro Dota 2 tournaments', 'Dota 2 match predictions', 'ESL One', 'The International', 'Dota 2 Major', 'DPC'],
+  alternates: { canonical: '/tournaments' },
+  openGraph: { title: 'Dota 2 Tournaments — Predictions & Results', description: 'Browse pro Dota 2 tournaments with pre-match predictions, winner picks, and accuracy stats.', url: '/tournaments' },
+  twitter: { card: 'summary', title: 'Dota 2 Tournaments — Predictions & Results', description: 'Browse pro Dota 2 tournaments with pre-match predictions, winner picks, and accuracy stats.' },
 }
 
 export default async function TournamentsPage() {

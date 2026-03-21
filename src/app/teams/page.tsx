@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   title: 'Dota 2 Teams — Profiles & ELO Ratings',
   description: 'Profiles for pro Dota 2 teams — ELO ratings, rosters, region, and prediction accuracy.',
   keywords: ['Dota 2 teams', 'pro Dota 2 teams', 'Dota 2 team ELO', 'Dota 2 rosters', 'Team Spirit', 'Team Liquid', 'Gaimin Gladiators', 'Tundra Esports'],
+  alternates: { canonical: '/teams' },
+  openGraph: { title: 'Dota 2 Teams — Profiles & ELO Ratings', description: 'Profiles for pro Dota 2 teams — ELO ratings, rosters, region, and prediction accuracy.', url: '/teams' },
+  twitter: { card: 'summary', title: 'Dota 2 Teams — Profiles & ELO Ratings', description: 'Profiles for pro Dota 2 teams — ELO ratings, rosters, region, and prediction accuracy.' },
 }
 
 const REGION_FLAG: Record<string, string> = {

@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import BioRenderer from '@/components/BioRenderer'
-import { heroDisplayNameToSlug } from '@/lib/heroes'
+import { heroDisplayNameToSlug, heroPortraitUrl, fetchAllHeroes, ATTR_CONFIG } from '@/lib/heroes'
 
 export const revalidate = 300
 
@@ -59,6 +59,8 @@ export default async function PlayerPage({ params }: Props) {
   try { player = await getPlayerBySlug(slug) } catch { notFound() }
 
   const posColor = player.position ? POSITION_COLOR[player.position] : ''
+  const allHeroes = await fetchAllHeroes().catch(() => [])
+  const heroByName = new Map(allHeroes.map(h => [h.localized_name, h]))
 
   return (
     <div className="fade-in-up">
@@ -190,16 +192,30 @@ export default async function PlayerPage({ params }: Props) {
         {player.signature_heroes && player.signature_heroes.length > 0 && (
           <div className="rounded-2xl border border-border/60 bg-card/40 p-5">
             <p className="section-label mb-3">Signature Heroes</p>
-            <div className="flex flex-wrap gap-2">
-              {player.signature_heroes.map(hero => (
-                <Link
-                  key={hero}
-                  href={`/heroes/${heroDisplayNameToSlug(hero)}`}
-                  className="text-sm font-semibold px-3 py-1.5 rounded-xl border border-border/60 bg-secondary/60 text-foreground hover:border-primary/40 hover:text-primary transition-colors duration-200"
-                >
-                  {hero}
-                </Link>
-              ))}
+            <div className="grid grid-cols-2 gap-2">
+              {player.signature_heroes.map(hero => {
+                const slug = heroDisplayNameToSlug(hero)
+                const heroData = heroByName.get(hero)
+                const cfg = heroData ? ATTR_CONFIG[heroData.primary_attr] : null
+                return (
+                  <Link
+                    key={hero}
+                    href={`/heroes/${slug}`}
+                    className="flex items-center gap-2.5 rounded-xl p-1.5 hover:bg-secondary/40 transition-colors"
+                  >
+                    <div className="w-12 h-7 rounded-lg overflow-hidden shrink-0 border border-border/40">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={heroPortraitUrl(slug)} alt={hero} className="w-full h-full object-cover object-center" />
+                    </div>
+                    <span className="text-sm font-semibold flex-1 truncate">{hero}</span>
+                    {cfg && (
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border shrink-0 ${cfg.color} ${cfg.bg} ${cfg.border}`}>
+                        {cfg.short}
+                      </span>
+                    )}
+                  </Link>
+                )
+              })}
             </div>
           </div>
         )}

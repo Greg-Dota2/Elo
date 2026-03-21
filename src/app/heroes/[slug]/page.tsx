@@ -5,6 +5,8 @@ import {
   fetchAllHeroes,
   fetchHeroDetail,
   fetchHeroMatchups,
+  fetchHeroItemPopularity,
+  fetchHeroNeutralItems,
   heroSlug,
   heroPortraitUrl,
   ATTR_CONFIG,
@@ -14,6 +16,7 @@ import {
   type ValveAbility,
   type HeroData,
 } from '@/lib/heroes'
+import { fetchItemIdMap, fetchAllItems, itemIconUrl } from '@/lib/items'
 import { getPlayersBySignatureHero } from '@/lib/queries'
 import type { Player } from '@/lib/types'
 import AbilityIcon from '@/components/AbilityIcon'
@@ -206,15 +209,30 @@ export default async function HeroPage({
   const hero = heroes.find(h => heroSlug(h.name) === slug)
   if (!hero) notFound()
 
-  const [detailResult, matchupsResult, signaturePlayersResult] = await Promise.allSettled([
+  const [itemIdMap, allItems] = await Promise.all([fetchItemIdMap(), fetchAllItems()])
+  const basicItemKeys = new Set(
+    allItems.filter(i => i.category === 'basic' || i.category === 'consumable').map(i => i.key)
+  )
+  const componentsMap = new Map(
+    allItems.filter(i => i.components?.length).map(i => [i.key, i.components!])
+  )
+
+  const [detailResult, matchupsResult, signaturePlayersResult, itemsResult, neutralItemsResult] = await Promise.allSettled([
     fetchHeroDetail(hero.id),
     fetchHeroMatchups(hero.id),
     getPlayersBySignatureHero(hero.localized_name),
+    fetchHeroItemPopularity(hero.id, itemIdMap, basicItemKeys, componentsMap),
+    fetchHeroNeutralItems(hero.id),
   ])
 
   const detail = detailResult.status === 'fulfilled' ? detailResult.value : null
   const matchups = matchupsResult.status === 'fulfilled' ? matchupsResult.value : []
   const signaturePlayers: Player[] = signaturePlayersResult.status === 'fulfilled' ? signaturePlayersResult.value : []
+  const itemPhases = itemsResult.status === 'fulfilled' ? itemsResult.value : []
+  const neutralItemIds = neutralItemsResult.status === 'fulfilled' ? neutralItemsResult.value : []
+  const neutralItems = neutralItemIds
+    .map(({ itemId }) => allItems.find(i => i.id === itemId))
+    .filter(Boolean) as typeof allItems
 
   const heroById = Object.fromEntries(heroes.map(h => [h.id, h]))
   const sorted = [...matchups].sort((a, b) => b.win_rate - a.win_rate)
@@ -349,94 +367,6 @@ export default async function HeroPage({
         </div>
       </div>
 
-      {/* Matchups */}
-      {(bestAgainst.length > 0 || worstAgainst.length > 0) && (
-        <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {bestAgainst.length > 0 && (
-            <div className="rounded-2xl border border-border/60 bg-card/60 p-5">
-              <p className="section-label mb-3 text-green-400">Strong Against</p>
-              <div className="flex flex-col gap-2">
-                {bestAgainst.map(h => {
-                  const hSlug = heroSlug(h.name)
-                  const hCfg = ATTR_CONFIG[h.primary_attr]
-                  return (
-                    <Link key={h.id} href={`/heroes/${hSlug}`} className="flex items-center gap-3 rounded-xl hover:bg-secondary/40 transition-colors p-1.5 -mx-1.5">
-                      <div className="w-12 h-7 rounded-lg overflow-hidden shrink-0 border border-border/40">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={heroPortraitUrl(hSlug)} alt={h.localized_name} className="w-full h-full object-cover object-center" />
-                      </div>
-                      <span className="text-sm font-semibold flex-1">{h.localized_name}</span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${hCfg.color} ${hCfg.bg} ${hCfg.border}`}>{hCfg.short}</span>
-                    </Link>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-          {worstAgainst.length > 0 && (
-            <div className="rounded-2xl border border-border/60 bg-card/60 p-5">
-              <p className="section-label mb-3 text-red-400">Weak Against</p>
-              <div className="flex flex-col gap-2">
-                {worstAgainst.map(h => {
-                  const hSlug = heroSlug(h.name)
-                  const hCfg = ATTR_CONFIG[h.primary_attr]
-                  return (
-                    <Link key={h.id} href={`/heroes/${hSlug}`} className="flex items-center gap-3 rounded-xl hover:bg-secondary/40 transition-colors p-1.5 -mx-1.5">
-                      <div className="w-12 h-7 rounded-lg overflow-hidden shrink-0 border border-border/40">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={heroPortraitUrl(hSlug)} alt={h.localized_name} className="w-full h-full object-cover object-center" />
-                      </div>
-                      <span className="text-sm font-semibold flex-1">{h.localized_name}</span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${hCfg.color} ${hCfg.bg} ${hCfg.border}`}>{hCfg.short}</span>
-                    </Link>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Signature players */}
-      {signaturePlayers.length > 0 && (
-        <div className="mb-6">
-          <p className="section-label mb-3">Pro Players Known For This Hero</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {signaturePlayers.map(p => {
-              const posLabel: Record<number, string> = { 1: 'Carry', 2: 'Mid', 3: 'Offlane', 4: 'Soft Support', 5: 'Hard Support' }
-              return (
-                <Link
-                  key={p.slug}
-                  href={`/players/${p.slug}`}
-                  className="flex items-center gap-3 rounded-xl border border-border/60 bg-card/60 px-4 py-3 hover:bg-secondary/40 transition-colors"
-                >
-                  {p.photo_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.photo_url} alt={p.ign} className="w-10 h-10 rounded-full object-cover shrink-0 border border-border/40" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-secondary/60 border border-border/40 flex items-center justify-center text-sm font-bold shrink-0">
-                      {p.ign.slice(0, 2).toUpperCase()}
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm truncate">{p.ign}</p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {p.team?.name ?? ''}
-                      {p.team?.name && p.position ? ' · ' : ''}
-                      {p.position ? posLabel[p.position] : ''}
-                    </p>
-                  </div>
-                  {p.team?.logo_url && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.team.logo_url} alt={p.team.name} className="w-7 h-7 object-contain shrink-0 rounded" />
-                  )}
-                </Link>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
       {/* Facets */}
       {detail?.facets && detail.facets.length > 0 && (
         <div className="mb-6">
@@ -506,7 +436,7 @@ export default async function HeroPage({
       {/* Aghanim's Scepter */}
       {hasScepter && (
         <div className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
+          <Link href="/items/ultimate_scepter" className="flex items-center gap-2 mb-3 w-fit hover:opacity-70 transition-opacity">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/items/ultimate_scepter.png"
@@ -514,7 +444,7 @@ export default async function HeroPage({
               className="w-7 h-7 rounded object-cover"
             />
             <p className="section-label">Aghanim&apos;s Scepter</p>
-          </div>
+          </Link>
           <div className="space-y-3">
             {scepterGrantedAbilities.map(ability => (
               <AbilityCard key={ability.id} ability={ability} />
@@ -529,7 +459,7 @@ export default async function HeroPage({
       {/* Aghanim's Shard */}
       {hasShard && (
         <div className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
+          <Link href="/items/aghanims_shard" className="flex items-center gap-2 mb-3 w-fit hover:opacity-70 transition-opacity">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/items/aghanims_shard.png"
@@ -537,7 +467,7 @@ export default async function HeroPage({
               className="w-7 h-7 rounded object-cover"
             />
             <p className="section-label">Aghanim&apos;s Shard</p>
-          </div>
+          </Link>
           <div className="space-y-3">
             {shardGrantedAbilities.map(ability => (
               <AbilityCard key={ability.id} ability={ability} />
@@ -552,6 +482,135 @@ export default async function HeroPage({
       {!detail && (
         <div className="rounded-2xl border border-border/60 bg-card/40 p-8 text-center text-sm text-muted-foreground">
           Ability data temporarily unavailable.
+        </div>
+      )}
+
+      {/* Matchups */}
+      {(bestAgainst.length > 0 || worstAgainst.length > 0) && (
+        <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {bestAgainst.length > 0 && (
+            <div className="rounded-2xl border border-border/60 bg-card/60 p-5">
+              <p className="section-label mb-3 text-green-400">Strong Against</p>
+              <div className="flex flex-col gap-2">
+                {bestAgainst.map(h => {
+                  const hSlug = heroSlug(h.name)
+                  const hCfg = ATTR_CONFIG[h.primary_attr]
+                  return (
+                    <Link key={h.id} href={`/heroes/${hSlug}`} className="flex items-center gap-3 rounded-xl hover:bg-secondary/40 transition-colors p-1.5 -mx-1.5">
+                      <div className="w-12 h-7 rounded-lg overflow-hidden shrink-0 border border-border/40">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={heroPortraitUrl(hSlug)} alt={h.localized_name} className="w-full h-full object-cover object-center" />
+                      </div>
+                      <span className="text-sm font-semibold flex-1">{h.localized_name}</span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${hCfg.color} ${hCfg.bg} ${hCfg.border}`}>{hCfg.short}</span>
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+          {worstAgainst.length > 0 && (
+            <div className="rounded-2xl border border-border/60 bg-card/60 p-5">
+              <p className="section-label mb-3 text-red-400">Weak Against</p>
+              <div className="flex flex-col gap-2">
+                {worstAgainst.map(h => {
+                  const hSlug = heroSlug(h.name)
+                  const hCfg = ATTR_CONFIG[h.primary_attr]
+                  return (
+                    <Link key={h.id} href={`/heroes/${hSlug}`} className="flex items-center gap-3 rounded-xl hover:bg-secondary/40 transition-colors p-1.5 -mx-1.5">
+                      <div className="w-12 h-7 rounded-lg overflow-hidden shrink-0 border border-border/40">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={heroPortraitUrl(hSlug)} alt={h.localized_name} className="w-full h-full object-cover object-center" />
+                      </div>
+                      <span className="text-sm font-semibold flex-1">{h.localized_name}</span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${hCfg.color} ${hCfg.bg} ${hCfg.border}`}>{hCfg.short}</span>
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Popular Items */}
+      {itemPhases.length > 0 && (
+        <div className="mb-6">
+          <p className="section-label mb-3">Popular Items</p>
+          <div className="rounded-2xl border border-border/60 bg-card/60 divide-y divide-border/40">
+            {itemPhases.map(({ phase, label, items }) => (
+              <div key={phase} className="flex items-center gap-4 px-5 py-3">
+                <p className="text-xs font-semibold text-muted-foreground w-24 shrink-0">{label}</p>
+                <div className="flex flex-wrap gap-2">
+                  {items.map(({ key }) => (
+                    <Link key={key} href={`/items/${key}`} title={key.replace(/_/g, ' ')}
+                      className="rounded-lg overflow-hidden border border-border/50 hover:border-primary/40 transition-colors">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={itemIconUrl(key)} alt={key} className="w-12 h-[35px] object-cover" />
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Neutral Items */}
+      {neutralItems.length > 0 && (
+        <div className="mb-6">
+          <p className="section-label mb-3">Popular Neutral Items</p>
+          <div className="rounded-2xl border border-border/60 bg-card/60 px-5 py-4">
+            <div className="flex flex-wrap gap-2">
+              {neutralItems.map(item => (
+                <Link key={item.key} href={`/items/${item.key}`} title={item.dname}
+                  className="rounded-lg overflow-hidden border border-border/50 hover:border-primary/40 transition-colors">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={itemIconUrl(item.key)} alt={item.dname} className="w-12 h-[35px] object-cover" />
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Signature players */}
+      {signaturePlayers.length > 0 && (
+        <div className="mb-6">
+          <p className="section-label mb-3">Pro Players Known For This Hero</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {signaturePlayers.map(p => {
+              const posLabel: Record<number, string> = { 1: 'Carry', 2: 'Mid', 3: 'Offlane', 4: 'Soft Support', 5: 'Hard Support' }
+              return (
+                <Link
+                  key={p.slug}
+                  href={`/players/${p.slug}`}
+                  className="flex items-center gap-3 rounded-xl border border-border/60 bg-card/60 px-4 py-3 hover:bg-secondary/40 transition-colors"
+                >
+                  {p.photo_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={p.photo_url} alt={p.ign} className="w-10 h-10 rounded-full object-cover shrink-0 border border-border/40" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-secondary/60 border border-border/40 flex items-center justify-center text-sm font-bold shrink-0">
+                      {p.ign.slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm truncate">{p.ign}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {p.team?.name ?? ''}
+                      {p.team?.name && p.position ? ' · ' : ''}
+                      {p.position ? posLabel[p.position] : ''}
+                    </p>
+                  </div>
+                  {p.team?.logo_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={p.team.logo_url} alt={p.team.name} className="w-7 h-7 object-contain shrink-0 rounded" />
+                  )}
+                </Link>
+              )
+            })}
+          </div>
         </div>
       )}
     </div>

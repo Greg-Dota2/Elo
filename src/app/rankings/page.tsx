@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   title: 'Dota 2 ELO Rankings',
   description: 'ELO power rankings for pro Dota 2 teams, updated after every series result.',
   keywords: ['Dota 2 ELO rankings', 'Dota 2 power rankings', 'best Dota 2 teams', 'Dota 2 team ratings', 'Dota 2 standings'],
+  alternates: { canonical: '/rankings' },
+  openGraph: { title: 'Dota 2 ELO Rankings', description: 'ELO power rankings for pro Dota 2 teams, updated after every series result.', url: '/rankings' },
+  twitter: { card: 'summary', title: 'Dota 2 ELO Rankings', description: 'ELO power rankings for pro Dota 2 teams, updated after every series result.' },
 }
 
 const MEDAL = ['🥇', '🥈', '🥉']

@@ -188,6 +188,147 @@ export interface HeroMatchup {
   win_rate: number
 }
 
+export interface HeroItemPhase {
+  phase: string
+  label: string
+  items: { key: string; count: number }[]
+}
+
+export async function fetchHeroItemPopularity(
+  heroId: number,
+  itemIdMap: Map<number, string>,
+  basicItemKeys: Set<string>,
+  componentsMap: Map<string, string[]>,
+): Promise<HeroItemPhase[]> {
+  const res = await fetch(`https://api.opendota.com/api/heroes/${heroId}/itemPopularity`, {
+    next: { revalidate: 86400 },
+  })
+  if (!res.ok) return []
+  const raw: Record<string, Record<string, number>> = await res.json()
+
+  const PHASES = [
+    { key: 'start_game_items', label: 'Starting Items', upgradeOnly: false },
+    { key: 'early_game_items', label: 'Early Game',     upgradeOnly: false },
+    { key: 'mid_game_items',   label: 'Core',           upgradeOnly: true  },
+    { key: 'late_game_items',  label: 'Late Game',      upgradeOnly: true  },
+  ]
+
+  const SKIP = new Set(['tpscroll', 'ward_observer', 'ward_sentry'])
+  const seenAcrossPhases = new Set<string>()
+
+  // Recursively collect all components of an item
+  const allComponents = (key: string, visited = new Set<string>()): Set<string> => {
+    if (visited.has(key)) return visited
+    visited.add(key)
+    for (const comp of componentsMap.get(key) ?? []) allComponents(comp, visited)
+    return visited
+  }
+
+  return PHASES.map(({ key, label, upgradeOnly }) => {
+    const phase = raw[key] ?? {}
+    const candidates = Object.entries(phase)
+      .map(([id, count]) => ({ key: itemIdMap.get(Number(id)) ?? '', count }))
+      .filter(i => i.key && !i.key.includes('recipe') && !SKIP.has(i.key))
+      .filter(i => !upgradeOnly || !basicItemKeys.has(i.key))
+      .filter(i => !seenAcrossPhases.has(i.key))
+      .sort((a, b) => b.count - a.count)
+
+    // Greedily pick, skipping components of already-picked items in this phase
+    const blocked = new Set<string>()
+    const result: { key: string; count: number }[] = []
+
+    for (const item of candidates) {
+      if (blocked.has(item.key)) continue
+      result.push(item)
+      seenAcrossPhases.add(item.key)
+      // Block all components (recursive) of this item within this phase
+      for (const comp of allComponents(item.key)) blocked.add(comp)
+      if (result.length >= 6) break
+    }
+
+    return { phase: key, label, items: result }
+  }).filter(p => p.items.length > 0)
+}
+
+export interface HeroItemUsage {
+  hero: HeroData
+  phase: string
+  count: number
+}
+
+export async function fetchHeroesForItem(itemId: number): Promise<HeroItemUsage[]> {
+  const heroes = await fetchAllHeroes()
+
+  const results = await Promise.allSettled(
+    heroes.map(async hero => {
+      const res = await fetch(`https://api.opendota.com/api/heroes/${hero.id}/itemPopularity`, {
+        next: { revalidate: 86400 },
+      })
+      if (!res.ok) return null
+      const raw: Record<string, Record<string, number>> = await res.json()
+      return { hero, raw }
+    })
+  )
+
+  const PHASE_LABELS: Record<string, string> = {
+    start_game_items: 'Starting',
+    early_game_items: 'Early',
+    mid_game_items:   'Core',
+    late_game_items:  'Late',
+  }
+
+  const usage: HeroItemUsage[] = []
+
+  for (const result of results) {
+    if (result.status !== 'fulfilled' || !result.value) continue
+    const { hero, raw } = result.value
+
+    let bestCount = 0
+    let bestPhase = ''
+    for (const [phaseKey, phaseLabel] of Object.entries(PHASE_LABELS)) {
+      const count = raw[phaseKey]?.[String(itemId)] ?? 0
+      if (count > bestCount) { bestCount = count; bestPhase = phaseLabel }
+    }
+
+    if (bestCount > 0) usage.push({ hero, phase: bestPhase, count: bestCount })
+  }
+
+  return usage.sort((a, b) => b.count - a.count).slice(0, 8)
+}
+
+// Use a high match_id floor to limit the scan to recent matches (avoids full-table timeout)
+const RECENT_MATCH_FLOOR = 7700000000
+
+export async function fetchNeutralItemHeroes(itemId: number): Promise<{ hero: HeroData; count: number }[]> {
+  const sql = encodeURIComponent(
+    `SELECT hero_id, count(*) AS games FROM player_matches WHERE item_neutral = ${itemId} AND hero_id IS NOT NULL AND match_id > ${RECENT_MATCH_FLOOR} GROUP BY hero_id ORDER BY games DESC LIMIT 8`
+  )
+  const res = await fetch(`https://api.opendota.com/api/explorer?sql=${sql}`, {
+    next: { revalidate: 86400 },
+  })
+  if (!res.ok) return []
+  const data: { rows?: { hero_id: number; games: number }[] } = await res.json()
+  if (!data.rows?.length) return []
+
+  const heroes = await fetchAllHeroes()
+  const heroById = new Map(heroes.map(h => [h.id, h]))
+  return data.rows
+    .map(r => ({ hero: heroById.get(r.hero_id)!, count: r.games }))
+    .filter(r => r.hero)
+}
+
+export async function fetchHeroNeutralItems(heroId: number): Promise<{ itemId: number; count: number }[]> {
+  const sql = encodeURIComponent(
+    `SELECT item_neutral, count(*) AS games FROM player_matches WHERE hero_id = ${heroId} AND item_neutral IS NOT NULL AND item_neutral != 0 AND match_id > ${RECENT_MATCH_FLOOR} GROUP BY item_neutral ORDER BY games DESC LIMIT 6`
+  )
+  const res = await fetch(`https://api.opendota.com/api/explorer?sql=${sql}`, {
+    next: { revalidate: 86400 },
+  })
+  if (!res.ok) return []
+  const data: { rows?: { item_neutral: number; games: number }[] } = await res.json()
+  return (data.rows ?? []).map(r => ({ itemId: r.item_neutral, count: r.games }))
+}
+
 export async function fetchHeroMatchups(heroId: number): Promise<HeroMatchup[]> {
   const res = await fetch(`https://api.opendota.com/api/heroes/${heroId}/matchups`, {
     next: { revalidate: 86400 },

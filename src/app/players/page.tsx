@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   title: 'Dota 2 Pro Players — Profiles & Stats',
   description: 'Profiles for Tier 1 Dota 2 professional players — position, team, country, and career highlights.',
   keywords: ['Dota 2 pro players', 'Dota 2 players', 'professional Dota 2', 'Dota 2 roster', 'Dota 2 carry', 'Dota 2 midlaner'],
+  alternates: { canonical: '/players' },
+  openGraph: { title: 'Dota 2 Pro Players — Profiles & Stats', description: 'Profiles for Tier 1 Dota 2 professional players — position, team, country, and career highlights.', url: '/players' },
+  twitter: { card: 'summary', title: 'Dota 2 Pro Players — Profiles & Stats', description: 'Profiles for Tier 1 Dota 2 professional players — position, team, country, and career highlights.' },
 }
 
 const POSITION_LABEL: Record<number, string> = { 1: 'Carry', 2: 'Mid', 3: 'Offlane', 4: 'Soft Support', 5: 'Hard Support' }

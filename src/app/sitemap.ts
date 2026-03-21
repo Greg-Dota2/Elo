@@ -19,10 +19,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .eq('is_published', true)
 
   let heroes: Awaited<ReturnType<typeof fetchAllHeroes>> = []
+  let items: { key: string }[] = []
   try {
-    heroes = await fetchAllHeroes()
+    const [h, i] = await Promise.all([fetchAllHeroes(), import('@/lib/items').then(m => m.fetchAllItems())])
+    heroes = h
+    items = i
   } catch {
-    // heroes optional — don't break sitemap if API is down
+    // optional — don't break sitemap if API is down
   }
 
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -33,6 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/rankings`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.7 },
     { url: `${SITE_URL}/track-record`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
     { url: `${SITE_URL}/heroes`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${SITE_URL}/items`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     { url: `${SITE_URL}/blog`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     { url: `${SITE_URL}/about`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
     { url: `${SITE_URL}/terms-of-use`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
@@ -73,5 +77,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }))
 
-  return [...staticRoutes, ...heroRoutes, ...tournamentRoutes, ...teamRoutes, ...playerRoutes, ...blogRoutes]
+  const itemRoutes: MetadataRoute.Sitemap = items.map(i => ({
+    url: `${SITE_URL}/items/${i.key}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.6,
+  }))
+
+  return [...staticRoutes, ...heroRoutes, ...itemRoutes, ...tournamentRoutes, ...teamRoutes, ...playerRoutes, ...blogRoutes]
 }

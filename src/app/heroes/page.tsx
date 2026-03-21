@@ -13,6 +13,7 @@ export const metadata: Metadata = {
     description: 'All Dota 2 heroes with abilities, base stats, roles, and lore.',
     url: '/heroes',
   },
+  twitter: { card: 'summary', title: 'Dota 2 Heroes — Abilities, Stats & Roles', description: 'All Dota 2 heroes with abilities, base stats, roles, and lore.' },
   alternates: { canonical: '/heroes' },
 }
 
