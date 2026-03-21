@@ -46,22 +46,46 @@ export default function AboutPage() {
       </div>
 
       <div
-        className="rounded-2xl px-7 py-5 flex items-center gap-4"
-        style={{ background: 'hsl(220 100% 55% / 0.08)', border: '1px solid hsl(220 100% 55% / 0.2)' }}
+        className="rounded-2xl px-7 py-5"
+        style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
       >
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="#1877F2" className="shrink-0">
-          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-        </svg>
-        <div>
-          <p className="font-semibold text-sm" style={{ color: 'var(--text)' }}>Join the discussion</p>
+        <p className="font-semibold text-sm mb-4" style={{ color: 'var(--text)' }}>Join the discussion</p>
+        <div className="flex flex-col gap-3">
+          {/* Facebook */}
           <a
-            href="https://www.facebook.com/Dota2Protips"
+            href="https://www.facebook.com/Dota2ProTips"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm transition-opacity hover:opacity-70"
-            style={{ color: '#1877F2' }}
+            className="flex items-center gap-3 transition-opacity hover:opacity-70"
           >
-            facebook.com/Dota2Protips →
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="#1877F2" className="shrink-0">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+            </svg>
+            <span className="text-sm font-medium" style={{ color: '#1877F2' }}>facebook.com/Dota2ProTips</span>
+          </a>
+          {/* X / Twitter */}
+          <a
+            href="https://x.com/Dota2ProTips"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 transition-opacity hover:opacity-70"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" className="shrink-0" style={{ color: 'var(--text)' }}>
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+            <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>x.com/Dota2ProTips</span>
+          </a>
+          {/* Telegram */}
+          <a
+            href="https://t.me/dota2protips"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 transition-opacity hover:opacity-70"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="#229ED9" className="shrink-0">
+              <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.19 13.167l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.958.392z"/>
+            </svg>
+            <span className="text-sm font-medium" style={{ color: '#229ED9' }}>t.me/dota2protips</span>
           </a>
         </div>
       </div>

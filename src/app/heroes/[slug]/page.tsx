@@ -442,12 +442,39 @@ export default async function HeroPage({
         <div className="mb-6">
           <p className="section-label mb-3">Facets</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {detail.facets.map(facet => (
-              <div key={facet.id} className="rounded-xl border border-border/60 bg-card/60 p-4">
-                <p className="font-display font-bold text-sm mb-1">{facet.title}</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">{facet.description}</p>
-              </div>
-            ))}
+            {detail.facets.map((facet, facetIdx) => {
+              // Gather special values from the dedicated facet ability (positional index)
+              const facetAbility = detail.facet_abilities?.[facetIdx]?.abilities?.[0]
+              const directSVs = facetAbility?.special_values ?? []
+
+              // Also gather facet-gated values from regular abilities (required_facet match)
+              // {s:bonus_X} tokens map to facet_bonus.values of special value named X
+              const gatedSVs: import('@/lib/heroes').ValveSpecialValue[] = []
+              for (const ability of detail.abilities) {
+                for (const sv of ability.special_values ?? []) {
+                  if (sv.required_facet === facet.name && sv.facet_bonus?.values?.length) {
+                    gatedSVs.push({ ...sv, values_float: sv.facet_bonus.values })
+                    gatedSVs.push({ ...sv, name: 'bonus_' + sv.name, values_float: sv.facet_bonus.values })
+                  }
+                }
+              }
+
+              const description = interpolateAbilityDesc(facet.description_loc, [...directSVs, ...gatedSVs])
+              return (
+                <div key={facet.index} className="rounded-xl border border-border/60 bg-card/60 p-4 flex gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/facets/${facet.icon}.png`}
+                    alt={facet.title_loc}
+                    className="w-8 h-8 object-contain shrink-0 mt-0.5"
+                  />
+                  <div>
+                    <p className="font-display font-bold text-sm mb-1">{facet.title_loc}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}

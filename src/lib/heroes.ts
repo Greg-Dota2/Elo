@@ -30,6 +30,8 @@ export interface ValveSpecialValue {
   heading_loc: string
   values_float: number[]
   is_percentage: boolean
+  required_facet?: string
+  facet_bonus?: { name: string; values: number[]; operation: number }
 }
 
 export interface ValveAbility {
@@ -56,12 +58,13 @@ export interface ValveAbility {
 }
 
 export interface ValveFacet {
-  id: number
+  index: number
   name: string
   icon: string
-  color: string
-  title: string
-  description: string
+  color: number       // gradient index 1–8
+  gradient_id: number
+  title_loc: string
+  description_loc: string
 }
 
 export interface ValveHeroDetail {
@@ -72,6 +75,7 @@ export interface ValveHeroDetail {
   hype_loc: string
   abilities: ValveAbility[]
   facets: ValveFacet[]
+  facet_abilities: { abilities: ValveAbility[] }[]
 }
 
 export function heroSlug(heroName: string): string {
@@ -152,13 +156,18 @@ export function interpolateAbilityDesc(
 ): string {
   if (!text) return text
   const lookup = Object.fromEntries(specialValues.map(sv => [sv.name.toLowerCase(), sv]))
-  return text.replace(/%([^%]+)%/g, (match, key) => {
+  const resolve = (key: string, match: string) => {
     const sv = lookup[key.toLowerCase()]
     if (!sv) return match
     const vals = sv.values_float.map(v => Math.round(v * 100) / 100)
     const formatted = formatLevelValues(vals)
     return sv.is_percentage ? formatted + '%' : formatted
-  })
+  }
+  // Single-pass: handle %% (literal %) and %var% tokens together so %% can't
+  // interfere with adjacent token boundaries (e.g. %var%%%)
+  return text
+    .replace(/%%|%([^%]+)%/g, (match, key) => key ? resolve(key, match) : '%')
+    .replace(/\{s:([^}]+)\}/g, (match, key) => resolve(key, match))
 }
 
 export async function fetchAllHeroes(): Promise<HeroData[]> {
