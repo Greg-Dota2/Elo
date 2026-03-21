@@ -29,7 +29,7 @@ interface Props {
 
 export default async function ItemsPage({ searchParams }: Props) {
   const { cat } = await searchParams
-  const activeCategory = (cat as ItemCategory) || 'all'
+  const activeCategory: ItemCategory | 'all' = (cat as ItemCategory) || 'all'
 
   const allItems = await fetchAllItems()
   const items = activeCategory === 'all'
