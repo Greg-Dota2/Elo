@@ -95,11 +95,14 @@ export default function MatchCard({ match, tournament }: Props) {
             <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-secondary/70 px-3 py-1.5 text-xs font-medium text-muted-foreground shrink-0">
               <Clock className="h-3.5 w-3.5" />
               {match.match_date
-                ? new Date(match.match_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+                ? new Date(`${match.match_date}T00:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'Europe/Athens' })
                 : '–'}
-              {match.match_time && (
-                <><span className="text-muted-foreground/40">·</span>{match.match_time}</>
-              )}
+              {match.match_time && (() => {
+                const d = new Date(`${match.match_date}T${match.match_time}:00Z`)
+                const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Athens' })
+                const tz = d.toLocaleDateString('en-US', { timeZoneName: 'short', timeZone: 'Europe/Athens' }).split(', ').pop() ?? 'EET'
+                return <><span className="text-muted-foreground/40">·</span>{time} {tz}</>
+              })()}
               <span className="text-muted-foreground/40">·</span>
               <span className="font-bold">BO{match.best_of}</span>
             </div>
