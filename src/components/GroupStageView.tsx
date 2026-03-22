@@ -108,6 +108,7 @@ function GroupCard({ group }: { group: GroupData }) {
                 <th className="pb-3 pr-2 text-left text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-subtle)', width: 20 }}>#</th>
                 <th className="pb-3 pr-8 text-left text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-subtle)' }}>Team</th>
                 <th className="pb-3 px-3 text-center text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--correct)' }}>W</th>
+                <th className="pb-3 px-3 text-center text-[10px] font-bold uppercase tracking-widest" style={{ color: '#f59e0b' }}>D</th>
                 <th className="pb-3 px-3 text-center text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--wrong)' }}>L</th>
                 <th className="pb-3 pl-3 text-center text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-subtle)' }}>Pts</th>
               </tr>
@@ -143,11 +144,14 @@ function GroupCard({ group }: { group: GroupData }) {
                   <td className="py-2.5 px-3 text-center text-sm font-black tabular-nums" style={{ color: 'var(--correct)' }}>
                     {s.wins}
                   </td>
+                  <td className="py-2.5 px-3 text-center text-sm font-black tabular-nums" style={{ color: s.draws > 0 ? '#f59e0b' : 'var(--text-muted)' }}>
+                    {s.draws}
+                  </td>
                   <td className="py-2.5 px-3 text-center text-sm font-black tabular-nums" style={{ color: s.losses > 0 ? 'var(--wrong)' : 'var(--text-muted)' }}>
                     {s.losses}
                   </td>
                   <td className="py-2.5 pl-3 text-center text-sm font-bold tabular-nums" style={{ color: 'var(--text)' }}>
-                    {s.wins * 3 + s.draws}
+                    {s.wins * 2 + s.draws}
                   </td>
                 </tr>
               ))}

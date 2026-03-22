@@ -105,11 +105,10 @@ export default function WriteAnalysisPage({ params }: Props) {
           </p>
         </Field>
 
-        <Field label="Pre-match Analysis *">
+        <Field label="Pre-match Analysis">
           <textarea
             name="pre_analysis"
             rows={8}
-            required
             className={inputClass}
             defaultValue={match.pre_analysis ?? ''}
             placeholder={`After everything we saw, ${team1?.name ?? 'Team 1'} looks like the stronger side here...`}

@@ -62,20 +62,25 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ slu
     .eq('is_published', true)
     .order('position', { ascending: true, nullsFirst: false })
 
-  // W/L record from match_predictions
+  // W/D/L record from match_predictions
   const { data: matchRows } = await supabase
     .from('match_predictions')
-    .select('team_1_id, team_2_id, actual_winner_id')
+    .select('team_1_id, team_2_id, score_team_1, score_team_2')
     .eq('is_published', true)
-    .not('actual_winner_id', 'is', null)
+    .not('score_team_1', 'is', null)
+    .not('score_team_2', 'is', null)
     .or(`team_1_id.eq.${team.id},team_2_id.eq.${team.id}`)
 
-  let wins = 0, losses = 0
+  let wins = 0, losses = 0, draws = 0
   for (const row of matchRows ?? []) {
-    if (row.actual_winner_id === team.id) wins++
-    else losses++
+    const teamIsTeam1 = row.team_1_id === team.id
+    const teamScore = teamIsTeam1 ? row.score_team_1! : row.score_team_2!
+    const oppScore = teamIsTeam1 ? row.score_team_2! : row.score_team_1!
+    if (teamScore > oppScore) wins++
+    else if (teamScore < oppScore) losses++
+    else draws++
   }
-  const total = wins + losses
+  const total = wins + draws + losses
   const winRate = total > 0 ? Math.round((wins / total) * 100) : null
 
   const posLabel: Record<number, string> = {
@@ -144,6 +149,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ slu
               <span className="text-sm text-muted-foreground">
                 <span className="text-success font-semibold">{wins}W</span>
                 {' · '}
+                {draws > 0 && <><span className="font-semibold" style={{ color: '#f59e0b' }}>{draws}D</span>{' · '}</>}
                 <span className="text-destructive font-semibold">{losses}L</span>
                 {winRate !== null && ` · ${winRate}%`}
               </span>

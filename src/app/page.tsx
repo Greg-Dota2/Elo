@@ -269,15 +269,70 @@ export default async function HomePage() {
             </div>
           )}
 
-          {featuredMatches.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
-              {featuredMatches.map((match, i) => (
-                <div key={match.id} className="fade-in-up" style={{ animationDelay: `${i * 0.06}s` }}>
-                  <MatchCard match={match} showTournament tournament={latest ?? undefined} />
-                </div>
-              ))}
-            </div>
-          ) : (
+          {featuredMatches.length > 0 ? (() => {
+            const activeMatches = featuredMatches.filter(m => m.score_team_1 === null || m.score_team_2 === null)
+            const finishedMatches = featuredMatches.filter(m => m.score_team_1 !== null && m.score_team_2 !== null)
+            return (
+              <div className="mb-12">
+                {activeMatches.length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    {activeMatches.map((match, i) => (
+                      <div key={match.id} className="fade-in-up" style={{ animationDelay: `${i * 0.06}s` }}>
+                        <MatchCard match={match} showTournament tournament={latest ?? undefined} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {finishedMatches.length > 0 && (
+                  <details className="group">
+                    <summary
+                      className="flex items-center justify-between gap-3 cursor-pointer select-none rounded-2xl px-5 py-4 mb-4"
+                      style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        {/* Tournament logo */}
+                        {latest?.logo_url && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img loading="lazy" src={latest.logo_url} alt={latest.name} className="w-7 h-7 object-contain shrink-0 rounded" />
+                        )}
+                        {/* Tournament name */}
+                        <span className="font-bold text-sm truncate" style={{ color: 'var(--text)' }}>
+                          {latest?.name}
+                        </span>
+                        {/* Date */}
+                        {finishedMatches[0]?.match_date && (
+                          <span className="text-xs px-2 py-0.5 rounded-full font-medium shrink-0" style={{ background: 'hsl(var(--muted))', color: 'var(--text-muted)' }}>
+                            {new Date(finishedMatches[0].match_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                          </span>
+                        )}
+                        {/* Count badge */}
+                        <span
+                          className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-black tabular-nums shrink-0"
+                          style={{ background: 'hsl(var(--muted))', color: 'var(--text-muted)' }}
+                        >
+                          {finishedMatches.length}
+                        </span>
+                      </div>
+                      <span
+                        className="text-xs font-semibold px-3 py-1.5 rounded-full transition-all group-open:opacity-0"
+                        style={{ background: 'hsl(var(--primary) / 0.1)', color: 'hsl(var(--primary))' }}
+                      >
+                        Show ▾
+                      </span>
+                    </summary>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {finishedMatches.map((match, i) => (
+                        <div key={match.id} className="fade-in-up" style={{ animationDelay: `${i * 0.06}s` }}>
+                          <MatchCard match={match} showTournament tournament={latest ?? undefined} />
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                )}
+                {activeMatches.length === 0 && finishedMatches.length === 0 && null}
+              </div>
+            )
+          })() : (
             <div
               className="rounded-2xl p-10 text-center mb-12"
               style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
