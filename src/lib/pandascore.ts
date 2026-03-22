@@ -116,10 +116,11 @@ export async function fetchMatchesForSubTournament(tournamentId: number): Promis
 }
 
 export async function fetchRecentTier1Matches(perPage = 50): Promise<PSMatch[]> {
-  const url = new URL(`${BASE}/dota2/matches/past`)
+  const url = new URL(`${BASE}/dota2/matches`)
   url.searchParams.set('token', TOKEN)
   url.searchParams.set('per_page', String(perPage))
   url.searchParams.set('filter[league_id]', TIER1_LEAGUE_IDS.join(','))
+  url.searchParams.set('filter[status]', 'finished')
   url.searchParams.set('sort', '-begin_at')
 
   const res = await fetch(url.toString(), { cache: 'no-store' })

@@ -2,6 +2,18 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { MatchPrediction, Player, TeamAccuracy, TournamentStats } from '@/lib/types'
 
+export function sortMatchesByStatus(matches: MatchPrediction[]): MatchPrediction[] {
+  const now = new Date()
+  const priority = (m: MatchPrediction) => {
+    if (m.score_team_1 !== null && m.score_team_2 !== null) return 2 // finished
+    const matchStart = m.match_date && m.match_time
+      ? new Date(`${m.match_date}T${m.match_time}:00Z`)
+      : null
+    return matchStart && now >= matchStart ? 0 : 1 // 0=live, 1=upcoming
+  }
+  return [...matches].sort((a, b) => priority(a) - priority(b))
+}
+
 export async function getTournaments() {
   const supabase = await createClient()
   const { data, error } = await supabase

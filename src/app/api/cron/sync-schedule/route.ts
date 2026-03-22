@@ -148,7 +148,7 @@ export async function GET(req: NextRequest) {
     const existing = predictionByPsId.get(String(match.id))
     if (existing) {
       const updates: Record<string, string> = {}
-      if (stream && !existing.twitch_url) updates.twitch_url = stream
+      if (stream) updates.twitch_url = stream
       if (matchTimeStr && !existing.match_time) updates.match_time = matchTimeStr
       if (Object.keys(updates).length) {
         toUpdate.push({ id: existing.id, updates })

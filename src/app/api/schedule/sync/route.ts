@@ -66,7 +66,7 @@ export async function POST() {
 
     if (existing) {
       const updates: Record<string, string> = {}
-      if (stream && !existing.twitch_url) updates.twitch_url = stream
+      if (stream) updates.twitch_url = stream
       if (matchTimeStr && !existing.match_time) updates.match_time = matchTimeStr
       if (Object.keys(updates).length) {
         await supabase.from('match_predictions').update(updates).eq('id', existing.id)

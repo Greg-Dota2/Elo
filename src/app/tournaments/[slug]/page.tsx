@@ -6,6 +6,7 @@ import {
   getPredictionsByTournament,
   getTournamentStats,
   getTeamAccuracy,
+  sortMatchesByStatus,
 } from '@/lib/queries'
 import TournamentContent from '@/components/TournamentContent'
 import type { MatchPrediction } from '@/lib/types'
@@ -13,6 +14,8 @@ import {
   fetchUpcomingTier1Matches,
   fetchRunningTier1Matches,
   fetchTournamentStandings,
+  fetchMatchesForSubTournament,
+  type PSTeam,
 } from '@/lib/pandascore'
 import GroupStageView, { type GroupData } from '@/components/GroupStageView'
 import { format, isSameDay } from 'date-fns'
@@ -106,37 +109,56 @@ export default async function TournamentPage({ params }: Props) {
     return acc
   }, {})
 
-  // Build group stage data: fetch standings per sub-tournament, fall back to teams from matches
+  // Build group stage data: fetch ALL matches + standings per sub-tournament
   const groupsData: GroupData[] = await Promise.all(
-    Object.entries(scheduleByGroup).map(async ([subId, matches]) => {
-      const sub = matches[0].tournament
-      const standings = await fetchTournamentStandings(Number(subId)).catch(() => [])
+    Object.entries(scheduleByGroup).map(async ([subId, upcomingMatches]) => {
+      const sub = upcomingMatches[0].tournament
+      const [standings, allMatches] = await Promise.all([
+        fetchTournamentStandings(Number(subId)).catch(() => []),
+        fetchMatchesForSubTournament(Number(subId)).catch(() => upcomingMatches),
+      ])
 
-      // If no standings yet, derive team list from match opponents
-      const derivedStandings = standings.length > 1 ? standings : (() => {
-        const seen = new Map<number, typeof standings[0]['team']>()
-        for (const m of matches) {
-          for (const opp of m.opponents) {
-            if (!seen.has(opp.opponent.id)) {
-              seen.set(opp.opponent.id, opp.opponent)
-            }
-          }
+      // Compute standings from finished matches as fallback
+      const computedStandings = (() => {
+        const record = new Map<number, { team: PSTeam; wins: number; draws: number; losses: number }>()
+        const ensure = (team: PSTeam) => {
+          if (!record.has(team.id)) record.set(team.id, { team, wins: 0, draws: 0, losses: 0 })
         }
-        return Array.from(seen.values()).map((team, i) => ({
-          rank: i + 1,
-          team,
-          wins: 0,
-          draws: 0,
-          losses: 0,
-          total: 0,
-        }))
+        for (const m of allMatches) {
+          if (m.status !== 'finished' || m.results.length < 2) continue
+          const [r1, r2] = m.results
+          const t1 = m.opponents.find(o => o.opponent.id === r1.team_id)?.opponent
+          const t2 = m.opponents.find(o => o.opponent.id === r2.team_id)?.opponent
+          if (!t1 || !t2) continue
+          ensure(t1); ensure(t2)
+          if (r1.score > r2.score) { record.get(t1.id)!.wins++; record.get(t2.id)!.losses++ }
+          else if (r2.score > r1.score) { record.get(t2.id)!.wins++; record.get(t1.id)!.losses++ }
+          else { record.get(t1.id)!.draws++; record.get(t2.id)!.draws++ }
+        }
+        return Array.from(record.values())
+          .sort((a, b) => (b.wins * 3 + b.draws) - (a.wins * 3 + a.draws))
+          .map((r, i) => ({ rank: i + 1, team: r.team, wins: r.wins, draws: r.draws, losses: r.losses, total: r.wins + r.draws + r.losses }))
       })()
 
-      return { id: Number(subId), name: sub.name, standings: derivedStandings, matches }
+      // Use PandaScore standings if they have real data, otherwise computed, otherwise blank list
+      const apiHasData = standings.length > 1 && standings.some(s => s.wins > 0 || s.losses > 0)
+      const derivedStandings = apiHasData ? standings
+        : computedStandings.length > 1 ? computedStandings
+        : (() => {
+          const seen = new Map<number, PSTeam>()
+          for (const m of allMatches) {
+            for (const opp of m.opponents) {
+              if (!seen.has(opp.opponent.id)) seen.set(opp.opponent.id, opp.opponent)
+            }
+          }
+          return Array.from(seen.values()).map((team, i) => ({ rank: i + 1, team, wins: 0, draws: 0, losses: 0, total: 0 }))
+        })()
+
+      return { id: Number(subId), name: sub.name, standings: derivedStandings, matches: allMatches }
     })
   ).then(groups => groups.filter(g => g.standings.length > 1))
 
-  const stages = groupByStage(predictions)
+  const stages = groupByStage(predictions).map(s => ({ ...s, matches: sortMatchesByStatus(s.matches) }))
 
   return (
     <div className="fade-in-up">
@@ -275,22 +297,25 @@ export default async function TournamentPage({ params }: Props) {
       {/* ── Group Stage ── */}
       <GroupStageView groups={groupsData} />
 
-      {/* ── Upcoming Schedule (PandaScore) ── */}
-      {Object.keys(scheduleByGroup).length > 0 && (
+      {/* ── Schedule (PandaScore) ── */}
+      {groupsData.length > 0 && (
         <div className="mb-6">
-          <p className="section-label mb-4">{runningPS.length > 0 ? 'Live & Upcoming Matches' : 'Upcoming Matches'}</p>
+          <p className="section-label mb-4">Schedule & Results</p>
           <div className="grid gap-4">
-            {Object.entries(scheduleByGroup).map(([, matches], blockIdx) => {
-              const t = matches[0].tournament
-              const league = matches[0].league
-              const dates = matches.map(m => new Date(m.scheduled_at ?? m.begin_at ?? ''))
+            {groupsData.map((group, blockIdx) => {
+              const firstMatch = group.matches[0]
+              if (!firstMatch) return null
+              const t = firstMatch.tournament
+              const league = firstMatch.league
+              const dates = group.matches.map(m => new Date(m.scheduled_at ?? m.begin_at ?? ''))
               const minDate = new Date(Math.min(...dates.map(d => d.getTime())))
               const maxDate = new Date(Math.max(...dates.map(d => d.getTime())))
               const dateRange = isSameDay(minDate, maxDate)
                 ? format(minDate, 'MMM d')
                 : `${format(minDate, 'MMM d')} – ${format(maxDate, 'MMM d')}`
+              const psTeamSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
               return (
-                <div key={t.id} className="rounded-2xl overflow-hidden" style={{ background: 'hsl(var(--card) / 0.6)', border: '1px solid hsl(var(--border) / 0.6)', animationDelay: `${blockIdx * 0.07}s` }}>
+                <div key={group.id} className="rounded-2xl overflow-hidden" style={{ background: 'hsl(var(--card) / 0.6)', border: '1px solid hsl(var(--border) / 0.6)', animationDelay: `${blockIdx * 0.07}s` }}>
                   <div className="px-5 py-3 flex items-center gap-3" style={{ borderBottom: '1px solid hsl(var(--border) / 0.5)' }}>
                     {league.image_url && (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -303,16 +328,14 @@ export default async function TournamentPage({ params }: Props) {
                     <span className="text-xs shrink-0 tabular-nums text-muted-foreground">{dateRange}</span>
                   </div>
                   {(() => {
-                    // Group matches by day
-                    const byDay = new Map<string, typeof matches>()
-                    for (const m of matches) {
+                    const byDay = new Map<string, typeof group.matches>()
+                    for (const m of group.matches) {
                       const day = m.scheduled_at ? format(new Date(m.scheduled_at), 'MMM d') : 'TBD'
                       if (!byDay.has(day)) byDay.set(day, [])
                       byDay.get(day)!.push(m)
                     }
                     return Array.from(byDay.entries()).map(([day, dayMatches]) => (
                       <div key={day}>
-                        {/* Day header */}
                         <div className="px-5 py-2 text-xs font-bold uppercase tracking-widest" style={{ background: 'hsl(var(--secondary) / 0.35)', borderBottom: '1px solid hsl(var(--border) / 0.4)', color: 'hsl(var(--primary))' }}>
                           {day}
                         </div>
@@ -320,7 +343,11 @@ export default async function TournamentPage({ params }: Props) {
                           const teamA = m.opponents[0]?.opponent
                           const teamB = m.opponents[1]?.opponent
                           const time = m.scheduled_at ? format(new Date(m.scheduled_at), 'HH:mm') : '–'
-                          const psTeamSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+                          const scoreA = m.results.find(r => r.team_id === teamA?.id)?.score
+                          const scoreB = m.results.find(r => r.team_id === teamB?.id)?.score
+                          const hasScore = m.status === 'finished' && scoreA !== undefined && scoreB !== undefined
+                          const aWon = hasScore && scoreA! > scoreB!
+                          const bWon = hasScore && scoreB! > scoreA!
                           return (
                             <div key={m.id} className="px-5 py-2.5 flex items-center gap-3 text-sm" style={{ borderBottom: i < dayMatches.length - 1 ? '1px solid hsl(var(--border) / 0.4)' : 'none', background: i % 2 !== 0 ? 'hsl(var(--secondary) / 0.2)' : 'transparent' }}>
                               <span className="w-12 text-xs shrink-0 tabular-nums text-muted-foreground">{time}</span>
@@ -328,15 +355,23 @@ export default async function TournamentPage({ params }: Props) {
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 {teamA?.image_url && <img loading="lazy" src={teamA.image_url} alt={teamA.name} className="w-4 h-4 object-contain shrink-0" />}
                                 {teamA ? (
-                                  <Link href={`/teams/${psTeamSlug(teamA.name)}`} className="font-semibold truncate text-foreground hover:text-primary transition-colors">{teamA.name}</Link>
+                                  <Link href={`/teams/${psTeamSlug(teamA.name)}`} className={`font-semibold truncate hover:text-primary transition-colors ${aWon ? 'text-[var(--correct)]' : hasScore ? 'text-muted-foreground' : 'text-foreground'}`}>{teamA.name}</Link>
                                 ) : <span className="font-semibold truncate text-foreground">TBD</span>}
                               </div>
-                              <span className="text-xs font-black px-2 shrink-0 text-muted-foreground/40">VS</span>
+                              {hasScore ? (
+                                <span className="text-sm font-black tabular-nums shrink-0 px-2" style={{ color: 'var(--text)' }}>
+                                  {scoreA}:{scoreB}
+                                </span>
+                              ) : m.status === 'running' ? (
+                                <span className="text-[10px] font-bold px-2 shrink-0" style={{ color: 'hsl(var(--destructive))' }}>LIVE</span>
+                              ) : (
+                                <span className="text-xs font-black px-2 shrink-0 text-muted-foreground/40">VS</span>
+                              )}
                               <div className="flex items-center gap-1.5 flex-1 min-w-0">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 {teamB?.image_url && <img loading="lazy" src={teamB.image_url} alt={teamB.name} className="w-4 h-4 object-contain shrink-0" />}
                                 {teamB ? (
-                                  <Link href={`/teams/${psTeamSlug(teamB.name)}`} className="font-semibold truncate text-foreground hover:text-primary transition-colors">{teamB.name}</Link>
+                                  <Link href={`/teams/${psTeamSlug(teamB.name)}`} className={`font-semibold truncate hover:text-primary transition-colors ${bWon ? 'text-[var(--correct)]' : hasScore ? 'text-muted-foreground' : 'text-foreground'}`}>{teamB.name}</Link>
                                 ) : <span className="font-semibold truncate text-foreground">TBD</span>}
                               </div>
                               <span className="text-xs shrink-0 px-2 py-0.5 rounded" style={{ background: 'hsl(var(--secondary))', color: 'hsl(var(--muted-foreground))' }}>BO{m.number_of_games}</span>

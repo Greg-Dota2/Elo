@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { getTournaments, getTournamentStats, getPredictionsByTournament } from '@/lib/queries'
+import { getTournaments, getTournamentStats, getPredictionsByTournament, sortMatchesByStatus } from '@/lib/queries'
 import MatchCard from '@/components/MatchCard'
 import TournamentCard from '@/components/TournamentCard'
 import Link from 'next/link'
@@ -35,7 +35,7 @@ export default async function HomePage() {
     ? await getTournamentStats(latest.id).catch(() => null)
     : null
 
-  const featuredMatches = latestMatches
+  const featuredMatches = sortMatchesByStatus(latestMatches)
 
   return (
     <div className="fade-in-up">

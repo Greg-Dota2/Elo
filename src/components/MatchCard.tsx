@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { winProbability, seriesWinProbability, drawProbability } from '@/lib/elo'
 import { Clock, TrendingUp, X } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 function TeamName({ team, className }: { team: Team; className?: string }) {
   if (team.slug) {
@@ -46,7 +46,30 @@ export default function MatchCard({ match, tournament }: Props) {
   if (!team_1 || !team_2) return null
 
   const [expanded, setExpanded] = useState(false)
+  const [now, setNow] = useState(() => new Date())
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(t)
+  }, [])
+
   const hasResult = match.score_team_1 !== null && match.score_team_2 !== null
+  const matchStart = match.match_date && match.match_time
+    ? new Date(`${match.match_date}T${match.match_time}:00Z`)
+    : null
+  const isLive = matchStart && now >= matchStart && !hasResult
+  const isFuture = matchStart && now < matchStart
+  const msLeft = isFuture ? matchStart.getTime() - now.getTime() : 0
+
+  function formatCountdown(ms: number) {
+    const s = Math.floor(ms / 1000)
+    const d = Math.floor(s / 86400)
+    const h = Math.floor((s % 86400) / 3600)
+    const m = Math.floor((s % 3600) / 60)
+    const sec = s % 60
+    if (d > 0) return `${d}d ${h}h`
+    if (h > 0) return `${h}h ${m}m`
+    return `${m}m ${sec}s`
+  }
   const t1Won = match.actual_winner_id === team_1.id
   const t2Won = match.actual_winner_id === team_2.id
   const pick = match.predicted_winner
@@ -91,18 +114,30 @@ export default function MatchCard({ match, tournament }: Props) {
               )}
             </div>
 
-            {/* Date + time + BO badge */}
+            {/* Date + status + BO badge */}
             <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-secondary/70 px-3 py-1.5 text-xs font-medium text-muted-foreground shrink-0">
               <Clock className="h-3.5 w-3.5" />
               {match.match_date
                 ? new Date(`${match.match_date}T00:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'Europe/Athens' })
                 : '–'}
-              {match.match_time && (() => {
-                const d = new Date(`${match.match_date}T${match.match_time}:00Z`)
-                const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Athens' })
-                const tz = d.toLocaleDateString('en-US', { timeZoneName: 'short', timeZone: 'Europe/Athens' }).split(', ').pop() ?? 'EET'
-                return <><span className="text-muted-foreground/40">·</span>{time} {tz}</>
-              })()}
+              <span className="text-muted-foreground/40">·</span>
+              {hasResult ? (
+                <span className="font-bold text-success">✓ Final</span>
+              ) : isLive ? (
+                <span className="inline-flex items-center gap-1 font-bold text-red-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
+                  Live
+                </span>
+              ) : isFuture ? (
+                <span className="font-mono font-bold">in {formatCountdown(msLeft)}</span>
+              ) : match.match_time ? (
+                (() => {
+                  const d = new Date(`${match.match_date}T${match.match_time}:00Z`)
+                  const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Athens' })
+                  const tz = d.toLocaleDateString('en-US', { timeZoneName: 'short', timeZone: 'Europe/Athens' }).split(', ').pop() ?? 'EET'
+                  return <span>{time} {tz}</span>
+                })()
+              ) : null}
               <span className="text-muted-foreground/40">·</span>
               <span className="font-bold">BO{match.best_of}</span>
             </div>
@@ -177,7 +212,7 @@ export default function MatchCard({ match, tournament }: Props) {
           const hasTimestamp = match.twitch_url.includes('?t=')
           const label = isVod
             ? hasTimestamp ? '⏱ Jump to Match on Twitch' : 'Watch VOD on Twitch'
-            : '🔴 Watch Live on Twitch'
+            : isLive ? '🔴 Watch Live on Twitch' : 'Watch on Twitch'
           return (
             <div className="mt-5 flex justify-center">
               <a
@@ -247,6 +282,28 @@ export default function MatchCard({ match, tournament }: Props) {
                 >
                   {expanded ? '↑ Show less' : '↓ Read more'}
                 </button>
+              </div>
+            )}
+
+            {match.post_commentary && hasResult && (
+              <div
+                className="mt-4 rounded-xl px-4 py-4"
+                style={{
+                  background: is_correct
+                    ? 'hsl(var(--success) / 0.07)'
+                    : 'hsl(var(--destructive) / 0.07)',
+                  border: `1px solid ${is_correct ? 'hsl(var(--success) / 0.25)' : 'hsl(var(--destructive) / 0.25)'}`,
+                }}
+              >
+                <p
+                  className="text-xs font-bold uppercase tracking-widest mb-2"
+                  style={{ color: is_correct ? 'hsl(var(--success))' : 'hsl(var(--destructive))' }}
+                >
+                  {is_correct ? '✓ Aftermath' : '✗ Aftermath'}
+                </p>
+                <p className="text-base leading-7 font-medium text-foreground">
+                  {match.post_commentary}
+                </p>
               </div>
             )}
           </div>
