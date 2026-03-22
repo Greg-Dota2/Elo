@@ -109,6 +109,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           function gtag(){dataLayer.push(arguments);}
           gtag('js',new Date());
           gtag('config','G-MZ7PBDBXH5');
+          gtag('config','AW-17155280275');
         `}</Script>
         <Navbar isAdmin={isAdmin} />
         <main className="max-w-7xl mx-auto px-4 py-8">{children}</main>
