@@ -122,7 +122,7 @@ export async function fetchRecentTier1Matches(perPage = 50): Promise<PSMatch[]> 
   url.searchParams.set('filter[league_id]', TIER1_LEAGUE_IDS.join(','))
   url.searchParams.set('sort', '-begin_at')
 
-  const res = await fetch(url.toString(), { next: { revalidate: 900 } })
+  const res = await fetch(url.toString(), { cache: 'no-store' })
   if (!res.ok) throw new Error(`PandaScore error ${res.status}: ${await res.text()}`)
   return res.json()
 }
