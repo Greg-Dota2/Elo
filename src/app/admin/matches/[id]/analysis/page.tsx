@@ -86,7 +86,7 @@ export default function WriteAnalysisPage({ params }: Props) {
           <select
             name="predicted_winner_id"
             className={inputClass}
-            defaultValue={match.predicted_winner_id ?? ''}
+            defaultValue={match.predicted_draw ? 'draw' : (match.predicted_winner_id ?? '')}
           >
             <option value="">— No pick —</option>
             {picksAvailable.map((t) => (

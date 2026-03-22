@@ -99,8 +99,16 @@ export async function getTeamAccuracy(
     .eq('tournament_id', tournamentId)
     .order('accuracy_pct', { ascending: false })
     .limit(limit)
-  if (error) return []
-  return data
+  if (error || !data?.length) return []
+
+  const teamIds = data.map(r => r.team_id)
+  const { data: teams } = await supabase
+    .from('teams')
+    .select('id, slug')
+    .in('id', teamIds)
+
+  const slugMap = new Map((teams ?? []).map(t => [t.id, t.slug]))
+  return data.map(r => ({ ...r, team_slug: slugMap.get(r.team_id) ?? null }))
 }
 
 export async function getAllTeams() {

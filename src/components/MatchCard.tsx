@@ -53,6 +53,16 @@ export default function MatchCard({ match, tournament }: Props) {
   }, [])
 
   const hasResult = match.score_team_1 !== null && match.score_team_2 !== null
+
+  // Compute is_correct on the fly as fallback when DB value is null
+  const computedIsCorrect: boolean | null = hasResult
+    ? match.score_team_1 === match.score_team_2
+      ? (match.predicted_draw ? true : false)
+      : match.actual_winner_id
+        ? match.actual_winner_id === match.predicted_winner?.id
+        : null
+    : null
+  const effectiveIsCorrect = is_correct ?? computedIsCorrect
   const matchStart = match.match_date && match.match_time
     ? new Date(`${match.match_date}T${match.match_time}:00Z`)
     : null
@@ -256,29 +266,29 @@ export default function MatchCard({ match, tournament }: Props) {
                   Prediction
                 </p>
                 <div className="mt-2 flex items-center gap-2">
-                  {is_correct === false
+                  {effectiveIsCorrect === false
                     ? <X className="h-4 w-4 flex-shrink-0" style={{ color: 'hsl(var(--destructive))' }} />
                     : <TrendingUp className="h-4 w-4 flex-shrink-0" style={{ color: predictedDraw ? '#f59e0b' : 'hsl(var(--success))' }} />
                   }
                   <p
                     className="font-display text-2xl font-bold"
-                    style={{ color: is_correct === false ? 'hsl(var(--destructive))' : predictedDraw ? '#f59e0b' : 'hsl(var(--success))' }}
+                    style={{ color: effectiveIsCorrect === false ? 'hsl(var(--destructive))' : predictedDraw ? '#f59e0b' : 'hsl(var(--success))' }}
                   >
                     {pick ? pick.name : 'Draw (1–1)'}
                   </p>
                 </div>
               </div>
 
-              {hasResult && is_correct !== null ? (
+              {hasResult && effectiveIsCorrect !== null ? (
                 <span
                   className="w-fit rounded-full px-3 py-1.5 text-sm font-semibold border"
                   style={
-                    is_correct
+                    effectiveIsCorrect
                       ? { background: 'hsl(var(--success) / 0.09)', color: 'hsl(var(--success))', borderColor: 'hsl(var(--success) / 0.22)' }
                       : { background: 'hsl(var(--destructive) / 0.09)', color: 'hsl(var(--destructive))', borderColor: 'hsl(var(--destructive) / 0.22)' }
                   }
                 >
-                  {is_correct ? '✓ Correct' : '✗ Wrong'}
+                  {effectiveIsCorrect ? '✓ Correct' : '✗ Wrong'}
                 </span>
               ) : !hasResult ? (
                 <span className="stat-badge-success w-fit">{confidence}% confidence</span>
@@ -305,17 +315,19 @@ export default function MatchCard({ match, tournament }: Props) {
               <div
                 className="mt-4 rounded-xl px-4 py-4"
                 style={{
-                  background: is_correct
+                  background: effectiveIsCorrect === true
                     ? 'hsl(var(--success) / 0.07)'
-                    : 'hsl(var(--destructive) / 0.07)',
-                  border: `1px solid ${is_correct ? 'hsl(var(--success) / 0.25)' : 'hsl(var(--destructive) / 0.25)'}`,
+                    : effectiveIsCorrect === false
+                    ? 'hsl(var(--destructive) / 0.07)'
+                    : 'hsl(var(--secondary) / 0.5)',
+                  border: `1px solid ${effectiveIsCorrect === true ? 'hsl(var(--success) / 0.25)' : effectiveIsCorrect === false ? 'hsl(var(--destructive) / 0.25)' : 'hsl(var(--border) / 0.6)'}`,
                 }}
               >
                 <p
                   className="text-xs font-bold uppercase tracking-widest mb-2"
-                  style={{ color: is_correct ? 'hsl(var(--success))' : 'hsl(var(--destructive))' }}
+                  style={{ color: effectiveIsCorrect === true ? 'hsl(var(--success))' : effectiveIsCorrect === false ? 'hsl(var(--destructive))' : 'hsl(var(--muted-foreground))' }}
                 >
-                  {is_correct ? '✓ Aftermath' : '✗ Aftermath'}
+                  {effectiveIsCorrect === true ? '✓ Aftermath' : effectiveIsCorrect === false ? '✗ Aftermath' : 'Aftermath'}
                 </p>
                 <p className="text-base leading-7 font-medium text-foreground">
                   {match.post_commentary}

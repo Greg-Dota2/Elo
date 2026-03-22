@@ -109,6 +109,7 @@ export interface TeamAccuracy {
   tournament_id: string
   team_id: string
   team_name: string
+  team_slug: string | null
   logo_url: string | null
   predictions_involving: number
   correct: number

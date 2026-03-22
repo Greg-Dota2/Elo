@@ -33,7 +33,8 @@ export default function RecordResultPage({ params }: Props) {
     const score2 = Number(form.get('score_team_2'))
 
     // Draw (e.g. 1-1 in BO2) → no winner
-    const actualWinnerId = score1 === score2
+    const isDraw = score1 === score2
+    const actualWinnerId = isDraw
       ? null
       : score1 > score2 ? match?.team_1_id : match?.team_2_id
 
@@ -46,6 +47,7 @@ export default function RecordResultPage({ params }: Props) {
         score_team_2: score2,
         actual_winner_id: actualWinnerId ?? null,
         predicted_winner_id: match?.predicted_winner_id,
+        predicted_draw: match?.predicted_draw ?? false,
         post_commentary: form.get('post_commentary') || null,
       }),
     })

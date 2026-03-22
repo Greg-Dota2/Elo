@@ -21,8 +21,7 @@ export async function GET(req: NextRequest) {
     .from('match_predictions')
     .select('id, pandascore_match_id, predicted_winner_id, predicted_draw, team_1_id, team_2_id')
     .not('pandascore_match_id', 'is', null)
-    .is('actual_winner_id', null)
-    .is('score_team_1', null)
+    .or('score_team_1.is.null,is_correct.is.null')
 
   if (!predictions?.length) {
     return NextResponse.json({ ok: true, updated: 0, log: ['Nothing to update'] })

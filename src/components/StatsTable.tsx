@@ -13,8 +13,11 @@ interface Props {
 
 export default function StatsTable({ stats, teamAccuracy }: Props) {
   const accuracy = stats.accuracy_pct ?? 0
+  const correctPct = stats.total_predictions > 0
+    ? parseFloat(((stats.correct / stats.total_predictions) * 100).toFixed(1))
+    : 0
   const wrongPct = stats.total_predictions > 0
-    ? parseFloat((100 - accuracy).toFixed(1))
+    ? parseFloat(((stats.wrong / stats.total_predictions) * 100).toFixed(1))
     : 0
 
   // SVG ring (correct arc)
@@ -74,9 +77,9 @@ export default function StatsTable({ stats, teamAccuracy }: Props) {
             <StatRow
               label="Correct"
               value={stats.correct}
-              pct={`${accuracy}%`}
+              pct={`${correctPct}%`}
               color="var(--correct)"
-              barPct={accuracy}
+              barPct={correctPct}
               barColor="linear-gradient(90deg, var(--correct), hsl(154,71%,55%))"
             />
             <StatRow
@@ -133,7 +136,7 @@ export default function StatsTable({ stats, teamAccuracy }: Props) {
                 {/* Name + bar */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <Link href={`/teams/${teamSlug(row.team_name)}`} className="text-xs font-semibold truncate hover:text-primary transition-colors" style={{ color: 'var(--text)' }}>
+                    <Link href={`/teams/${row.team_slug ?? teamSlug(row.team_name)}`} className="text-xs font-semibold truncate hover:text-primary transition-colors" style={{ color: 'var(--text)' }}>
                       {row.team_name}
                     </Link>
                     <span
