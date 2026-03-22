@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   const log: string[] = []
   let updated = 0
 
-  const psMatches = await fetchRecentTier1Matches(50)
+  const psMatches = await fetchRecentTier1Matches(100)
   const finished = psMatches.filter(m => m.status === 'finished' && m.results.length > 0)
 
   const { data: predictions } = await supabase
