@@ -21,7 +21,7 @@ function TeamName({ team, className }: { team: Team; className?: string }) {
 interface Props {
   match: MatchPrediction
   showTournament?: boolean
-  tournament?: { name: string; slug?: string | null; logo_url: string | null }
+  tournament?: { name: string; slug?: string | null; logo_url: string | null; telegram_url?: string | null }
 }
 
 function TeamLogo({ logo_url, name, dim }: { logo_url: string | null; name: string; dim?: boolean }) {
@@ -206,15 +206,16 @@ export default function MatchCard({ match, tournament }: Props) {
           </div>
         </div>
 
-        {/* ── Twitch button ── */}
-        {match.twitch_url && (() => {
+        {/* ── Twitch + Telegram buttons ── */}
+        {(match.twitch_url || tournament?.telegram_url) && (
+          <div className="mt-5 flex flex-col items-center gap-2">
+            {match.twitch_url && (() => {
           const isVod = match.twitch_url.includes('/videos/')
           const hasTimestamp = match.twitch_url.includes('?t=')
           const label = isVod
             ? hasTimestamp ? '⏱ Jump to Match on Twitch' : 'Watch VOD on Twitch'
             : isLive ? '🔴 Watch Live on Twitch' : 'Watch on Twitch'
           return (
-            <div className="mt-5 flex justify-center">
               <a
                 href={match.twitch_url}
                 target="_blank"
@@ -227,9 +228,24 @@ export default function MatchCard({ match, tournament }: Props) {
                 </svg>
                 {label}
               </a>
-            </div>
           )
         })()}
+            {tournament?.telegram_url && (
+              <a
+                href={tournament.telegram_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-bold transition-opacity hover:opacity-80"
+                style={{ background: '#1d6fa4', color: '#fff' }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.19 13.167l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.958.392z"/>
+                </svg>
+                Join live discussion
+              </a>
+            )}
+          </div>
+        )}
 
         {/* ── Prediction section ── */}
         {hasPrediction && (

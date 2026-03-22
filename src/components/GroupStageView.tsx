@@ -19,11 +19,21 @@ function MatchCell({ match, rowTeamId }: { match: PSMatch | undefined; rowTeamId
   }
 
   if (match.status === 'running') {
+    const rowResult = match.results.find(r => r.team_id === rowTeamId)
+    const otherResult = match.results.find(r => r.team_id !== rowTeamId)
+    const hasPartial = rowResult !== undefined && otherResult !== undefined
     return (
       <td className="w-16 h-10 text-center">
-        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: 'hsl(var(--destructive) / 0.15)', color: 'hsl(var(--destructive))' }}>
-          LIVE
-        </span>
+        <div className="flex flex-col items-center gap-0.5">
+          {hasPartial && (
+            <span className="text-sm font-black tabular-nums" style={{ color: 'hsl(var(--destructive))' }}>
+              {rowResult!.score}:{otherResult!.score}
+            </span>
+          )}
+          <span className="text-[9px] font-bold px-1 py-0.5 rounded" style={{ background: 'hsl(var(--destructive) / 0.15)', color: 'hsl(var(--destructive))' }}>
+            LIVE
+          </span>
+        </div>
       </td>
     )
   }
@@ -45,12 +55,14 @@ function MatchCell({ match, rowTeamId }: { match: PSMatch | undefined; rowTeamId
   const rowScore = rowResult?.score ?? 0
   const otherScore = otherResult?.score ?? 0
   const won = rowScore > otherScore
+  const drew = rowScore === otherScore
+  const color = drew ? '#f59e0b' : won ? 'var(--correct)' : 'var(--wrong)'
 
   return (
     <td className="w-16 h-10 text-center">
       <span
         className="text-sm font-black tabular-nums"
-        style={{ color: won ? 'var(--correct)' : 'var(--wrong)' }}
+        style={{ color }}
       >
         {rowScore}:{otherScore}
       </span>

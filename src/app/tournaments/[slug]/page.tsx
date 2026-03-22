@@ -298,95 +298,100 @@ export default async function TournamentPage({ params }: Props) {
       <GroupStageView groups={groupsData} />
 
       {/* ── Schedule (PandaScore) ── */}
-      {groupsData.length > 0 && (
-        <div className="mb-6">
-          <p className="section-label mb-4">Schedule & Results</p>
-          <div className="grid gap-4">
-            {groupsData.map((group, blockIdx) => {
-              const firstMatch = group.matches[0]
-              if (!firstMatch) return null
-              const t = firstMatch.tournament
-              const league = firstMatch.league
-              const dates = group.matches.map(m => new Date(m.scheduled_at ?? m.begin_at ?? ''))
-              const minDate = new Date(Math.min(...dates.map(d => d.getTime())))
-              const maxDate = new Date(Math.max(...dates.map(d => d.getTime())))
-              const dateRange = isSameDay(minDate, maxDate)
-                ? format(minDate, 'MMM d')
-                : `${format(minDate, 'MMM d')} – ${format(maxDate, 'MMM d')}`
-              const psTeamSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-              return (
-                <div key={group.id} className="rounded-2xl overflow-hidden" style={{ background: 'hsl(var(--card) / 0.6)', border: '1px solid hsl(var(--border) / 0.6)', animationDelay: `${blockIdx * 0.07}s` }}>
-                  <div className="px-5 py-3 flex items-center gap-3" style={{ borderBottom: '1px solid hsl(var(--border) / 0.5)' }}>
-                    {league.image_url && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img loading="lazy" src={league.image_url} alt={league.name} className="w-5 h-5 object-contain shrink-0" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold tracking-widest uppercase" style={{ color: 'hsl(var(--primary))' }}>{league.name}</p>
-                      <p className="text-sm font-bold text-foreground truncate">{t.name}</p>
-                    </div>
-                    <span className="text-xs shrink-0 tabular-nums text-muted-foreground">{dateRange}</span>
-                  </div>
-                  {(() => {
-                    const byDay = new Map<string, typeof group.matches>()
-                    for (const m of group.matches) {
-                      const day = m.scheduled_at ? format(new Date(m.scheduled_at), 'MMM d') : 'TBD'
-                      if (!byDay.has(day)) byDay.set(day, [])
-                      byDay.get(day)!.push(m)
-                    }
-                    return Array.from(byDay.entries()).map(([day, dayMatches]) => (
-                      <div key={day}>
-                        <div className="px-5 py-2 text-xs font-bold uppercase tracking-widest" style={{ background: 'hsl(var(--secondary) / 0.35)', borderBottom: '1px solid hsl(var(--border) / 0.4)', color: 'hsl(var(--primary))' }}>
-                          {day}
-                        </div>
-                        {dayMatches.map((m, i) => {
-                          const teamA = m.opponents[0]?.opponent
-                          const teamB = m.opponents[1]?.opponent
-                          const time = m.scheduled_at ? format(new Date(m.scheduled_at), 'HH:mm') : '–'
-                          const scoreA = m.results.find(r => r.team_id === teamA?.id)?.score
-                          const scoreB = m.results.find(r => r.team_id === teamB?.id)?.score
-                          const hasScore = m.status === 'finished' && scoreA !== undefined && scoreB !== undefined
-                          const aWon = hasScore && scoreA! > scoreB!
-                          const bWon = hasScore && scoreB! > scoreA!
-                          return (
-                            <div key={m.id} className="px-5 py-2.5 flex items-center gap-3 text-sm" style={{ borderBottom: i < dayMatches.length - 1 ? '1px solid hsl(var(--border) / 0.4)' : 'none', background: i % 2 !== 0 ? 'hsl(var(--secondary) / 0.2)' : 'transparent' }}>
-                              <span className="w-12 text-xs shrink-0 tabular-nums text-muted-foreground">{time}</span>
-                              <div className="flex items-center gap-1.5 flex-1 justify-end min-w-0">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                {teamA?.image_url && <img loading="lazy" src={teamA.image_url} alt={teamA.name} className="w-4 h-4 object-contain shrink-0" />}
-                                {teamA ? (
-                                  <Link href={`/teams/${psTeamSlug(teamA.name)}`} className={`font-semibold truncate hover:text-primary transition-colors ${aWon ? 'text-[var(--correct)]' : hasScore ? 'text-muted-foreground' : 'text-foreground'}`}>{teamA.name}</Link>
-                                ) : <span className="font-semibold truncate text-foreground">TBD</span>}
-                              </div>
-                              {hasScore ? (
-                                <span className="text-sm font-black tabular-nums shrink-0 px-2" style={{ color: 'var(--text)' }}>
-                                  {scoreA}:{scoreB}
-                                </span>
-                              ) : m.status === 'running' ? (
-                                <span className="text-[10px] font-bold px-2 shrink-0" style={{ color: 'hsl(var(--destructive))' }}>LIVE</span>
-                              ) : (
-                                <span className="text-xs font-black px-2 shrink-0 text-muted-foreground/40">VS</span>
-                              )}
-                              <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                {teamB?.image_url && <img loading="lazy" src={teamB.image_url} alt={teamB.name} className="w-4 h-4 object-contain shrink-0" />}
-                                {teamB ? (
-                                  <Link href={`/teams/${psTeamSlug(teamB.name)}`} className={`font-semibold truncate hover:text-primary transition-colors ${bWon ? 'text-[var(--correct)]' : hasScore ? 'text-muted-foreground' : 'text-foreground'}`}>{teamB.name}</Link>
-                                ) : <span className="font-semibold truncate text-foreground">TBD</span>}
-                              </div>
-                              <span className="text-xs shrink-0 px-2 py-0.5 rounded" style={{ background: 'hsl(var(--secondary))', color: 'hsl(var(--muted-foreground))' }}>BO{m.number_of_games}</span>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    ))
-                  })()}
+      {groupsData.length > 0 && (() => {
+        const psTeamSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+
+        // Merge all matches across groups, tag each with its group name, sort by time
+        const allMatches = groupsData
+          .flatMap(g => g.matches.map(m => ({ ...m, _groupName: g.name })))
+          .sort((a, b) => {
+            const ta = new Date(a.scheduled_at ?? a.begin_at ?? '').getTime()
+            const tb = new Date(b.scheduled_at ?? b.begin_at ?? '').getTime()
+            return ta - tb
+          })
+
+        // Group by day
+        const byDay = new Map<string, typeof allMatches>()
+        for (const m of allMatches) {
+          const day = m.scheduled_at ? format(new Date(m.scheduled_at), 'MMM d') : 'TBD'
+          if (!byDay.has(day)) byDay.set(day, [])
+          byDay.get(day)!.push(m)
+        }
+
+        const firstMatch = allMatches[0]
+        const league = firstMatch?.league
+
+        return (
+          <div className="mb-6">
+            <p className="section-label mb-4">Schedule & Results</p>
+            <div className="rounded-2xl overflow-hidden" style={{ background: 'hsl(var(--card) / 0.6)', border: '1px solid hsl(var(--border) / 0.6)' }}>
+              {league && (
+                <div className="px-5 py-3 flex items-center gap-3" style={{ borderBottom: '1px solid hsl(var(--border) / 0.5)' }}>
+                  {league.image_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img loading="lazy" src={league.image_url} alt={league.name} className="w-5 h-5 object-contain shrink-0" />
+                  )}
+                  <p className="text-xs font-bold tracking-widest uppercase" style={{ color: 'hsl(var(--primary))' }}>{league.name}</p>
                 </div>
-              )
-            })}
+              )}
+              {Array.from(byDay.entries()).map(([day, dayMatches]) => (
+                <div key={day}>
+                  <div className="px-5 py-2 text-xs font-bold uppercase tracking-widest" style={{ background: 'hsl(var(--secondary) / 0.35)', borderBottom: '1px solid hsl(var(--border) / 0.4)', color: 'hsl(var(--primary))' }}>
+                    {day}
+                  </div>
+                  {dayMatches.map((m, i) => {
+                    const teamA = m.opponents[0]?.opponent
+                    const teamB = m.opponents[1]?.opponent
+                    const time = m.scheduled_at ? format(new Date(m.scheduled_at), 'HH:mm') : '–'
+                    const scoreA = m.results.find(r => r.team_id === teamA?.id)?.score
+                    const scoreB = m.results.find(r => r.team_id === teamB?.id)?.score
+                    const isLiveMatch = m.status === 'running'
+                    const hasScore = (m.status === 'finished' || isLiveMatch) && scoreA !== undefined && scoreB !== undefined
+                    const aWon = hasScore && !isLiveMatch && scoreA! > scoreB!
+                    const bWon = hasScore && !isLiveMatch && scoreB! > scoreA!
+                    const drew = hasScore && !isLiveMatch && scoreA === scoreB
+                    return (
+                      <div key={m.id} className="px-5 py-2.5 flex items-center gap-3 text-sm" style={{ borderBottom: i < dayMatches.length - 1 ? '1px solid hsl(var(--border) / 0.4)' : 'none', background: i % 2 !== 0 ? 'hsl(var(--secondary) / 0.2)' : 'transparent' }}>
+                        <span className="w-12 text-xs shrink-0 tabular-nums text-muted-foreground">{time}</span>
+                        <div className="flex items-center gap-1.5 flex-1 justify-end min-w-0">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          {teamA?.image_url && <img loading="lazy" src={teamA.image_url} alt={teamA.name} className="w-4 h-4 object-contain shrink-0" />}
+                          {teamA ? (
+                            <Link href={`/teams/${psTeamSlug(teamA.name)}`} className="font-semibold truncate hover:text-primary transition-colors text-foreground">{teamA.name}</Link>
+                          ) : <span className="font-semibold truncate text-foreground">TBD</span>}
+                        </div>
+                        {hasScore ? (
+                          <div className="flex flex-col items-center shrink-0 px-2">
+                            <span className="text-sm font-black tabular-nums">
+                              <span style={{ color: isLiveMatch ? 'hsl(var(--destructive))' : drew ? '#f59e0b' : aWon ? 'var(--correct)' : 'var(--wrong)' }}>{scoreA}</span>
+                              <span className="text-muted-foreground/40">:</span>
+                              <span style={{ color: isLiveMatch ? 'hsl(var(--destructive))' : drew ? '#f59e0b' : bWon ? 'var(--correct)' : 'var(--wrong)' }}>{scoreB}</span>
+                            </span>
+                            {isLiveMatch && (
+                              <span className="text-[9px] font-bold px-1 py-0.5 rounded leading-none" style={{ background: 'hsl(var(--destructive) / 0.15)', color: 'hsl(var(--destructive))' }}>LIVE</span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-xs font-black px-2 shrink-0 text-muted-foreground/40">VS</span>
+                        )}
+                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          {teamB?.image_url && <img loading="lazy" src={teamB.image_url} alt={teamB.name} className="w-4 h-4 object-contain shrink-0" />}
+                          {teamB ? (
+                            <Link href={`/teams/${psTeamSlug(teamB.name)}`} className="font-semibold truncate hover:text-primary transition-colors text-foreground">{teamB.name}</Link>
+                          ) : <span className="font-semibold truncate text-foreground">TBD</span>}
+                        </div>
+                        <span className="text-[10px] shrink-0 tabular-nums text-muted-foreground/50">{m._groupName}</span>
+                        <span className="text-xs shrink-0 px-2 py-0.5 rounded" style={{ background: 'hsl(var(--secondary))', color: 'hsl(var(--muted-foreground))' }}>BO{m.number_of_games}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       <TournamentContent
         tournament={tournament}
