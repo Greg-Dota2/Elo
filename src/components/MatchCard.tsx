@@ -270,6 +270,9 @@ export default function MatchCard({ match, tournament }: Props) {
                     ? <X className="h-4 w-4 flex-shrink-0" style={{ color: 'hsl(var(--destructive))' }} />
                     : <TrendingUp className="h-4 w-4 flex-shrink-0" style={{ color: predictedDraw ? '#f59e0b' : 'hsl(var(--success))' }} />
                   }
+                  {pick?.logo_url && (
+                    <Image src={pick.logo_url} alt={pick.name} width={24} height={24} className="w-6 h-6 object-contain shrink-0" />
+                  )}
                   <p
                     className="font-display text-2xl font-bold"
                     style={{ color: effectiveIsCorrect === false ? 'hsl(var(--destructive))' : predictedDraw ? '#f59e0b' : 'hsl(var(--success))' }}

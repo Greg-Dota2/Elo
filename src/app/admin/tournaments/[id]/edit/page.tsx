@@ -300,8 +300,21 @@ export default function EditTournamentPage({ params }: Props) {
             {matches.map((m) => {
               const hasAnalysis = !!m.pre_analysis
               const hasResult = m.score_team_1 !== null
+              const hasAftermath = !!m.post_commentary
               return (
-                <div key={m.id} className="rounded px-4 py-2.5" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+                <div
+                  key={m.id}
+                  className="rounded px-4 py-2.5"
+                  style={{
+                    background: 'var(--surface)',
+                    border: '1px solid var(--border)',
+                    borderLeft: hasResult && hasAftermath
+                      ? '3px solid var(--correct)'
+                      : hasResult
+                      ? '3px solid #f59e0b'
+                      : '3px solid var(--border)',
+                  }}
+                >
                   <div className="flex items-center gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium truncate">
@@ -329,11 +342,35 @@ export default function EditTournamentPage({ params }: Props) {
 
                     {/* Status indicators */}
                     <div className="flex items-center gap-1.5 shrink-0">
-                      <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: hasAnalysis ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.05)', color: hasAnalysis ? 'var(--correct)' : 'var(--text-muted)' }}>
-                        {hasAnalysis ? '✓ analysis' : '— analysis'}
+                      <span
+                        className="text-xs px-1.5 py-0.5 rounded font-medium"
+                        style={{
+                          background: hasAnalysis ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.04)',
+                          color: hasAnalysis ? 'var(--correct)' : 'var(--text-muted)',
+                          border: `1px solid ${hasAnalysis ? 'rgba(34,197,94,0.25)' : 'transparent'}`,
+                        }}
+                      >
+                        {hasAnalysis ? '✓ pre' : '· pre'}
                       </span>
-                      <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: hasResult ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.05)', color: hasResult ? 'var(--correct)' : 'var(--text-muted)' }}>
-                        {hasResult ? '✓ result' : '— result'}
+                      <span
+                        className="text-xs px-1.5 py-0.5 rounded font-medium"
+                        style={{
+                          background: hasResult ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.04)',
+                          color: hasResult ? 'var(--correct)' : 'var(--text-muted)',
+                          border: `1px solid ${hasResult ? 'rgba(34,197,94,0.25)' : 'transparent'}`,
+                        }}
+                      >
+                        {hasResult ? '✓ score' : '· score'}
+                      </span>
+                      <span
+                        className="text-xs px-1.5 py-0.5 rounded font-medium"
+                        style={{
+                          background: hasAftermath ? 'rgba(34,197,94,0.1)' : hasResult ? 'rgba(245,158,11,0.12)' : 'rgba(255,255,255,0.04)',
+                          color: hasAftermath ? 'var(--correct)' : hasResult ? '#f59e0b' : 'var(--text-muted)',
+                          border: `1px solid ${hasAftermath ? 'rgba(34,197,94,0.25)' : hasResult ? 'rgba(245,158,11,0.3)' : 'transparent'}`,
+                        }}
+                      >
+                        {hasAftermath ? '✓ post' : hasResult ? '! post' : '· post'}
                       </span>
                     </div>
 

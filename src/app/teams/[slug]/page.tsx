@@ -83,6 +83,34 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ slu
   const total = wins + draws + losses
   const winRate = total > 0 ? Math.round((wins / total) * 100) : null
 
+  // Matches involving this team
+  const { data: teamMatches } = await supabase
+    .from('match_predictions')
+    .select(`
+      id, match_date, best_of, score_team_1, score_team_2, is_correct, predicted_draw,
+      team_1_id, team_2_id, actual_winner_id,
+      team_1:teams!match_predictions_team_1_id_fkey(id, name, logo_url, slug),
+      team_2:teams!match_predictions_team_2_id_fkey(id, name, logo_url, slug),
+      tournament:tournaments(name, slug)
+    `)
+    .eq('is_published', true)
+    .or(`team_1_id.eq.${team.id},team_2_id.eq.${team.id}`)
+    .order('match_date', { ascending: false })
+
+  type TeamMatchRow = {
+    id: string; match_date: string | null; best_of: number
+    score_team_1: number | null; score_team_2: number | null
+    is_correct: boolean | null; predicted_draw: boolean
+    team_1_id: string; team_2_id: string; actual_winner_id: string | null
+    team_1: { id: string; name: string; logo_url: string | null; slug: string | null } | null
+    team_2: { id: string; name: string; logo_url: string | null; slug: string | null } | null
+    tournament: { name: string; slug: string } | null
+  }
+
+  const allMatches = (teamMatches ?? []) as unknown as TeamMatchRow[]
+  const upcomingMatches = allMatches.filter(m => m.score_team_1 === null).reverse()
+  const completedMatches = allMatches.filter(m => m.score_team_1 !== null)
+
   const posLabel: Record<number, string> = {
     1: 'Carry', 2: 'Mid', 3: 'Offlane', 4: 'Soft Support', 5: 'Hard Support',
   }
@@ -191,6 +219,99 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ slu
             <div className="rounded-2xl border border-border/60 p-5" style={{ background: 'hsl(var(--card) / 0.6)' }}>
               <p className="section-label mb-3">Achievements</p>
               <BioRenderer text={team.achievements} />
+            </div>
+          )}
+
+          {/* Upcoming matches */}
+          {upcomingMatches.length > 0 && (
+            <div className="rounded-2xl border border-border/60 p-5" style={{ background: 'hsl(var(--card) / 0.6)' }}>
+              <p className="section-label mb-3">Upcoming Matches</p>
+              <div className="grid gap-2">
+                {upcomingMatches.map(m => {
+                  const t1 = m.team_1
+                  const t2 = m.team_2
+                  return (
+                    <div key={m.id} className="flex items-center gap-3 py-2 border-t border-border/40 first:border-0">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap text-sm font-semibold text-foreground">
+                          {t1?.logo_url && <img loading="lazy" src={t1.logo_url} alt={t1.name ?? ''} className="w-5 h-5 object-contain shrink-0" />}
+                          {t1?.slug ? <Link href={`/teams/${t1.slug}`} className="hover:text-primary transition-colors">{t1.name}</Link> : <span>{t1?.name}</span>}
+                          <span className="text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded" style={{ color: 'var(--text-muted)', background: 'hsl(var(--muted))' }}>VS</span>
+                          {t2?.logo_url && <img loading="lazy" src={t2.logo_url} alt={t2.name ?? ''} className="w-5 h-5 object-contain shrink-0" />}
+                          {t2?.slug ? <Link href={`/teams/${t2.slug}`} className="hover:text-primary transition-colors">{t2.name}</Link> : <span>{t2?.name}</span>}
+                        </div>
+                        {m.tournament && (
+                          <div className="text-xs text-muted-foreground truncate">
+                            <Link href={`/tournaments/${m.tournament.slug}`} className="hover:text-primary transition-colors">
+                              {m.tournament.name}
+                            </Link>
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="text-xs text-muted-foreground">
+                          {m.match_date ? new Date(m.match_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '–'}
+                        </div>
+                        <div className="text-xs font-medium text-muted-foreground/60">BO{m.best_of}</div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Completed matches */}
+          {completedMatches.length > 0 && (
+            <div className="rounded-2xl border border-border/60 p-5" style={{ background: 'hsl(var(--card) / 0.6)' }}>
+              <p className="section-label mb-3">Match History</p>
+              <div className="grid gap-2">
+                {completedMatches.map(m => {
+                  const isTeam1 = m.team_1_id === team.id
+                  const t1 = m.team_1
+                  const t2 = m.team_2
+                  const myScore = isTeam1 ? m.score_team_1! : m.score_team_2!
+                  const oppScore = isTeam1 ? m.score_team_2! : m.score_team_1!
+                  const won = myScore > oppScore
+                  const drew = myScore === oppScore
+                  const resultColor = drew ? '#f59e0b' : won ? 'hsl(var(--success))' : 'hsl(var(--destructive))'
+                  const resultLabel = drew ? 'D' : won ? 'W' : 'L'
+                  return (
+                    <div key={m.id} className="flex items-center gap-3 py-2 border-t border-border/40 first:border-0">
+                      <span
+                        className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black shrink-0"
+                        style={{ background: drew ? 'rgba(245,158,11,0.15)' : won ? 'hsl(var(--success) / 0.15)' : 'hsl(var(--destructive) / 0.15)', color: resultColor }}
+                      >
+                        {resultLabel}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap text-sm font-semibold text-foreground">
+                          {t1?.logo_url && <img loading="lazy" src={t1.logo_url} alt={t1.name ?? ''} className="w-5 h-5 object-contain shrink-0" />}
+                          {t1?.slug ? <Link href={`/teams/${t1.slug}`} className="hover:text-primary transition-colors">{t1.name}</Link> : <span>{t1?.name}</span>}
+                          <span className="text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded" style={{ color: 'var(--text-muted)', background: 'hsl(var(--muted))' }}>VS</span>
+                          {t2?.logo_url && <img loading="lazy" src={t2.logo_url} alt={t2.name ?? ''} className="w-5 h-5 object-contain shrink-0" />}
+                          {t2?.slug ? <Link href={`/teams/${t2.slug}`} className="hover:text-primary transition-colors">{t2.name}</Link> : <span>{t2?.name}</span>}
+                        </div>
+                        {m.tournament && (
+                          <div className="text-xs text-muted-foreground truncate">
+                            <Link href={`/tournaments/${m.tournament.slug}`} className="hover:text-primary transition-colors">
+                              {m.tournament.name}
+                            </Link>
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="text-sm font-black tabular-nums" style={{ color: resultColor }}>
+                          {myScore}–{oppScore}
+                        </div>
+                        <div className="text-xs text-muted-foreground/60">
+                          {m.match_date ? new Date(m.match_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '–'}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           )}
         </div>

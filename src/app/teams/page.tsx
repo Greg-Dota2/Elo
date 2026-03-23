@@ -33,18 +33,25 @@ export default async function TeamsPage() {
 
   const { data: matchRows } = await supabase
     .from('match_predictions')
-    .select('team_1_id, team_2_id, actual_winner_id')
+    .select('team_1_id, team_2_id, score_team_1, score_team_2')
     .eq('is_published', true)
-    .not('actual_winner_id', 'is', null)
+    .not('score_team_1', 'is', null)
+    .not('score_team_2', 'is', null)
 
-  type MatchRow = { team_1_id: string; team_2_id: string; actual_winner_id: string | null }
-  const statsMap = new Map<string, { wins: number; losses: number }>()
+  type MatchRow = { team_1_id: string; team_2_id: string; score_team_1: number; score_team_2: number }
+  const statsMap = new Map<string, { wins: number; draws: number; losses: number }>()
   for (const row of (matchRows as MatchRow[]) ?? []) {
-    for (const tid of [row.team_1_id, row.team_2_id]) {
-      if (!statsMap.has(tid)) statsMap.set(tid, { wins: 0, losses: 0 })
+    const s1 = row.score_team_1
+    const s2 = row.score_team_2
+    for (const [tid, score, oppScore] of [
+      [row.team_1_id, s1, s2],
+      [row.team_2_id, s2, s1],
+    ] as [string, number, number][]) {
+      if (!statsMap.has(tid)) statsMap.set(tid, { wins: 0, draws: 0, losses: 0 })
       const s = statsMap.get(tid)!
-      if (row.actual_winner_id === tid) s.wins++
-      else s.losses++
+      if (score > oppScore) s.wins++
+      else if (score < oppScore) s.losses++
+      else s.draws++
     }
   }
 
@@ -72,7 +79,7 @@ export default async function TeamsPage() {
               const s = statsMap.get(team.id)
               const elo = team.current_elo ?? 1500
               const diff = elo - 1500
-              const total = (s?.wins ?? 0) + (s?.losses ?? 0)
+              const total = (s?.wins ?? 0) + (s?.draws ?? 0) + (s?.losses ?? 0)
               const winRate = total > 0 ? Math.round(((s?.wins ?? 0) / total) * 100) : null
 
               return (
@@ -131,6 +138,7 @@ export default async function TeamsPage() {
                         {winRate !== null && (
                           <span className="text-xs text-muted-foreground">
                             <span className="text-success font-bold">{s?.wins}W</span>
+                            {(s?.draws ?? 0) > 0 && <><span> · </span><span className="font-bold" style={{ color: '#f59e0b' }}>{s?.draws}D</span></>}
                             {' · '}
                             <span className="text-destructive font-bold">{s?.losses}L</span>
                           </span>
