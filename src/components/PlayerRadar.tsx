@@ -171,11 +171,9 @@ export default function PlayerRadar({ stats }: { stats: PlayerRadarStats }) {
                       background: active ? 'hsl(var(--primary))' : 'hsl(var(--primary) / 0.5)',
                     }} />
                 </div>
-                {active && (
-                  <p className="text-[10px] mt-2 leading-snug" style={{ color: 'var(--text-muted)' }}>
-                    {axis.desc}
-                  </p>
-                )}
+                <p className="text-[10px] mt-2 leading-snug" style={{ color: 'var(--text-muted)' }}>
+                  {axis.desc}
+                </p>
               </div>
             )
           })}
