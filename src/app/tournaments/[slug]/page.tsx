@@ -321,6 +321,66 @@ export default async function TournamentPage({ params }: Props) {
         const firstMatch = allMatches[0]
         const league = firstMatch?.league
 
+        // Split days: active (has upcoming/live) vs fully finished
+        const activeDays: [string, typeof allMatches][] = []
+        const finishedDays: [string, typeof allMatches][] = []
+        for (const entry of byDay.entries()) {
+          const [day, dayMatches] = entry
+          const allFinished = dayMatches.every(m => m.status === 'finished')
+          if (allFinished) finishedDays.push([day, dayMatches])
+          else activeDays.push([day, dayMatches])
+        }
+        const totalFinished = finishedDays.reduce((n, [, ms]) => n + ms.length, 0)
+
+        const renderDayRows = (dayMatches: typeof allMatches) =>
+          dayMatches.map((m, i) => {
+            const teamA = m.opponents[0]?.opponent
+            const teamB = m.opponents[1]?.opponent
+            const time = m.scheduled_at ? format(new Date(m.scheduled_at), 'HH:mm') : '–'
+            const scoreA = m.results.find(r => r.team_id === teamA?.id)?.score
+            const scoreB = m.results.find(r => r.team_id === teamB?.id)?.score
+            const isLiveMatch = m.status === 'running'
+            const hasScore = (m.status === 'finished' || isLiveMatch) && scoreA !== undefined && scoreB !== undefined
+            const aWon = hasScore && !isLiveMatch && scoreA! > scoreB!
+            const bWon = hasScore && !isLiveMatch && scoreB! > scoreA!
+            const drew = hasScore && !isLiveMatch && scoreA === scoreB
+            return (
+              <div key={m.id} className="px-5 py-2.5 flex items-center gap-3 text-sm" style={{ borderBottom: i < dayMatches.length - 1 ? '1px solid hsl(var(--border) / 0.4)' : 'none', background: i % 2 !== 0 ? 'hsl(var(--secondary) / 0.2)' : 'transparent' }}>
+                <span className="w-12 text-xs shrink-0 tabular-nums text-muted-foreground">{time}</span>
+                <div className="flex items-center gap-1.5 flex-1 justify-end min-w-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  {teamA?.image_url && <img loading="lazy" src={teamA.image_url} alt={teamA.name} className="w-4 h-4 object-contain shrink-0" />}
+                  {teamA ? (
+                    <Link href={`/teams/${psTeamSlug(teamA.name)}`} className="font-semibold truncate hover:text-primary transition-colors text-foreground">{teamA.name}</Link>
+                  ) : <span className="font-semibold truncate text-foreground">TBD</span>}
+                </div>
+                {hasScore ? (
+                  <div className="flex flex-col items-center shrink-0 px-2">
+                    <span className="text-sm font-black tabular-nums">
+                      <span style={{ color: isLiveMatch ? 'hsl(var(--destructive))' : drew ? '#f59e0b' : aWon ? 'var(--correct)' : 'var(--wrong)' }}>{scoreA}</span>
+                      <span className="text-muted-foreground/40">:</span>
+                      <span style={{ color: isLiveMatch ? 'hsl(var(--destructive))' : drew ? '#f59e0b' : bWon ? 'var(--correct)' : 'var(--wrong)' }}>{scoreB}</span>
+                    </span>
+                    {isLiveMatch && (
+                      <span className="text-[9px] font-bold px-1 py-0.5 rounded leading-none" style={{ background: 'hsl(var(--destructive) / 0.15)', color: 'hsl(var(--destructive))' }}>LIVE</span>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-xs font-black px-2 shrink-0 text-muted-foreground/40">VS</span>
+                )}
+                <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  {teamB?.image_url && <img loading="lazy" src={teamB.image_url} alt={teamB.name} className="w-4 h-4 object-contain shrink-0" />}
+                  {teamB ? (
+                    <Link href={`/teams/${psTeamSlug(teamB.name)}`} className="font-semibold truncate hover:text-primary transition-colors text-foreground">{teamB.name}</Link>
+                  ) : <span className="font-semibold truncate text-foreground">TBD</span>}
+                </div>
+                <span className="text-[10px] shrink-0 tabular-nums text-muted-foreground/50">{m._groupName}</span>
+                <span className="text-xs shrink-0 px-2 py-0.5 rounded" style={{ background: 'hsl(var(--secondary))', color: 'hsl(var(--muted-foreground))' }}>BO{m.number_of_games}</span>
+              </div>
+            )
+          })
+
         return (
           <div className="mb-6">
             <p className="section-label mb-4">Schedule & Results</p>
@@ -334,60 +394,49 @@ export default async function TournamentPage({ params }: Props) {
                   <p className="text-xs font-bold tracking-widest uppercase" style={{ color: 'hsl(var(--primary))' }}>{league.name}</p>
                 </div>
               )}
-              {Array.from(byDay.entries()).map(([day, dayMatches]) => (
+
+              {/* Active days (upcoming / live) */}
+              {activeDays.map(([day, dayMatches]) => (
                 <div key={day}>
                   <div className="px-5 py-2 text-xs font-bold uppercase tracking-widest" style={{ background: 'hsl(var(--secondary) / 0.35)', borderBottom: '1px solid hsl(var(--border) / 0.4)', color: 'hsl(var(--primary))' }}>
                     {day}
                   </div>
-                  {dayMatches.map((m, i) => {
-                    const teamA = m.opponents[0]?.opponent
-                    const teamB = m.opponents[1]?.opponent
-                    const time = m.scheduled_at ? format(new Date(m.scheduled_at), 'HH:mm') : '–'
-                    const scoreA = m.results.find(r => r.team_id === teamA?.id)?.score
-                    const scoreB = m.results.find(r => r.team_id === teamB?.id)?.score
-                    const isLiveMatch = m.status === 'running'
-                    const hasScore = (m.status === 'finished' || isLiveMatch) && scoreA !== undefined && scoreB !== undefined
-                    const aWon = hasScore && !isLiveMatch && scoreA! > scoreB!
-                    const bWon = hasScore && !isLiveMatch && scoreB! > scoreA!
-                    const drew = hasScore && !isLiveMatch && scoreA === scoreB
-                    return (
-                      <div key={m.id} className="px-5 py-2.5 flex items-center gap-3 text-sm" style={{ borderBottom: i < dayMatches.length - 1 ? '1px solid hsl(var(--border) / 0.4)' : 'none', background: i % 2 !== 0 ? 'hsl(var(--secondary) / 0.2)' : 'transparent' }}>
-                        <span className="w-12 text-xs shrink-0 tabular-nums text-muted-foreground">{time}</span>
-                        <div className="flex items-center gap-1.5 flex-1 justify-end min-w-0">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          {teamA?.image_url && <img loading="lazy" src={teamA.image_url} alt={teamA.name} className="w-4 h-4 object-contain shrink-0" />}
-                          {teamA ? (
-                            <Link href={`/teams/${psTeamSlug(teamA.name)}`} className="font-semibold truncate hover:text-primary transition-colors text-foreground">{teamA.name}</Link>
-                          ) : <span className="font-semibold truncate text-foreground">TBD</span>}
-                        </div>
-                        {hasScore ? (
-                          <div className="flex flex-col items-center shrink-0 px-2">
-                            <span className="text-sm font-black tabular-nums">
-                              <span style={{ color: isLiveMatch ? 'hsl(var(--destructive))' : drew ? '#f59e0b' : aWon ? 'var(--correct)' : 'var(--wrong)' }}>{scoreA}</span>
-                              <span className="text-muted-foreground/40">:</span>
-                              <span style={{ color: isLiveMatch ? 'hsl(var(--destructive))' : drew ? '#f59e0b' : bWon ? 'var(--correct)' : 'var(--wrong)' }}>{scoreB}</span>
-                            </span>
-                            {isLiveMatch && (
-                              <span className="text-[9px] font-bold px-1 py-0.5 rounded leading-none" style={{ background: 'hsl(var(--destructive) / 0.15)', color: 'hsl(var(--destructive))' }}>LIVE</span>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-xs font-black px-2 shrink-0 text-muted-foreground/40">VS</span>
-                        )}
-                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          {teamB?.image_url && <img loading="lazy" src={teamB.image_url} alt={teamB.name} className="w-4 h-4 object-contain shrink-0" />}
-                          {teamB ? (
-                            <Link href={`/teams/${psTeamSlug(teamB.name)}`} className="font-semibold truncate hover:text-primary transition-colors text-foreground">{teamB.name}</Link>
-                          ) : <span className="font-semibold truncate text-foreground">TBD</span>}
-                        </div>
-                        <span className="text-[10px] shrink-0 tabular-nums text-muted-foreground/50">{m._groupName}</span>
-                        <span className="text-xs shrink-0 px-2 py-0.5 rounded" style={{ background: 'hsl(var(--secondary))', color: 'hsl(var(--muted-foreground))' }}>BO{m.number_of_games}</span>
-                      </div>
-                    )
-                  })}
+                  {renderDayRows(dayMatches)}
                 </div>
               ))}
+
+              {/* Finished days — collapsible */}
+              {finishedDays.length > 0 && (
+                <details className="group">
+                  <summary
+                    className="flex items-center justify-between gap-3 px-5 py-3 cursor-pointer select-none"
+                    style={{ background: 'hsl(var(--secondary) / 0.2)', borderTop: activeDays.length > 0 ? '1px solid hsl(var(--border) / 0.5)' : 'none' }}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span
+                        className="flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-black tabular-nums shrink-0"
+                        style={{ background: 'hsl(var(--muted))', color: 'var(--text-muted)' }}
+                      >
+                        {totalFinished}
+                      </span>
+                      <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+                        Completed matches ({finishedDays.map(([d]) => d).join(', ')})
+                      </span>
+                    </div>
+                    <span className="text-xs font-semibold px-3 py-1 rounded-full group-open:opacity-0 transition-opacity" style={{ background: 'hsl(var(--primary) / 0.1)', color: 'hsl(var(--primary))' }}>
+                      Show ▾
+                    </span>
+                  </summary>
+                  {finishedDays.map(([day, dayMatches]) => (
+                    <div key={day}>
+                      <div className="px-5 py-2 text-xs font-bold uppercase tracking-widest" style={{ background: 'hsl(var(--secondary) / 0.35)', borderTop: '1px solid hsl(var(--border) / 0.4)', borderBottom: '1px solid hsl(var(--border) / 0.4)', color: 'hsl(var(--muted-foreground))' }}>
+                        {day}
+                      </div>
+                      {renderDayRows(dayMatches)}
+                    </div>
+                  ))}
+                </details>
+              )}
             </div>
           </div>
         )
