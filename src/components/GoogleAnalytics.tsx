@@ -4,7 +4,7 @@ import Script from 'next/script'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
 
-const GA_ID = 'G-MZ7PBDBXH5'
+const GA_ID = 'G-XWHFK8WLTK'
 const AW_ID = 'AW-17155280275'
 
 export default function GoogleAnalytics() {
