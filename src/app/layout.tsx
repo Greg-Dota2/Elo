@@ -3,6 +3,7 @@ import { Manrope, Oxanium } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/Navbar'
 import CookieBanner from '@/components/CookieBanner'
+import GoogleAnalytics from '@/components/GoogleAnalytics'
 import Link from 'next/link'
 import { cookies } from 'next/headers'
 
@@ -69,16 +70,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" className={`dark ${manrope.variable} ${oxanium.variable}`}>
       <head>
-        {/* Google tag — placed first in <head> as Google instructs */}
-        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-MZ7PBDBXH5" />
-        <script dangerouslySetInnerHTML={{ __html: `
-          window.dataLayer=window.dataLayer||[];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js',new Date());
-          gtag('config','G-MZ7PBDBXH5');
-          gtag('config','AW-17155280275');
-        `}} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -112,6 +103,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
       </head>
       <body suppressHydrationWarning>
+        <GoogleAnalytics />
         <Navbar isAdmin={isAdmin} />
         <main className="max-w-7xl mx-auto px-4 py-8">{children}</main>
         <CookieBanner />
