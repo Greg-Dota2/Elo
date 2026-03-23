@@ -115,6 +115,24 @@ export async function fetchMatchesForSubTournament(tournamentId: number): Promis
   return res.json()
 }
 
+export interface PSGame {
+  id: number
+  position: number
+  finished: boolean
+  length: number | null
+  match_id: number
+  winner: { id: number; type: string } | null
+  [key: string]: unknown // capture any extra fields PandaScore returns
+}
+
+export async function fetchGamesForMatch(psMatchId: number): Promise<PSGame[]> {
+  const url = new URL(`${BASE}/dota2/matches/${psMatchId}/games`)
+  url.searchParams.set('token', TOKEN)
+  const res = await fetch(url.toString(), { cache: 'no-store' })
+  if (!res.ok) return []
+  return res.json()
+}
+
 export async function fetchRecentTier1Matches(perPage = 50): Promise<PSMatch[]> {
   const url = new URL(`${BASE}/dota2/matches`)
   url.searchParams.set('token', TOKEN)

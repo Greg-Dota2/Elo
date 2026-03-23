@@ -64,6 +64,7 @@ export interface MatchPrediction {
   match_time: string | null
   twitch_url: string | null
   opendota_series_id: number | null
+  dotabuff_game_ids: number[] | null
   is_published: boolean
   created_at: string
   // joined

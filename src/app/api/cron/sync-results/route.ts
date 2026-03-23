@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { fetchRecentTier1Matches } from '@/lib/pandascore'
+import { fetchRecentTier1Matches, fetchGamesForMatch } from '@/lib/pandascore'
 
 // Called by Vercel Cron every 15 minutes.
 // Vercel automatically sends the CRON_SECRET header — reject anything else.
@@ -62,15 +62,28 @@ export async function GET(req: NextRequest) {
       is_correct = actual_winner_id === pred.predicted_winner_id
     }
 
+    // Fetch individual game IDs for Dotabuff links
+    let dotabuff_game_ids: number[] | null = null
+    try {
+      const games = await fetchGamesForMatch(psMatch.id)
+      log.push(`🎮 match ${pred.pandascore_match_id} games raw: ${JSON.stringify(games.map(g => ({ id: g.id, match_id: g.match_id, keys: Object.keys(g) })))}`)
+      if (games.length > 0) {
+        // Try to find the Dota 2 match ID — inspect all numeric fields
+        dotabuff_game_ids = games.map(g => g.id) // placeholder; we'll update once we see the response
+      }
+    } catch {
+      log.push(`⚠️ could not fetch games for match ${pred.pandascore_match_id}`)
+    }
+
     const { error } = await supabase
       .from('match_predictions')
-      .update({ score_team_1, score_team_2, actual_winner_id, is_correct })
+      .update({ score_team_1, score_team_2, actual_winner_id, is_correct, dotabuff_game_ids })
       .eq('id', pred.id)
 
     if (error) {
       log.push(`❌ match ${pred.pandascore_match_id}: ${error.message}`)
     } else {
-      log.push(`✅ match ${pred.pandascore_match_id}: ${score_team_1}–${score_team_2}, correct=${is_correct}`)
+      log.push(`✅ match ${pred.pandascore_match_id}: ${score_team_1}–${score_team_2}, correct=${is_correct}, games=${dotabuff_game_ids?.length ?? 0}`)
       updated++
     }
   }

@@ -216,6 +216,27 @@ export default function MatchCard({ match, tournament }: Props) {
           </div>
         </div>
 
+        {/* ── Dotabuff links ── */}
+        {hasResult && match.dotabuff_game_ids && match.dotabuff_game_ids.length > 0 && (
+          <div className="mt-5 flex items-center justify-center gap-2 flex-wrap">
+            {match.dotabuff_game_ids.map((gameId, i) => (
+              <a
+                key={gameId}
+                href={`https://www.dotabuff.com/matches/${gameId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold transition-opacity hover:opacity-80"
+                style={{ background: '#c23c2a', color: '#fff' }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/>
+                </svg>
+                Game {i + 1} on Dotabuff
+              </a>
+            ))}
+          </div>
+        )}
+
         {/* ── Twitch + Telegram buttons ── */}
         {(match.twitch_url || tournament?.telegram_url) && (
           <div className="mt-5 flex flex-col items-center gap-2">
