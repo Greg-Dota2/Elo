@@ -31,6 +31,7 @@ export async function POST(req: Request) {
         achievements: body.achievements || null,
         previous_teams: body.previous_teams || null,
         liquipedia_url: body.liquipedia_url || null,
+        opendota_id: body.opendota_id ? Number(body.opendota_id) : null,
         is_published: body.is_published ?? false,
       })
       .select()
@@ -69,6 +70,7 @@ export async function PATCH(req: Request) {
     if (fields.achievements !== undefined) update.achievements = fields.achievements || null
     if (fields.previous_teams !== undefined) update.previous_teams = fields.previous_teams || null
     if (fields.liquipedia_url !== undefined) update.liquipedia_url = fields.liquipedia_url || null
+    if (fields.opendota_id !== undefined) update.opendota_id = fields.opendota_id ? Number(fields.opendota_id) : null
     if (fields.is_published !== undefined) update.is_published = fields.is_published
 
     const { data, error } = await supabase

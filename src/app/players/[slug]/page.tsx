@@ -3,7 +3,9 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import BioRenderer from '@/components/BioRenderer'
+import PlayerRadar from '@/components/PlayerRadar'
 import { heroDisplayNameToSlug, heroPortraitUrl, fetchAllHeroes, ATTR_CONFIG } from '@/lib/heroes'
+import { fetchPlayerRadarStats } from '@/lib/opendota'
 
 export const revalidate = 300
 
@@ -59,7 +61,10 @@ export default async function PlayerPage({ params }: Props) {
   try { player = await getPlayerBySlug(slug) } catch { notFound() }
 
   const posColor = player.position ? POSITION_COLOR[player.position] : ''
-  const allHeroes = await fetchAllHeroes().catch(() => [])
+  const [allHeroes, radarStats] = await Promise.all([
+    fetchAllHeroes().catch(() => []),
+    player.opendota_id ? fetchPlayerRadarStats(player.opendota_id) : Promise.resolve(null),
+  ])
   const heroByName = new Map(allHeroes.map(h => [h.localized_name, h]))
 
   return (
@@ -243,6 +248,9 @@ export default async function PlayerPage({ params }: Props) {
             <BioRenderer text={player.bio} />
           </div>
         )}
+
+        {/* Radar stats */}
+        {radarStats && <PlayerRadar stats={radarStats} />}
       </div>
     </div>
   )

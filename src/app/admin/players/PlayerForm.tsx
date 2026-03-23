@@ -51,6 +51,7 @@ export default function PlayerForm({ player, teams }: Props) {
       achievements: form.get('achievements') || null,
       previous_teams: form.get('previous_teams') || null,
       liquipedia_url: form.get('liquipedia_url') || null,
+      opendota_id: form.get('opendota_id') ? Number(form.get('opendota_id')) : null,
       is_published: form.get('is_published') === 'on',
     }
     if (isEdit) body.id = player.id
@@ -151,6 +152,10 @@ export default function PlayerForm({ player, teams }: Props) {
 
       <Field label="Liquipedia URL">
         <input name="liquipedia_url" type="url" defaultValue={player?.liquipedia_url ?? ''} className={inputClass} placeholder="https://liquipedia.net/dota2/..." />
+      </Field>
+
+      <Field label="OpenDota ID" hint="Numeric account ID from opendota.com/players/{id} — enables the radar stats chart">
+        <input name="opendota_id" type="number" defaultValue={player?.opendota_id ?? ''} className={inputClass} placeholder="321580662" />
       </Field>
 
       <label className="flex items-center gap-2 text-sm cursor-pointer">
