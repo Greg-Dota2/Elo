@@ -70,8 +70,9 @@ export default function MatchCard({ match, tournament }: Props) {
   if (!team_1 || !team_2) return null
 
   const [expanded, setExpanded] = useState(false)
-  const [now, setNow] = useState(() => new Date())
+  const [now, setNow] = useState<Date | null>(null)
   useEffect(() => {
+    setNow(new Date())
     const t = setInterval(() => setNow(new Date()), 10_000)
     return () => clearInterval(t)
   }, [])
@@ -90,8 +91,8 @@ export default function MatchCard({ match, tournament }: Props) {
   const matchStart = match.match_date && match.match_time
     ? new Date(`${match.match_date}T${match.match_time}:00Z`)
     : null
-  const isLive = matchStart && now >= matchStart && !hasResult
-  const isFuture = matchStart && now < matchStart
+  const isLive = now && matchStart && now >= matchStart && !hasResult
+  const isFuture = now && matchStart && now < matchStart
   const msLeft = isFuture ? matchStart.getTime() - now.getTime() : 0
 
   function formatCountdown(ms: number) {
