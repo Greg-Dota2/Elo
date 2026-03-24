@@ -26,6 +26,12 @@
     "tailwind-merge": "^3.5.0",
     "tailwindcss-animate": "^1.0.7"
   },
+  "browserslist": [
+    "chrome >= 109",
+    "firefox >= 109",
+    "safari >= 16",
+    "edge >= 109"
+  ],
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^19",

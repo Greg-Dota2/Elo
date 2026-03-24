@@ -7,6 +7,7 @@ import GoogleAnalytics from '@/components/GoogleAnalytics'
 import Link from 'next/link'
 import { cookies } from 'next/headers'
 import { Analytics } from '@vercel/analytics/next'
+import { Suspense } from 'react'
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -104,7 +105,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
       </head>
       <body suppressHydrationWarning>
-        <GoogleAnalytics />
+        <Suspense fallback={null}><GoogleAnalytics /></Suspense>
         <Navbar isAdmin={isAdmin} />
         <main className="max-w-7xl mx-auto px-4 py-8">{children}</main>
         <Analytics />

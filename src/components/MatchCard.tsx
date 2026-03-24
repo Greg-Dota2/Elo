@@ -4,8 +4,30 @@ import type { MatchPrediction, Team } from '@/lib/types'
 import Image from 'next/image'
 import Link from 'next/link'
 import { winProbability, seriesWinProbability, drawProbability } from '@/lib/elo'
-import { Clock, TrendingUp, X } from 'lucide-react'
 import { useState, useEffect } from 'react'
+
+// Inline icons — avoids pulling in the lucide module graph
+function IconClock({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+    </svg>
+  )
+}
+function IconTrendingUp({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>
+    </svg>
+  )
+}
+function IconX({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  )
+}
 
 function TeamName({ team, className }: { team: Team; className?: string }) {
   if (team.slug) {
@@ -48,7 +70,7 @@ export default function MatchCard({ match, tournament }: Props) {
   const [expanded, setExpanded] = useState(false)
   const [now, setNow] = useState(() => new Date())
   useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 1000)
+    const t = setInterval(() => setNow(new Date()), 10_000)
     return () => clearInterval(t)
   }, [])
 
@@ -126,7 +148,7 @@ export default function MatchCard({ match, tournament }: Props) {
 
             {/* Date + status + BO badge */}
             <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-secondary/70 px-3 py-1.5 text-xs font-medium text-muted-foreground shrink-0">
-              <Clock className="h-3.5 w-3.5" />
+              <IconClock className="h-3.5 w-3.5" />
               {match.match_date
                 ? new Date(`${match.match_date}T00:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'Europe/Athens' })
                 : '–'}
@@ -288,8 +310,8 @@ export default function MatchCard({ match, tournament }: Props) {
                 </p>
                 <div className="mt-2 flex items-center gap-2">
                   {effectiveIsCorrect === false
-                    ? <X className="h-4 w-4 flex-shrink-0" style={{ color: 'hsl(var(--destructive))' }} />
-                    : <TrendingUp className="h-4 w-4 flex-shrink-0" style={{ color: predictedDraw ? '#f59e0b' : 'hsl(var(--success))' }} />
+                    ? <IconX className="h-4 w-4 flex-shrink-0" style={{ color: 'hsl(var(--destructive))' }} />
+                    : <IconTrendingUp className="h-4 w-4 flex-shrink-0" style={{ color: predictedDraw ? '#f59e0b' : 'hsl(var(--success))' }} />
                   }
                   {pick?.logo_url && (
                     <Image src={pick.logo_url} alt={pick.name} width={24} height={24} className="w-6 h-6 object-contain shrink-0" />
