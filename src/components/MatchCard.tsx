@@ -1,5 +1,6 @@
 'use client'
 
+import type React from 'react'
 import type { MatchPrediction, Team } from '@/lib/types'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -7,23 +8,24 @@ import { winProbability, seriesWinProbability, drawProbability } from '@/lib/elo
 import { useState, useEffect } from 'react'
 
 // Inline icons — avoids pulling in the lucide module graph
-function IconClock({ className }: { className?: string }) {
+type IconProps = { className?: string; style?: React.CSSProperties }
+function IconClock({ className, style }: IconProps) {
   return (
-    <svg className={className} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg className={className} style={style} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
     </svg>
   )
 }
-function IconTrendingUp({ className }: { className?: string }) {
+function IconTrendingUp({ className, style }: IconProps) {
   return (
-    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg className={className} style={style} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>
     </svg>
   )
 }
-function IconX({ className }: { className?: string }) {
+function IconX({ className, style }: IconProps) {
   return (
-    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg className={className} style={style} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
     </svg>
   )
