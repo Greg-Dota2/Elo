@@ -17,7 +17,7 @@ export async function POST() {
   await supabase.from('team_elo_history').delete()
     .neq('id', '00000000-0000-0000-0000-000000000000')
 
-  // 3. Fetch all Tier 1 matches with a result, in chronological order
+  // 3. Fetch all matches with a score result (includes draws), in chronological order
   const { data: matches, error: matchErr } = await supabase
     .from('match_predictions')
     .select(`
@@ -25,8 +25,8 @@ export async function POST() {
       score_team_1, score_team_2, best_of, match_date,
       stage:stages(name)
     `)
-    .not('actual_winner_id', 'is', null)
     .not('score_team_1', 'is', null)
+    .not('score_team_2', 'is', null)
     .order('match_date', { ascending: true })
     .order('created_at', { ascending: true })
 
@@ -45,21 +45,26 @@ export async function POST() {
   for (const match of matches) {
     const { team_1_id, team_2_id, actual_winner_id, score_team_1, score_team_2 } = match
 
-    if (!team_1_id || !team_2_id || !actual_winner_id) continue
+    if (!team_1_id || !team_2_id) continue
+
+    const s1 = score_team_1 ?? 0
+    const s2 = score_team_2 ?? 0
+    const isDraw = s1 === s2
+
+    // Skip if no winner and not a draw (incomplete data)
+    if (!isDraw && !actual_winner_id) continue
 
     const eloA = eloMap.get(team_1_id) ?? BASE_ELO
     const eloB = eloMap.get(team_2_id) ?? BASE_ELO
     const teamAWon = actual_winner_id === team_1_id
 
-    const s1 = score_team_1 ?? 1
-    const s2 = score_team_2 ?? 0
-    const winnerScore = Math.max(s1, s2)
-    const loserScore = Math.min(s1, s2)
+    const winnerScore = isDraw ? s1 : Math.max(s1, s2)
+    const loserScore = isDraw ? s2 : Math.min(s1, s2)
 
     // Determine stage name for K multiplier
     const stageName = (match.stage as { name?: string } | null)?.name ?? 'group'
 
-    const result = calculateElo(eloA, eloB, teamAWon, winnerScore, loserScore, stageName)
+    const result = calculateElo(eloA, eloB, teamAWon, winnerScore, loserScore, stageName, undefined, isDraw)
 
     // Update live map
     eloMap.set(team_1_id, result.newEloA)
@@ -73,7 +78,7 @@ export async function POST() {
       elo_after: result.newEloA,
       opponent_id: team_2_id,
       opponent_elo: eloB,
-      won: teamAWon,
+      won: isDraw ? null : teamAWon,
     })
     historyRows.push({
       team_id: team_2_id,
@@ -82,7 +87,7 @@ export async function POST() {
       elo_after: result.newEloB,
       opponent_id: team_1_id,
       opponent_elo: eloA,
-      won: !teamAWon,
+      won: isDraw ? null : !teamAWon,
     })
 
     processed++

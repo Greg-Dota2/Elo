@@ -39,15 +39,16 @@ export function calculateElo(
   scoreWinner: number,
   scoreLoser: number,
   stage: MatchStage,
-  K = BASE_K
+  K = BASE_K,
+  isDraw = false
 ): EloResult {
   const expA = expectedScore(eloA, eloB)
   const expB = 1 - expA
 
-  const sA = teamAWon ? 1.0 : 0.0
-  const sB = 1.0 - sA
+  const sA = isDraw ? 0.5 : teamAWon ? 1.0 : 0.0
+  const sB = isDraw ? 0.5 : 1.0 - sA
 
-  const weight = seriesWeight(scoreWinner, scoreLoser)
+  const weight = isDraw ? 0.5 : seriesWeight(scoreWinner, scoreLoser)
   const mult = stageMult(stage)
   const effK = K * mult * weight
 

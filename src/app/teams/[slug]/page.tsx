@@ -5,8 +5,9 @@ import { getTeamBySlug } from '@/lib/queries'
 import { createAdminClient } from '@/lib/supabase/admin'
 import BioRenderer from '@/components/BioRenderer'
 import type { Team } from '@/lib/types'
+import { fetchUpcomingTier1Matches, fetchRunningTier1Matches, fetchRecentTier1Matches, type PSMatch } from '@/lib/pandascore'
 
-export const revalidate = 300
+export const revalidate = 60
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -53,6 +54,24 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ slu
     notFound()
   }
 
+  // Fetch PandaScore matches for this team
+  const [psUpcoming, psRunning, psRecent] = await Promise.all([
+    fetchUpcomingTier1Matches(100).catch(() => [] as PSMatch[]),
+    fetchRunningTier1Matches(50).catch(() => [] as PSMatch[]),
+    fetchRecentTier1Matches(100).catch(() => [] as PSMatch[]),
+  ])
+
+  const teamNameLower = team.name.toLowerCase()
+  // Match PS team name to DB team name — one may be a prefix of the other (e.g. "Aurora" vs "Aurora Gaming")
+  const matchesTeam = (m: PSMatch) =>
+    m.opponents.some(o => {
+      const ps = o.opponent.name.toLowerCase()
+      return ps === teamNameLower || ps.startsWith(teamNameLower + ' ') || teamNameLower.startsWith(ps + ' ')
+    })
+
+  const psUpcomingTeam = [...psRunning, ...psUpcoming].filter(matchesTeam)
+  const psRecentTeam = psRecent.filter(matchesTeam)
+
   // Get players on this team
   const supabase = createAdminClient()
   const { data: players } = await supabase
@@ -81,7 +100,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ slu
     else draws++
   }
   const total = wins + draws + losses
-  const winRate = total > 0 ? Math.round((wins / total) * 100) : null
+  const winRate = total > 0 ? Math.round(((wins + draws * 0.5) / total) * 100) : null
 
   // Matches involving this team
   const { data: teamMatches } = await supabase
@@ -222,37 +241,36 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ slu
             </div>
           )}
 
-          {/* Upcoming matches */}
-          {upcomingMatches.length > 0 && (
+          {/* Upcoming / live matches from PandaScore */}
+          {psUpcomingTeam.length > 0 && (
             <div className="rounded-2xl border border-border/60 p-5" style={{ background: 'hsl(var(--card) / 0.6)' }}>
               <p className="section-label mb-3">Upcoming Matches</p>
               <div className="grid gap-2">
-                {upcomingMatches.map(m => {
-                  const t1 = m.team_1
-                  const t2 = m.team_2
+                {psUpcomingTeam.map(m => {
+                  const tA = m.opponents[0]?.opponent
+                  const tB = m.opponents[1]?.opponent
+                  const psSlug = (n: string) => n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+                  const isLive = m.status === 'running'
                   return (
                     <div key={m.id} className="flex items-center gap-3 py-2 border-t border-border/40 first:border-0">
+                      {isLive && (
+                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded shrink-0" style={{ background: 'hsl(var(--destructive) / 0.15)', color: 'hsl(var(--destructive))' }}>LIVE</span>
+                      )}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap text-sm font-semibold text-foreground">
-                          {t1?.logo_url && <img loading="lazy" src={t1.logo_url} alt={t1.name ?? ''} className="w-5 h-5 object-contain shrink-0" />}
-                          {t1?.slug ? <Link href={`/teams/${t1.slug}`} className="hover:text-primary transition-colors">{t1.name}</Link> : <span>{t1?.name}</span>}
+                          {tA?.image_url && <img loading="lazy" src={tA.image_url} alt={tA.name} className="w-5 h-5 object-contain shrink-0" />}
+                          <Link href={`/teams/${psSlug(tA?.name ?? '')}`} className="hover:text-primary transition-colors">{tA?.name ?? 'TBD'}</Link>
                           <span className="text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded" style={{ color: 'var(--text-muted)', background: 'hsl(var(--muted))' }}>VS</span>
-                          {t2?.logo_url && <img loading="lazy" src={t2.logo_url} alt={t2.name ?? ''} className="w-5 h-5 object-contain shrink-0" />}
-                          {t2?.slug ? <Link href={`/teams/${t2.slug}`} className="hover:text-primary transition-colors">{t2.name}</Link> : <span>{t2?.name}</span>}
+                          {tB?.image_url && <img loading="lazy" src={tB.image_url} alt={tB.name} className="w-5 h-5 object-contain shrink-0" />}
+                          <Link href={`/teams/${psSlug(tB?.name ?? '')}`} className="hover:text-primary transition-colors">{tB?.name ?? 'TBD'}</Link>
                         </div>
-                        {m.tournament && (
-                          <div className="text-xs text-muted-foreground truncate">
-                            <Link href={`/tournaments/${m.tournament.slug}`} className="hover:text-primary transition-colors">
-                              {m.tournament.name}
-                            </Link>
-                          </div>
-                        )}
+                        <div className="text-xs text-muted-foreground truncate">{m.league.name} · {m.tournament.name}</div>
                       </div>
                       <div className="text-right shrink-0">
                         <div className="text-xs text-muted-foreground">
-                          {m.match_date ? new Date(m.match_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '–'}
+                          {m.scheduled_at ? new Date(m.scheduled_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Europe/Athens' }) : '–'}
                         </div>
-                        <div className="text-xs font-medium text-muted-foreground/60">BO{m.best_of}</div>
+                        <div className="text-xs font-medium text-muted-foreground/60">BO{m.number_of_games}</div>
                       </div>
                     </div>
                   )
@@ -261,19 +279,25 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ slu
             </div>
           )}
 
-          {/* Completed matches */}
-          {completedMatches.length > 0 && (
+          {/* Match history from PandaScore */}
+          {psRecentTeam.length > 0 && (
             <div className="rounded-2xl border border-border/60 p-5" style={{ background: 'hsl(var(--card) / 0.6)' }}>
               <p className="section-label mb-3">Match History</p>
               <div className="grid gap-2">
-                {completedMatches.map(m => {
-                  const isTeam1 = m.team_1_id === team.id
-                  const t1 = m.team_1
-                  const t2 = m.team_2
-                  const myScore = isTeam1 ? m.score_team_1! : m.score_team_2!
-                  const oppScore = isTeam1 ? m.score_team_2! : m.score_team_1!
-                  const won = myScore > oppScore
-                  const drew = myScore === oppScore
+                {psRecentTeam.map(m => {
+                  const tA = m.opponents[0]?.opponent
+                  const tB = m.opponents[1]?.opponent
+                  const psSlug = (n: string) => n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+                  const isMyTeam = (n: string) => { const ps = n.toLowerCase(); return ps === teamNameLower || ps.startsWith(teamNameLower + ' ') || teamNameLower.startsWith(ps + ' ') }
+                  const myOpp = m.opponents.find(o => isMyTeam(o.opponent.name))
+                  const oppOpp = m.opponents.find(o => !isMyTeam(o.opponent.name))
+                  const myResult = m.results.find(r => r.team_id === myOpp?.opponent.id)
+                  const oppResult = m.results.find(r => r.team_id === oppOpp?.opponent.id)
+                  const myScore = myResult?.score
+                  const oppScore = oppResult?.score
+                  const hasScore = myScore !== undefined && oppScore !== undefined
+                  const won = hasScore && myScore > oppScore
+                  const drew = hasScore && myScore === oppScore
                   const resultColor = drew ? '#f59e0b' : won ? 'hsl(var(--success))' : 'hsl(var(--destructive))'
                   const resultLabel = drew ? 'D' : won ? 'W' : 'L'
                   return (
@@ -286,26 +310,24 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ slu
                       </span>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap text-sm font-semibold text-foreground">
-                          {t1?.logo_url && <img loading="lazy" src={t1.logo_url} alt={t1.name ?? ''} className="w-5 h-5 object-contain shrink-0" />}
-                          {t1?.slug ? <Link href={`/teams/${t1.slug}`} className="hover:text-primary transition-colors">{t1.name}</Link> : <span>{t1?.name}</span>}
+                          {tA?.image_url && <img loading="lazy" src={tA.image_url} alt={tA.name} className="w-5 h-5 object-contain shrink-0" />}
+                          <Link href={`/teams/${psSlug(tA?.name ?? '')}`} className="hover:text-primary transition-colors">{tA?.name ?? 'TBD'}</Link>
                           <span className="text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded" style={{ color: 'var(--text-muted)', background: 'hsl(var(--muted))' }}>VS</span>
-                          {t2?.logo_url && <img loading="lazy" src={t2.logo_url} alt={t2.name ?? ''} className="w-5 h-5 object-contain shrink-0" />}
-                          {t2?.slug ? <Link href={`/teams/${t2.slug}`} className="hover:text-primary transition-colors">{t2.name}</Link> : <span>{t2?.name}</span>}
+                          {tB?.image_url && <img loading="lazy" src={tB.image_url} alt={tB.name} className="w-5 h-5 object-contain shrink-0" />}
+                          <Link href={`/teams/${psSlug(tB?.name ?? '')}`} className="hover:text-primary transition-colors">{tB?.name ?? 'TBD'}</Link>
                         </div>
-                        {m.tournament && (
-                          <div className="text-xs text-muted-foreground truncate">
-                            <Link href={`/tournaments/${m.tournament.slug}`} className="hover:text-primary transition-colors">
-                              {m.tournament.name}
-                            </Link>
-                          </div>
-                        )}
+                        <div className="text-xs text-muted-foreground truncate">{m.league.name} · {m.tournament.name}</div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="text-sm font-black tabular-nums" style={{ color: resultColor }}>
-                          {myScore}–{oppScore}
-                        </div>
+                        {hasScore && (
+                          <div className="text-sm font-black tabular-nums" style={{ color: resultColor }}>
+                            {myScore}–{oppScore}
+                          </div>
+                        )}
                         <div className="text-xs text-muted-foreground/60">
-                          {m.match_date ? new Date(m.match_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '–'}
+                          {(m.begin_at ?? m.scheduled_at)
+                            ? new Date(m.begin_at ?? m.scheduled_at!).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Europe/Athens' })
+                            : '–'}
                         </div>
                       </div>
                     </div>
