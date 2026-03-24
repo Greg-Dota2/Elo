@@ -160,6 +160,17 @@ export default async function TournamentPage({ params }: Props) {
 
   const stages = groupByStage(predictions).map(s => ({ ...s, matches: sortMatchesByStatus(s.matches) }))
 
+  // Map PandaScore match ID → DB match_date so the schedule section uses the correct date
+  const psIdToDate = new Map<number, string>()
+  const teamPairToDate = new Map<string, string>()
+  for (const p of predictions) {
+    if (p.pandascore_match_id && p.match_date) psIdToDate.set(p.pandascore_match_id, p.match_date)
+    if (p.match_date && p.team_1?.name && p.team_2?.name) {
+      const key = [p.team_1.name.toLowerCase(), p.team_2.name.toLowerCase()].sort().join('|')
+      teamPairToDate.set(key, p.match_date)
+    }
+  }
+
   return (
     <div className="fade-in-up">
       <script
@@ -310,10 +321,30 @@ export default async function TournamentPage({ params }: Props) {
             return ta - tb
           })
 
-        // Group by day
+        // Helper: get Athens-timezone day key ('MMM d') from an ISO timestamp
+        const athensDayLabel = (iso: string) => {
+          const d = new Date(iso)
+          // 'en-CA' locale gives YYYY-MM-DD; split to build a local-midnight Date for formatting
+          const [y, mo, day] = d.toLocaleDateString('en-CA', { timeZone: 'Europe/Athens' }).split('-').map(Number)
+          return format(new Date(y, mo - 1, day), 'MMM d')
+        }
+
+        // Group by day — prefer DB match_date for accuracy, fall back to PandaScore timestamp
         const byDay = new Map<string, typeof allMatches>()
         for (const m of allMatches) {
-          const day = m.scheduled_at ? format(new Date(m.scheduled_at), 'MMM d') : 'TBD'
+          let day: string
+          const tA = m.opponents[0]?.opponent
+          const tB = m.opponents[1]?.opponent
+          const pairKey = tA && tB ? [tA.name.toLowerCase(), tB.name.toLowerCase()].sort().join('|') : null
+          const dbDate = psIdToDate.get(m.id) ?? (pairKey ? teamPairToDate.get(pairKey) : undefined)
+          if (dbDate) {
+            // DB date is already a YYYY-MM-DD string in Athens local time
+            const [y, mo, d] = dbDate.split('-').map(Number)
+            day = format(new Date(y, mo - 1, d), 'MMM d')
+          } else {
+            const dateSource = (m.status === 'finished' && m.begin_at) ? m.begin_at : m.scheduled_at
+            day = dateSource ? athensDayLabel(dateSource) : 'TBD'
+          }
           if (!byDay.has(day)) byDay.set(day, [])
           byDay.get(day)!.push(m)
         }
@@ -321,14 +352,27 @@ export default async function TournamentPage({ params }: Props) {
         const firstMatch = allMatches[0]
         const league = firstMatch?.league
 
-        // Split days: active (has upcoming/live) vs fully finished
+        // Today's label in Athens timezone — today's day is never collapsed
+        const todayLabel = athensDayLabel(new Date().toISOString())
+
+        // Sort a day's matches: running (live) first, then upcoming, finished at bottom
+        const sortDayMatches = (matches: typeof allMatches) => {
+          const p = (m: typeof allMatches[0]) => m.status === 'running' ? 0 : m.status === 'finished' ? 2 : 1
+          return [...matches].sort((a, b) => {
+            const diff = p(a) - p(b)
+            if (diff !== 0) return diff
+            return new Date(a.scheduled_at ?? '').getTime() - new Date(b.scheduled_at ?? '').getTime()
+          })
+        }
+
+        // Split: past days (all finished, not today) collapse; today + days with live/upcoming stay expanded
         const activeDays: [string, typeof allMatches][] = []
         const finishedDays: [string, typeof allMatches][] = []
         for (const entry of byDay.entries()) {
           const [day, dayMatches] = entry
           const allFinished = dayMatches.every(m => m.status === 'finished')
-          if (allFinished) finishedDays.push([day, dayMatches])
-          else activeDays.push([day, dayMatches])
+          if (allFinished && day !== todayLabel) finishedDays.push([day, dayMatches])
+          else activeDays.push([day, sortDayMatches(dayMatches)])
         }
         const totalFinished = finishedDays.reduce((n, [, ms]) => n + ms.length, 0)
 
@@ -336,7 +380,9 @@ export default async function TournamentPage({ params }: Props) {
           dayMatches.map((m, i) => {
             const teamA = m.opponents[0]?.opponent
             const teamB = m.opponents[1]?.opponent
-            const time = m.scheduled_at ? format(new Date(m.scheduled_at), 'HH:mm') : '–'
+            const time = m.scheduled_at
+              ? new Date(m.scheduled_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Athens' })
+              : '–'
             const scoreA = m.results.find(r => r.team_id === teamA?.id)?.score
             const scoreB = m.results.find(r => r.team_id === teamB?.id)?.score
             const isLiveMatch = m.status === 'running'

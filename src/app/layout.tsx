@@ -6,6 +6,7 @@ import CookieBanner from '@/components/CookieBanner'
 import GoogleAnalytics from '@/components/GoogleAnalytics'
 import Link from 'next/link'
 import { cookies } from 'next/headers'
+import { Analytics } from '@vercel/analytics/next'
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -106,6 +107,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <GoogleAnalytics />
         <Navbar isAdmin={isAdmin} />
         <main className="max-w-7xl mx-auto px-4 py-8">{children}</main>
+        <Analytics />
         <CookieBanner />
         <footer className="mt-20 border-t border-border/50">
           <div className="max-w-5xl mx-auto px-4 py-12 flex flex-col gap-10 sm:flex-row sm:justify-between">

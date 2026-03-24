@@ -20,8 +20,30 @@ interface Props {
   teamAccuracy: TeamAccuracy[]
 }
 
+function buildDateGroups(stages: Stage[]) {
+  const allMatches = stages.flatMap(s => s.matches)
+  const byDate = new Map<string, MatchPrediction[]>()
+  for (const m of allMatches) {
+    const dateKey = m.match_date ?? 'undated'
+    if (!byDate.has(dateKey)) byDate.set(dateKey, [])
+    byDate.get(dateKey)!.push(m)
+  }
+  const now = Date.now()
+  const priority = (m: MatchPrediction) => {
+    if (m.score_team_1 !== null && m.score_team_2 !== null) return 2
+    const start = m.match_date && m.match_time
+      ? new Date(`${m.match_date}T${m.match_time}:00Z`).getTime()
+      : null
+    return start && now >= start ? 0 : 1
+  }
+  return Array.from(byDate.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([dateKey, matches]) => ({ dateKey, matches: [...matches].sort((a, b) => priority(a) - priority(b)) }))
+}
+
 export default function TournamentContent({ tournament, stages, stats, teamAccuracy }: Props) {
   const [tab, setTab] = useState<'picks' | 'bracket'>('picks')
+  const dateGroups = buildDateGroups(stages)
 
   const tabBtn = (id: 'picks' | 'bracket', label: string) => (
     <button
@@ -53,9 +75,9 @@ export default function TournamentContent({ tournament, stages, stats, teamAccur
         {tabBtn('bracket', '🏆 Bracket')}
       </div>
 
-      {/* Picks tab */}
+      {/* Picks tab — grouped by date across all stages, finished at bottom of each day */}
       {tab === 'picks' && (
-        stages.length === 0 ? (
+        dateGroups.length === 0 ? (
           <div
             className="rounded-2xl p-10 text-center"
             style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
@@ -67,42 +89,43 @@ export default function TournamentContent({ tournament, stages, stats, teamAccur
             </p>
           </div>
         ) : (
-          stages.map((group) => (
-            <div key={group.stageName} className="mb-10">
-              <div
-                className="flex items-center justify-between mb-4 pb-3"
-                style={{ borderBottom: '1px solid var(--border)' }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-1 h-5 rounded-full shrink-0" style={{ background: 'var(--accent)' }} />
-                  <h2 className="font-bold text-base">{group.stageName}</h2>
-                  {group.stageDate && (
-                    <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                      {new Date(group.stageDate).toLocaleDateString('en-GB', {
-                        day: 'numeric', month: 'short', year: 'numeric',
-                      })}
-                    </span>
+          <>
+            {dateGroups.map(({ dateKey, matches: dateMatches }) => (
+              <div key={dateKey} className="mb-10">
+                <div
+                  className="flex items-center justify-between mb-4 pb-3"
+                  style={{ borderBottom: '1px solid var(--border)' }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-1 h-5 rounded-full shrink-0" style={{ background: 'var(--accent)' }} />
+                    <h2 className="font-bold text-base">
+                      {dateKey !== 'undated'
+                        ? new Date(`${dateKey}T00:00:00Z`).toLocaleDateString('en-US', {
+                            month: 'long', day: 'numeric', year: 'numeric', timeZone: 'Europe/Athens',
+                          })
+                        : 'Matches'}
+                    </h2>
+                  </div>
+                  {tournament.liquipedia_url && (
+                    <a
+                      href={tournament.liquipedia_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs transition-colors hover:text-white"
+                      style={{ color: 'var(--text-muted)' }}
+                    >
+                      Liquipedia ↗
+                    </a>
                   )}
                 </div>
-                {tournament.liquipedia_url && (
-                  <a
-                    href={tournament.liquipedia_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs transition-colors hover:text-white"
-                    style={{ color: 'var(--text-muted)' }}
-                  >
-                    Liquipedia ↗
-                  </a>
-                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {dateMatches.map((match) => (
+                    <MatchCard key={match.id} match={match} tournament={tournament} />
+                  ))}
+                </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {group.matches.map((match) => (
-                  <MatchCard key={match.id} match={match} tournament={tournament} />
-                ))}
-              </div>
-            </div>
-          ))
+            ))}
+          </>
         )
       )}
 
