@@ -51,12 +51,15 @@ export async function POST() {
     const s2 = score_team_2 ?? 0
     const isDraw = s1 === s2
 
-    // Skip if no winner and not a draw (incomplete data)
-    if (!isDraw && !actual_winner_id) continue
+    // Infer winner from scores if actual_winner_id wasn't set
+    const winnerId = actual_winner_id ?? (!isDraw ? (s1 > s2 ? team_1_id : team_2_id) : null)
+
+    // Skip if still no winner and not a draw (truly incomplete data)
+    if (!isDraw && !winnerId) continue
 
     const eloA = eloMap.get(team_1_id) ?? BASE_ELO
     const eloB = eloMap.get(team_2_id) ?? BASE_ELO
-    const teamAWon = actual_winner_id === team_1_id
+    const teamAWon = winnerId === team_1_id
 
     const winnerScore = isDraw ? s1 : Math.max(s1, s2)
     const loserScore = isDraw ? s2 : Math.min(s1, s2)

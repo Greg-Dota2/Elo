@@ -37,21 +37,26 @@ export async function PATCH(req: NextRequest) {
   const { id, ...body } = await req.json()
   const supabase = createAdminClient()
 
-  // Auto-calculate is_correct
+  // Auto-calculate is_correct when actual result is being set
   if ('actual_winner_id' in body) {
-    const isDraw = !body.actual_winner_id  // draw = no winner
-    const predictedDraw = !!body.predicted_draw
+    // Fetch existing record so we always have predicted_winner_id and predicted_draw,
+    // even when the PATCH only sends scores/actual_winner_id
+    const { data: existing } = await supabase
+      .from('match_predictions')
+      .select('predicted_winner_id, predicted_draw')
+      .eq('id', id)
+      .single()
+
+    const isDraw = !body.actual_winner_id
+    const predictedDraw = body.predicted_draw ?? existing?.predicted_draw ?? false
+    const predictedWinnerId = body.predicted_winner_id ?? existing?.predicted_winner_id ?? null
 
     if (isDraw) {
-      // Actual draw: correct only if we predicted draw
-      body.is_correct = predictedDraw ? true : (predictedDraw === false && body.predicted_winner_id ? false : null)
+      body.is_correct = predictedDraw ? true : (predictedWinnerId ? false : null)
     } else if (predictedDraw) {
-      // Predicted draw but there was a winner → wrong
       body.is_correct = false
-    } else if (body.predicted_winner_id !== undefined) {
-      body.is_correct = body.predicted_winner_id
-        ? body.actual_winner_id === body.predicted_winner_id
-        : null
+    } else {
+      body.is_correct = predictedWinnerId ? body.actual_winner_id === predictedWinnerId : null
     }
   }
 

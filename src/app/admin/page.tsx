@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getAllTournamentsAdmin } from '@/lib/queries'
 import RecalcEloButton from './RecalcEloButton'
+import RecalcCorrectButton from './RecalcCorrectButton'
 import SeedEloButton from './SeedEloButton'
 import SyncScheduleButton from './SyncScheduleButton'
 import SyncResultsButton from './SyncResultsButton'
@@ -62,6 +63,7 @@ export default async function AdminPage() {
           <div className="font-semibold text-sm">New Prediction</div>
         </Link>
         <RecalcEloButton />
+        <RecalcCorrectButton />
         <SeedEloButton />
         <SyncScheduleButton />
         <SyncResultsButton />
