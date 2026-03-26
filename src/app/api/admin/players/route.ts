@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
+import { submitToIndexNow } from '@/lib/indexnow'
 
 function toSlug(ign: string) {
   return ign.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
@@ -40,6 +41,9 @@ export async function POST(req: Request) {
     if (error) return NextResponse.json({ error: error.message }, { status: 400 })
 
     revalidatePath('/players', 'layout')
+    if (data.is_published) {
+      submitToIndexNow([`https://dota2protips.com/players/${data.slug}`, 'https://dota2protips.com/players'])
+    }
     return NextResponse.json(data, { status: 201 })
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 })
@@ -84,6 +88,9 @@ export async function PATCH(req: Request) {
 
     revalidatePath('/players', 'layout')
     revalidatePath(`/players/${data.slug}`, 'layout')
+    if (data.is_published) {
+      submitToIndexNow([`https://dota2protips.com/players/${data.slug}`, 'https://dota2protips.com/players'])
+    }
     return NextResponse.json(data)
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 })

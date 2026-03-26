@@ -11,7 +11,19 @@ export function sortMatchesByStatus(matches: MatchPrediction[]): MatchPrediction
       : null
     return matchStart && now >= matchStart ? 0 : 1 // 0=live, 1=upcoming
   }
-  return [...matches].sort((a, b) => priority(a) - priority(b))
+  return [...matches].sort((a, b) => {
+    const pa = priority(a)
+    const pb = priority(b)
+    if (pa !== pb) return pa - pb
+    // Within finished matches: newest date first, then reverse match_order
+    if (pa === 2) {
+      const da = a.match_date ?? ''
+      const db = b.match_date ?? ''
+      if (db !== da) return db.localeCompare(da)
+      return (b.match_order ?? 0) - (a.match_order ?? 0)
+    }
+    return 0
+  })
 }
 
 export async function getTournaments() {

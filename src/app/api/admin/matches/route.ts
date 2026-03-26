@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { submitToIndexNow } from '@/lib/indexnow'
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
@@ -30,6 +31,15 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+
+  // Notify Bing when a prediction is published
+  if (body.is_published && body.tournament_id) {
+    const { data: tournament } = await supabase.from('tournaments').select('slug').eq('id', body.tournament_id).single()
+    if (tournament?.slug) {
+      submitToIndexNow([`https://dota2protips.com/tournaments/${tournament.slug}`])
+    }
+  }
+
   return NextResponse.json(data, { status: 201 })
 }
 
@@ -68,6 +78,15 @@ export async function PATCH(req: NextRequest) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+
+  // Notify Bing when a prediction is published or updated
+  if (body.is_published !== false && data.tournament_id) {
+    const { data: tournament } = await supabase.from('tournaments').select('slug').eq('id', data.tournament_id).single()
+    if (tournament?.slug) {
+      submitToIndexNow([`https://dota2protips.com/tournaments/${tournament.slug}`])
+    }
+  }
+
   return NextResponse.json(data)
 }
 

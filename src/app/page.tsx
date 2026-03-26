@@ -2,8 +2,10 @@ import type { Metadata } from 'next'
 import { getTournaments, getTournamentStats, getPredictionsByTournament, sortMatchesByStatus } from '@/lib/queries'
 import MatchCard from '@/components/MatchCard'
 import TournamentCard from '@/components/TournamentCard'
+import PSBracketView from '@/components/PSBracketView'
 import Link from 'next/link'
 import Image from 'next/image'
+import { fetchUpcomingTier1Matches, fetchRunningTier1Matches, fetchMatchesForSubTournament } from '@/lib/pandascore'
 
 export const revalidate = 60
 
@@ -36,6 +38,34 @@ export default async function HomePage() {
     : null
 
   const featuredMatches = sortMatchesByStatus(latestMatches)
+
+  // Bracket data for latest tournament
+  let bracketGroups: { name: string; matches: Awaited<ReturnType<typeof fetchMatchesForSubTournament>> }[] = []
+  if (latest) {
+    try {
+      const [upcomingPS, runningPS] = await Promise.all([
+        fetchUpcomingTier1Matches(50).catch(() => []),
+        fetchRunningTier1Matches(20).catch(() => []),
+      ])
+      const psMatches = [...runningPS, ...upcomingPS].filter(m => {
+        const psSlug = `${m.league.name}-${m.serie.full_name}`
+          .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+        return psSlug === latest.slug
+      })
+      const byGroup = psMatches.reduce<Record<string, typeof psMatches>>((acc, m) => {
+        const key = String(m.tournament.id)
+        if (!acc[key]) acc[key] = []
+        acc[key].push(m)
+        return acc
+      }, {})
+      bracketGroups = await Promise.all(
+        Object.entries(byGroup).map(async ([subId, matches]) => {
+          const allMatches = await fetchMatchesForSubTournament(Number(subId)).catch(() => matches)
+          return { name: matches[0].tournament.name, matches: allMatches }
+        })
+      )
+    } catch { /* non-critical */ }
+  }
 
   return (
     <div className="fade-in-up">
@@ -268,6 +298,9 @@ export default async function HomePage() {
               )}
             </div>
           )}
+
+          {/* ── Playoff Bracket ── */}
+          <PSBracketView groups={bracketGroups} />
 
           {featuredMatches.length > 0 ? (() => {
             const activeMatches = featuredMatches.filter(m => m.score_team_1 === null || m.score_team_2 === null)

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { submitToIndexNow } from '@/lib/indexnow'
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
@@ -20,6 +21,9 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
   revalidatePath('/tournaments', 'layout')
   revalidatePath('/')
+  if (body.is_published) {
+    submitToIndexNow([`https://dota2protips.com/tournaments/${data.slug}`, 'https://dota2protips.com/tournaments', 'https://dota2protips.com/'])
+  }
   return NextResponse.json(data, { status: 201 })
 }
 
@@ -45,6 +49,9 @@ export async function PATCH(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
   revalidatePath('/tournaments', 'layout')
   revalidatePath('/')
+  if (body.is_published !== false) {
+    submitToIndexNow([`https://dota2protips.com/tournaments/${data.slug}`, 'https://dota2protips.com/tournaments', 'https://dota2protips.com/'])
+  }
   return NextResponse.json(data)
 }
 

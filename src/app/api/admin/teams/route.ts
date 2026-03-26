@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
+import { submitToIndexNow } from '@/lib/indexnow'
 
 function toSlug(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
@@ -26,6 +27,7 @@ export async function POST(req: NextRequest) {
   const { data, error } = await supabase.from('teams').insert(payload).select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
   revalidatePath('/teams', 'layout')
+  submitToIndexNow([`https://dota2protips.com/teams/${data.slug}`, 'https://dota2protips.com/teams'])
   return NextResponse.json(data, { status: 201 })
 }
 
@@ -41,7 +43,10 @@ export async function PATCH(req: NextRequest) {
   const { data, error } = await supabase.from('teams').update(update).eq('id', id).select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
   revalidatePath('/teams', 'layout')
-  if (data.slug) revalidatePath('/teams/' + data.slug, 'layout')
+  if (data.slug) {
+    revalidatePath('/teams/' + data.slug, 'layout')
+    submitToIndexNow([`https://dota2protips.com/teams/${data.slug}`, 'https://dota2protips.com/teams'])
+  }
   return NextResponse.json(data)
 }
 

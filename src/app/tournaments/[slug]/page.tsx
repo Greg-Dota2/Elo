@@ -18,6 +18,7 @@ import {
   type PSTeam,
 } from '@/lib/pandascore'
 import GroupStageView, { type GroupData } from '@/components/GroupStageView'
+import PSBracketView from '@/components/PSBracketView'
 import { format, isSameDay } from 'date-fns'
 
 export const revalidate = 60
@@ -307,6 +308,9 @@ export default async function TournamentPage({ params }: Props) {
 
       {/* ── Group Stage ── */}
       <GroupStageView groups={groupsData} />
+
+      {/* ── Playoff Bracket (PandaScore) ── */}
+      <PSBracketView groups={groupsData} />
 
       {/* ── Schedule (PandaScore) ── */}
       {groupsData.length > 0 && (() => {
