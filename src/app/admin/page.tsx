@@ -55,6 +55,14 @@ export default async function AdminPage() {
           <div className="font-semibold text-sm">Players</div>
         </Link>
         <Link
+          href="/admin/transfers"
+          className="rounded-lg p-4 text-center transition-colors"
+          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+        >
+          <div className="text-2xl mb-1">🔄</div>
+          <div className="font-semibold text-sm">Transfers</div>
+        </Link>
+        <Link
           href="/admin/matches/new"
           className="rounded-lg p-4 text-center transition-colors"
           style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}

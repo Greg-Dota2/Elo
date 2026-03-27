@@ -98,6 +98,22 @@ export interface Player {
   team?: { id: string; name: string; logo_url: string | null; slug: string | null } | null
 }
 
+export interface Transfer {
+  id: string
+  player_ign: string
+  player_slug: string | null
+  player_photo_url: string | null
+  from_team: string | null
+  from_team_logo_url: string | null
+  to_team: string | null
+  to_team_logo_url: string | null
+  transfer_date: string
+  type: 'permanent' | 'loan' | 'stand-in' | 'free_agent' | 'retired'
+  notes: string | null
+  is_published: boolean
+  created_at: string
+}
+
 export interface TournamentStats {
   tournament_id: string
   name: string

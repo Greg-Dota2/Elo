@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import type { MatchPrediction, Player, TeamAccuracy, TournamentStats } from '@/lib/types'
+import type { MatchPrediction, Player, TeamAccuracy, Transfer, TournamentStats } from '@/lib/types'
 
 export function sortMatchesByStatus(matches: MatchPrediction[]): MatchPrediction[] {
   const now = new Date()
@@ -223,4 +223,25 @@ export async function getPredictionById(id: string): Promise<MatchPrediction> {
     .single()
   if (error) throw error
   return data as MatchPrediction
+}
+
+export async function getTransfers(): Promise<Transfer[]> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('transfers')
+    .select('*')
+    .eq('is_published', true)
+    .order('transfer_date', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as Transfer[]
+}
+
+export async function getAllTransfersAdmin(): Promise<Transfer[]> {
+  const supabase = createAdminClient()
+  const { data, error } = await supabase
+    .from('transfers')
+    .select('*')
+    .order('transfer_date', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as Transfer[]
 }
