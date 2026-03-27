@@ -12,7 +12,7 @@ BEGIN
   SELECT id INTO aurora_id
     FROM teams
    WHERE (slug = 'aurora' OR name = 'Aurora')
-     AND slug <> 'aurora-gaming'
+     AND slug IS DISTINCT FROM 'aurora-gaming'
    LIMIT 1;
 
   SELECT id INTO aurora_gaming_id
