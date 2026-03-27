@@ -1,4 +1,5 @@
 import React from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import type { PSMatch } from '@/lib/pandascore'
 
@@ -87,7 +88,7 @@ function PSBracketCard({ match }: { match: PSMatch }) {
       transition: 'background 0.2s',
     }}>
       {team?.image_url
-        ? <img loading="lazy" src={team.image_url} alt={team.name} style={{ width: 18, height: 18, objectFit: 'contain', flexShrink: 0 }} />
+        ? <Image src={team.image_url} alt={team.name} width={18} height={18} style={{ objectFit: 'contain', flexShrink: 0 }} />
         : <div style={{ width: 18, height: 18, borderRadius: 4, background: 'hsl(var(--secondary))', flexShrink: 0 }} />
       }
       {team ? (
@@ -104,7 +105,7 @@ function PSBracketCard({ match }: { match: PSMatch }) {
         <span style={{
           flex: 1, minWidth: 0,
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          fontSize: 13, fontWeight: 400, color: 'hsl(var(--muted-foreground)/0.6)',
+          fontSize: 13, fontWeight: 400, color: 'hsl(var(--muted-foreground)/0.9)',
           fontStyle: 'italic',
         }}>
           TBD

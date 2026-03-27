@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { getTournaments, getTournamentStats, getPredictionsByTournament, sortMatchesByStatus } from '@/lib/queries'
 import MatchCard from '@/components/MatchCard'
 import TournamentCard from '@/components/TournamentCard'
@@ -30,42 +31,14 @@ export default async function HomePage() {
   const latest = tournaments[0] ?? null
   const rest = tournaments.slice(1)
 
-  const latestMatches = latest
-    ? await getPredictionsByTournament(latest.id).catch(() => [])
-    : []
-  const latestStats = latest
-    ? await getTournamentStats(latest.id).catch(() => null)
-    : null
+  const [latestMatches, latestStats] = latest
+    ? await Promise.all([
+        getPredictionsByTournament(latest.id).catch(() => []),
+        getTournamentStats(latest.id).catch(() => null),
+      ])
+    : [[], null]
 
   const featuredMatches = sortMatchesByStatus(latestMatches)
-
-  // Bracket data for latest tournament
-  let bracketGroups: { name: string; matches: Awaited<ReturnType<typeof fetchMatchesForSubTournament>> }[] = []
-  if (latest) {
-    try {
-      const [upcomingPS, runningPS] = await Promise.all([
-        fetchUpcomingTier1Matches(50).catch(() => []),
-        fetchRunningTier1Matches(20).catch(() => []),
-      ])
-      const psMatches = [...runningPS, ...upcomingPS].filter(m => {
-        const psSlug = `${m.league.name}-${m.serie.full_name}`
-          .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-        return psSlug === latest.slug
-      })
-      const byGroup = psMatches.reduce<Record<string, typeof psMatches>>((acc, m) => {
-        const key = String(m.tournament.id)
-        if (!acc[key]) acc[key] = []
-        acc[key].push(m)
-        return acc
-      }, {})
-      bracketGroups = await Promise.all(
-        Object.entries(byGroup).map(async ([subId, matches]) => {
-          const allMatches = await fetchMatchesForSubTournament(Number(subId)).catch(() => matches)
-          return { name: matches[0].tournament.name, matches: allMatches }
-        })
-      )
-    } catch { /* non-critical */ }
-  }
 
   return (
     <div className="fade-in-up">
@@ -300,7 +273,9 @@ export default async function HomePage() {
           )}
 
           {/* ── Playoff Bracket ── */}
-          <PSBracketView groups={bracketGroups} />
+          <Suspense fallback={<div style={{ height: 120 }} />}>
+            <BracketSection latestSlug={latest.slug} />
+          </Suspense>
 
           {featuredMatches.length > 0 ? (() => {
             const activeMatches = featuredMatches.filter(m => m.score_team_1 === null || m.score_team_2 === null)
@@ -396,4 +371,32 @@ export default async function HomePage() {
 
     </div>
   )
+}
+
+async function BracketSection({ latestSlug }: { latestSlug: string }) {
+  let bracketGroups: { name: string; matches: Awaited<ReturnType<typeof fetchMatchesForSubTournament>> }[] = []
+  try {
+    const [upcomingPS, runningPS] = await Promise.all([
+      fetchUpcomingTier1Matches(50).catch(() => []),
+      fetchRunningTier1Matches(20).catch(() => []),
+    ])
+    const psMatches = [...runningPS, ...upcomingPS].filter(m => {
+      const psSlug = `${m.league.name}-${m.serie.full_name}`
+        .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+      return psSlug === latestSlug
+    })
+    const byGroup = psMatches.reduce<Record<string, typeof psMatches>>((acc, m) => {
+      const key = String(m.tournament.id)
+      if (!acc[key]) acc[key] = []
+      acc[key].push(m)
+      return acc
+    }, {})
+    bracketGroups = await Promise.all(
+      Object.entries(byGroup).map(async ([subId, matches]) => {
+        const allMatches = await fetchMatchesForSubTournament(Number(subId)).catch(() => matches)
+        return { name: matches[0].tournament.name, matches: allMatches }
+      })
+    )
+  } catch { /* non-critical */ }
+  return <PSBracketView groups={bracketGroups} />
 }
