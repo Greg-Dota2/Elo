@@ -143,10 +143,10 @@ function PSBracketCard({ match }: { match: PSMatch }) {
       {isLive && (
         <div style={{
           position: 'absolute', top: 4, right: 6,
-          fontSize: 8, fontWeight: 800, letterSpacing: '0.08em',
+          fontSize: 10, fontWeight: 800, letterSpacing: '0.08em',
           padding: '1px 4px', borderRadius: 3,
-          background: 'hsl(var(--destructive)/0.18)',
-          color: 'hsl(var(--destructive))',
+          background: 'hsl(var(--destructive))',
+          color: '#fff',
           lineHeight: 1.4, zIndex: 1, pointerEvents: 'none',
         }}>
           LIVE

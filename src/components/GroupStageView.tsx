@@ -30,7 +30,7 @@ function MatchCell({ match, rowTeamId }: { match: PSMatch | undefined; rowTeamId
               {rowResult!.score}:{otherResult!.score}
             </span>
           )}
-          <span className="text-[9px] font-bold px-1 py-0.5 rounded" style={{ background: 'hsl(var(--destructive) / 0.15)', color: 'hsl(var(--destructive))' }}>
+          <span className="text-[10px] font-bold px-1 py-0.5 rounded" style={{ background: 'hsl(var(--destructive))', color: '#fff' }}>
             LIVE
           </span>
         </div>

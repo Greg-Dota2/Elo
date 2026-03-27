@@ -68,6 +68,7 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies()
   const isAdmin = cookieStore.get('admin_token')?.value === process.env.ADMIN_PASSWORD
+  const cookieConsent = cookieStore.get('cookie_consent')?.value ?? null
 
   return (
     <html lang="en" className={`dark ${manrope.variable} ${oxanium.variable}`}>
@@ -109,7 +110,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Navbar isAdmin={isAdmin} />
         <main className="max-w-7xl mx-auto px-4 py-8">{children}</main>
         <Analytics />
-        <CookieBanner />
+        <CookieBanner initialConsent={cookieConsent} />
         <footer className="mt-20 border-t border-border/50">
           <div className="max-w-5xl mx-auto px-4 py-12 flex flex-col gap-10 sm:flex-row sm:justify-between">
             {/* Left: brand + tagline + socials */}

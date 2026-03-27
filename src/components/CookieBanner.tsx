@@ -1,23 +1,25 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 
-export default function CookieBanner() {
-  const [visible, setVisible] = useState(false)
+function setConsentCookie(value: string) {
+  // 1 year, SameSite=Lax, no Secure needed (works on both http/https)
+  const expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString()
+  document.cookie = `cookie_consent=${value}; expires=${expires}; path=/; SameSite=Lax`
+  localStorage.setItem('cookie_consent', value)
+}
 
-  useEffect(() => {
-    const consent = localStorage.getItem('cookie_consent')
-    if (!consent) setVisible(true)
-  }, [])
+export default function CookieBanner({ initialConsent }: { initialConsent: string | null }) {
+  const [visible, setVisible] = useState(!initialConsent)
 
   function accept() {
-    localStorage.setItem('cookie_consent', 'accepted')
+    setConsentCookie('accepted')
     setVisible(false)
   }
 
   function decline() {
-    localStorage.setItem('cookie_consent', 'declined')
+    setConsentCookie('declined')
     setVisible(false)
   }
 

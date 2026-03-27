@@ -41,7 +41,7 @@ export default async function HomePage() {
   const featuredMatches = sortMatchesByStatus(latestMatches)
 
   return (
-    <div className="fade-in-up">
+    <div>
 
       {/* ── Hero ── */}
       <section className="relative overflow-hidden pb-16 pt-20 md:pb-20 md:pt-28 mb-12">
