@@ -21,16 +21,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!post) return { title: 'Post Not Found' }
   return {
     title: post.title,
-    description: post.excerpt ?? undefined,
+    description: post.excerpt ?? `Read "${post.title}" on Dota2ProTips — Dota 2 analysis and match predictions by Greg Spencer.`,
     openGraph: {
       title: post.title,
-      description: post.excerpt ?? undefined,
+      description: post.excerpt ?? `Read "${post.title}" on Dota2ProTips — Dota 2 analysis and match predictions by Greg Spencer.`,
       ...(post.cover_image_url ? { images: [{ url: post.cover_image_url }] } : {}),
     },
     twitter: {
       card: post.cover_image_url ? 'summary_large_image' : 'summary',
       title: post.title,
-      description: post.excerpt ?? undefined,
+      description: post.excerpt ?? `Read "${post.title}" on Dota2ProTips — Dota 2 analysis and match predictions by Greg Spencer.`,
       ...(post.cover_image_url ? { images: [post.cover_image_url] } : {}),
     },
     alternates: { canonical: `/blog/${slug}` },

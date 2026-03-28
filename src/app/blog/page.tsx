@@ -6,16 +6,16 @@ export const revalidate = 60
 
 export const metadata: Metadata = {
   title: 'Blog',
-  description: 'Dota 2 analysis, thoughts, and breakdowns by Greg Spencer.',
+  description: 'Dota 2 match analysis, tournament breakdowns, and meta reads by Greg Spencer — a former semi-pro tracking Tier 1 Dota 2.',
   openGraph: {
     title: 'Blog | Dota2ProTips',
-    description: 'Dota 2 analysis, thoughts, and breakdowns by Greg Spencer.',
+    description: 'Dota 2 match analysis, tournament breakdowns, and meta reads by Greg Spencer — a former semi-pro tracking Tier 1 Dota 2.',
     url: '/blog',
   },
   twitter: {
     card: 'summary',
     title: 'Blog | Dota2ProTips',
-    description: 'Dota 2 analysis, thoughts, and breakdowns by Greg Spencer.',
+    description: 'Dota 2 match analysis, tournament breakdowns, and meta reads by Greg Spencer — a former semi-pro tracking Tier 1 Dota 2.',
   },
   alternates: { canonical: '/blog' },
 }

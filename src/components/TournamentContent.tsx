@@ -37,8 +37,8 @@ function buildDateGroups(stages: Stage[]) {
     return start && now >= start ? 0 : 1
   }
   return Array.from(byDate.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([dateKey, matches]) => ({ dateKey, matches: [...matches].sort((a, b) => priority(a) - priority(b)) }))
+    .sort(([a], [b]) => b.localeCompare(a))
+    .map(([dateKey, matches]) => ({ dateKey, matches: [...matches].sort((a, b) => priority(b) - priority(a)) }))
 }
 
 export default function TournamentContent({ tournament, stages, stats, teamAccuracy }: Props) {

@@ -2,16 +2,16 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Terms of Use',
-  description: 'How predictions are made, how ELO ratings are calculated, and what this site is all about.',
+  description: 'Terms of use, disclaimers, and site rules for Dota2ProTips — including how match predictions are made and how ELO ratings are calculated.',
   openGraph: {
     title: 'Terms of Use | Dota2ProTips',
-    description: 'How predictions are made, how ELO ratings are calculated, and what this site is all about.',
+    description: 'Terms of use, disclaimers, and site rules for Dota2ProTips — including how match predictions are made and how ELO ratings are calculated.',
     url: '/terms-of-use',
   },
   twitter: {
     card: 'summary',
     title: 'Terms of Use | Dota2ProTips',
-    description: 'How predictions are made, how ELO ratings are calculated, and what this site is all about.',
+    description: 'Terms of use, disclaimers, and site rules for Dota2ProTips — including how match predictions are made and how ELO ratings are calculated.',
   },
   alternates: { canonical: '/terms-of-use' },
 }

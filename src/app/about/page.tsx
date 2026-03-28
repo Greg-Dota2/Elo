@@ -3,23 +3,48 @@ import Image from 'next/image'
 
 export const metadata: Metadata = {
   title: 'About Me',
-  description: 'Greg Spencer — Dota 2 enthusiast, ex semi-pro, and the person behind every pick on Dota2ProTips.',
+  description: 'Greg Spencer — Dota 2 enthusiast, ex semi-pro, and the sole analyst behind every prediction and breakdown on Dota2ProTips.',
   openGraph: {
     title: 'About Me | Dota2ProTips',
-    description: 'Greg Spencer — Dota 2 enthusiast, ex semi-pro, and the person behind every pick on Dota2ProTips.',
+    description: 'Greg Spencer — Dota 2 enthusiast, ex semi-pro, and the sole analyst behind every prediction and breakdown on Dota2ProTips.',
     url: '/about',
   },
   twitter: {
     card: 'summary',
     title: 'About Me | Dota2ProTips',
-    description: 'Greg Spencer — Dota 2 enthusiast, ex semi-pro, and the person behind every pick on Dota2ProTips.',
+    description: 'Greg Spencer — Dota 2 enthusiast, ex semi-pro, and the sole analyst behind every prediction and breakdown on Dota2ProTips.',
   },
   alternates: { canonical: '/about' },
+}
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Greg Spencer',
+  url: 'https://dota2protips.com/about',
+  image: 'https://dota2protips.com/Greg.jpg',
+  jobTitle: 'Dota 2 Analyst',
+  description: 'Greg Spencer — Dota 2 enthusiast, ex semi-pro, and the sole analyst behind every prediction and breakdown on Dota2ProTips.',
+  knowsAbout: ['Dota 2', 'Esports', 'Pro Dota 2', 'Match predictions'],
+  sameAs: [
+    'https://www.facebook.com/Dota2ProTips',
+    'https://x.com/Dota2ProTips',
+    'https://t.me/dota2protips',
+  ],
+  worksFor: {
+    '@type': 'WebSite',
+    name: 'Dota2ProTips',
+    url: 'https://dota2protips.com',
+  },
 }
 
 export default function AboutPage() {
   return (
     <div className="fade-in-up max-w-2xl mx-auto py-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Profile header */}
       <div className="flex items-center gap-5 mb-8">
         <Image

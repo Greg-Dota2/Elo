@@ -7,11 +7,11 @@ export const revalidate = 60
 
 export const metadata: Metadata = {
   title: 'Dota 2 ELO Rankings',
-  description: 'ELO power rankings for pro Dota 2 teams, updated after every series result.',
+  description: 'ELO power rankings for Tier 1 Dota 2 teams, updated after every series result. See which teams are climbing and who\'s falling behind.',
   keywords: ['Dota 2 ELO rankings', 'Dota 2 power rankings', 'best Dota 2 teams', 'Dota 2 team ratings', 'Dota 2 standings'],
   alternates: { canonical: '/rankings' },
-  openGraph: { title: 'Dota 2 ELO Rankings', description: 'ELO power rankings for pro Dota 2 teams, updated after every series result.', url: '/rankings' },
-  twitter: { card: 'summary', title: 'Dota 2 ELO Rankings', description: 'ELO power rankings for pro Dota 2 teams, updated after every series result.' },
+  openGraph: { title: 'Dota 2 ELO Rankings', description: 'ELO power rankings for Tier 1 Dota 2 teams, updated after every series result. See which teams are climbing and who\'s falling behind.', url: '/rankings' },
+  twitter: { card: 'summary', title: 'Dota 2 ELO Rankings', description: 'ELO power rankings for Tier 1 Dota 2 teams, updated after every series result. See which teams are climbing and who\'s falling behind.' },
 }
 
 const MEDAL = ['🥇', '🥈', '🥉']
