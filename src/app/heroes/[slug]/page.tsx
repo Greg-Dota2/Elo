@@ -54,9 +54,9 @@ export async function generateMetadata({
         title,
         description,
         url: `/heroes/${slug}`,
-        images: [{ url: heroPortraitUrl(slug), alt: hero.localized_name }],
+        images: [{ url: heroPortraitUrl(slug), alt: hero.localized_name, width: 256, height: 144 }],
       },
-      twitter: { card: 'summary_large_image', title, description },
+      twitter: { card: 'summary_large_image', title, description, images: [heroPortraitUrl(slug)] },
       alternates: { canonical: `/heroes/${slug}` },
     }
   } catch {
@@ -289,14 +289,23 @@ export default async function HeroPage({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'BreadcrumbList',
-            itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Heroes', item: `${SITE_URL}/heroes` },
-              { '@type': 'ListItem', position: 2, name: hero.localized_name, item: `${SITE_URL}/heroes/${slug}` },
-            ],
-          }),
+          __html: JSON.stringify([
+            {
+              '@context': 'https://schema.org',
+              '@type': 'WebPage',
+              name: `${hero.localized_name} — Dota 2 Hero Guide`,
+              url: `${SITE_URL}/heroes/${slug}`,
+              image: { '@type': 'ImageObject', url: heroPortraitUrl(slug), width: 256, height: 144 },
+            },
+            {
+              '@context': 'https://schema.org',
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Heroes', item: `${SITE_URL}/heroes` },
+                { '@type': 'ListItem', position: 2, name: hero.localized_name, item: `${SITE_URL}/heroes/${slug}` },
+              ],
+            },
+          ]),
         }}
       />
       {/* Breadcrumb */}

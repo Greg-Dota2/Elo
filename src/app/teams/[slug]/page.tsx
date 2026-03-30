@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         url: `/teams/${slug}`,
         ...(team.logo_url ? { images: [{ url: team.logo_url, alt: team.name }] } : {}),
       },
-      twitter: { card: 'summary', title, description },
+      twitter: { card: team.logo_url ? 'summary_large_image' : 'summary', title, description, ...(team.logo_url ? { images: [team.logo_url] } : {}) },
       alternates: { canonical: `/teams/${slug}` },
     }
   } catch {
@@ -139,14 +139,23 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ slu
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'BreadcrumbList',
-            itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Teams', item: 'https://dota2protips.com/teams' },
-              { '@type': 'ListItem', position: 2, name: team.name, item: `https://dota2protips.com/teams/${slug}` },
-            ],
-          }),
+          __html: JSON.stringify([
+            {
+              '@context': 'https://schema.org',
+              '@type': 'SportsTeam',
+              name: team.name,
+              url: `https://dota2protips.com/teams/${slug}`,
+              ...(team.logo_url ? { logo: team.logo_url, image: team.logo_url } : {}),
+            },
+            {
+              '@context': 'https://schema.org',
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Teams', item: 'https://dota2protips.com/teams' },
+                { '@type': 'ListItem', position: 2, name: team.name, item: `https://dota2protips.com/teams/${slug}` },
+              ],
+            },
+          ]),
         }}
       />
       {/* Back */}

@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         url: `/players/${slug}`,
         ...(player.photo_url ? { images: [{ url: player.photo_url, alt: player.ign }] } : {}),
       },
-      twitter: { card: 'summary', title, description },
+      twitter: { card: player.photo_url ? 'summary_large_image' : 'summary', title, description, ...(player.photo_url ? { images: [player.photo_url] } : {}) },
       alternates: { canonical: `/players/${slug}` },
     }
   } catch {

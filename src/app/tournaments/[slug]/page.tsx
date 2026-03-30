@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         url: `/tournaments/${slug}`,
         ...(t.logo_url ? { images: [{ url: t.logo_url, alt: t.name }] } : {}),
       },
-      twitter: { card: 'summary', title, description },
+      twitter: { card: t.logo_url ? 'summary_large_image' : 'summary', title, description, ...(t.logo_url ? { images: [t.logo_url] } : {}) },
       alternates: { canonical: `/tournaments/${slug}` },
     }
   } catch {
@@ -205,14 +205,23 @@ export default async function TournamentPage({ params }: Props) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'BreadcrumbList',
-            itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Tournaments', item: 'https://dota2protips.com/tournaments' },
-              { '@type': 'ListItem', position: 2, name: tournament.name, item: `https://dota2protips.com/tournaments/${slug}` },
-            ],
-          }),
+          __html: JSON.stringify([
+            ...(tournament.logo_url ? [{
+              '@context': 'https://schema.org',
+              '@type': 'Event',
+              name: tournament.name,
+              url: `https://dota2protips.com/tournaments/${slug}`,
+              image: tournament.logo_url,
+            }] : []),
+            {
+              '@context': 'https://schema.org',
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Tournaments', item: 'https://dota2protips.com/tournaments' },
+                { '@type': 'ListItem', position: 2, name: tournament.name, item: `https://dota2protips.com/tournaments/${slug}` },
+              ],
+            },
+          ]),
         }}
       />
       {/* Breadcrumb */}

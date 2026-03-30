@@ -20,8 +20,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title,
     description,
     alternates: { canonical: `/items/${key}` },
-    openGraph: { title, description, url: `/items/${key}` },
-    twitter: { card: 'summary', title, description },
+    openGraph: { title, description, url: `/items/${key}`, images: [{ url: itemIconUrl(key), alt: item.dname }] },
+    twitter: { card: 'summary', title, description, images: [itemIconUrl(key)] },
   }
 }
 
@@ -58,14 +58,24 @@ export default async function ItemPage({ params }: Props) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'BreadcrumbList',
-            itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Items', item: `${SITE_URL}/items` },
-              { '@type': 'ListItem', position: 2, name: item.dname, item: `${SITE_URL}/items/${key}` },
-            ],
-          }),
+          __html: JSON.stringify([
+            {
+              '@context': 'https://schema.org',
+              '@type': 'Product',
+              name: item.dname,
+              url: `${SITE_URL}/items/${key}`,
+              image: itemIconUrl(key),
+              ...(item.lore ? { description: item.lore } : {}),
+            },
+            {
+              '@context': 'https://schema.org',
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Items', item: `${SITE_URL}/items` },
+                { '@type': 'ListItem', position: 2, name: item.dname, item: `${SITE_URL}/items/${key}` },
+              ],
+            },
+          ]),
         }}
       />
       {/* Back */}
