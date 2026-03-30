@@ -1,21 +1,13 @@
-'use client'
-
 import type React from 'react'
 import type { MatchPrediction, Team } from '@/lib/types'
 import Image from 'next/image'
 import Link from 'next/link'
 import { winProbability, seriesWinProbability, drawProbability } from '@/lib/elo'
-import { useState, useEffect } from 'react'
+import MatchTimer from './MatchTimer'
+import ExpandableText from './ExpandableText'
 
 // Inline icons — avoids pulling in the lucide module graph
 type IconProps = { className?: string; style?: React.CSSProperties }
-function IconClock({ className, style }: IconProps) {
-  return (
-    <svg className={className} style={style} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-    </svg>
-  )
-}
 function IconTrendingUp({ className, style }: IconProps) {
   return (
     <svg className={className} style={style} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -69,14 +61,6 @@ export default function MatchCard({ match, tournament }: Props) {
   const { team_1, team_2, is_correct } = match
   if (!team_1 || !team_2) return null
 
-  const [expanded, setExpanded] = useState(false)
-  const [now, setNow] = useState<Date | null>(null)
-  useEffect(() => {
-    setNow(new Date())
-    const t = setInterval(() => setNow(new Date()), 10_000)
-    return () => clearInterval(t)
-  }, [])
-
   const hasResult = match.score_team_1 !== null && match.score_team_2 !== null
 
   // Compute is_correct on the fly as fallback when DB value is null
@@ -88,23 +72,7 @@ export default function MatchCard({ match, tournament }: Props) {
         : null
     : null
   const effectiveIsCorrect = is_correct ?? computedIsCorrect
-  const matchStart = match.match_date && match.match_time
-    ? new Date(`${match.match_date}T${match.match_time}:00Z`)
-    : null
-  const isLive = now && matchStart && now >= matchStart && !hasResult
-  const isFuture = now && matchStart && now < matchStart
-  const msLeft = isFuture ? matchStart.getTime() - now.getTime() : 0
 
-  function formatCountdown(ms: number) {
-    const s = Math.floor(ms / 1000)
-    const d = Math.floor(s / 86400)
-    const h = Math.floor((s % 86400) / 3600)
-    const m = Math.floor((s % 3600) / 60)
-    const sec = s % 60
-    if (d > 0) return `${d}d ${h}h`
-    if (h > 0) return `${h}h ${m}m`
-    return `${m}m ${sec}s`
-  }
   const t1Won = match.actual_winner_id === team_1.id
   const t2Won = match.actual_winner_id === team_2.id
   const pick = match.predicted_winner
@@ -151,28 +119,14 @@ export default function MatchCard({ match, tournament }: Props) {
 
             {/* Date + status + BO badge */}
             <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-secondary/70 px-3 py-1.5 text-xs font-medium text-muted-foreground shrink-0">
-              <IconClock className="h-3.5 w-3.5" />
+              <svg className="h-3.5 w-3.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
               {match.match_date
                 ? new Date(`${match.match_date}T00:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'Europe/Athens' })
                 : '–'}
               <span className="text-muted-foreground/40">·</span>
-              {hasResult ? (
-                <span className="font-bold text-success">✓ Final</span>
-              ) : isLive ? (
-                <span className="inline-flex items-center gap-1 font-bold text-red-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-                  Live
-                </span>
-              ) : isFuture ? (
-                <span className="font-mono font-bold">in {formatCountdown(msLeft)}</span>
-              ) : match.match_time ? (
-                (() => {
-                  const d = new Date(`${match.match_date}T${match.match_time}:00Z`)
-                  const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Athens' })
-                  const tz = d.toLocaleDateString('en-US', { timeZoneName: 'short', timeZone: 'Europe/Athens' }).split(', ').pop() ?? 'EET'
-                  return <span>{time} {tz}</span>
-                })()
-              ) : null}
+              <MatchTimer matchDate={match.match_date} matchTime={match.match_time} hasResult={hasResult} />
               <span className="text-muted-foreground/40">·</span>
               <span className="font-bold">BO{match.best_of}</span>
             </div>
@@ -265,13 +219,7 @@ export default function MatchCard({ match, tournament }: Props) {
         {/* ── Twitch + Telegram buttons ── */}
         {(match.twitch_url || tournament?.telegram_url) && (
           <div className="mt-5 flex flex-col items-center gap-2">
-            {match.twitch_url && (() => {
-          const isVod = match.twitch_url.includes('/videos/')
-          const hasTimestamp = match.twitch_url.includes('?t=')
-          const label = isVod
-            ? hasTimestamp ? '⏱ Jump to Match on Twitch' : 'Watch VOD on Twitch'
-            : isLive ? '🔴 Watch Live on Twitch' : 'Watch on Twitch'
-          return (
+            {match.twitch_url && (
               <a
                 href={match.twitch_url}
                 target="_blank"
@@ -282,10 +230,13 @@ export default function MatchCard({ match, tournament }: Props) {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/>
                 </svg>
-                {label}
+                {match.twitch_url.includes('/videos/') && match.twitch_url.includes('?t=')
+                  ? '⏱ Jump to Match on Twitch'
+                  : match.twitch_url.includes('/videos/')
+                  ? 'Watch VOD on Twitch'
+                  : 'Watch on Twitch'}
               </a>
-          )
-        })()}
+            )}
             {tournament?.telegram_url && (
               <a
                 href={tournament.telegram_url}
@@ -347,16 +298,7 @@ export default function MatchCard({ match, tournament }: Props) {
             {match.pre_analysis && (
               <div className="mt-5 rounded-xl px-4 py-4" style={{ background: 'hsl(var(--secondary) / 0.5)', border: '1px solid hsl(var(--border) / 0.6)' }}>
                 <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'hsl(var(--muted-foreground) / 0.6)' }}>My take</p>
-                <p className={`text-base leading-7 font-medium text-foreground ${expanded ? '' : 'line-clamp-3'}`}>
-                  {match.pre_analysis}
-                </p>
-                <button
-                  onClick={() => setExpanded(e => !e)}
-                  className="mt-2 text-xs font-semibold transition-colors hover:text-primary"
-                  style={{ color: 'hsl(var(--primary) / 0.7)' }}
-                >
-                  {expanded ? '↑ Show less' : '↓ Read more'}
-                </button>
+                <ExpandableText text={match.pre_analysis} />
               </div>
             )}
 
