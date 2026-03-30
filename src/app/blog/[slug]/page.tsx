@@ -159,17 +159,19 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const supabase = await createClient()
   const admin = createAdminClient()
 
-  const [{ data: post }, { data: teams }, { data: players }] = await Promise.all([
+  const [{ data: post }, { data: teams }, { data: players }, { data: tournaments }] = await Promise.all([
     supabase.from('blog_posts').select('*').eq('slug', slug).eq('is_published', true).single(),
     admin.from('teams').select('name, slug, image_url').not('slug', 'is', null),
     admin.from('players').select('ign, slug').eq('is_published', true),
+    admin.from('tournaments').select('name, slug').not('slug', 'is', null),
   ])
 
   if (!post) notFound()
 
-  const entities = [
+  const dbEntities = [
     ...(teams ?? []).map(t => ({ name: t.name, url: `/teams/${t.slug}` })),
     ...(players ?? []).map(p => ({ name: p.ign, url: `/players/${p.slug}` })),
+    ...(tournaments ?? []).map(t => ({ name: t.name, url: `/tournaments/${t.slug}` })),
   ]
 
   const teamLogoMap = new Map<string, string>(
@@ -178,7 +180,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       .map(t => [`/teams/${t.slug}`, t.image_url as string])
   )
 
-  // Team name → url for fallback heading detection
+  // Team name → url for fallback heading detection (DB only; PS teams added after fetch)
   const teamUrlByName = new Map<string, string>(
     (teams ?? []).filter(t => t.slug).map(t => [t.name.toLowerCase(), `/teams/${t.slug}`])
   )
@@ -194,6 +196,33 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     await Promise.all(tournamentSlugs.map(async ts => [ts, await fetchGroupsForTournament(ts)]))
   )
 
+  // Build supplemental team lookup from PandaScore data (covers teams not in the DB)
+  const psTeamSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+  const psTeamMap = new Map<string, { imageUrl: string | null; url: string }>()
+  for (const groups of Object.values(groupsDataMap)) {
+    for (const group of groups) {
+      for (const { team } of group.standings) {
+        if (!psTeamMap.has(team.name.toLowerCase())) {
+          psTeamMap.set(team.name.toLowerCase(), { imageUrl: team.image_url, url: `/teams/${psTeamSlug(team.name)}` })
+        }
+      }
+    }
+  }
+
+  // Merge DB entities with PS teams (DB takes priority, PS fills in unknowns)
+  const dbNames = new Set(dbEntities.map(e => e.name.toLowerCase()))
+  const psEntities: { name: string; url: string }[] = []
+  for (const groups of Object.values(groupsDataMap)) {
+    for (const group of groups) {
+      for (const { team } of group.standings) {
+        if (!dbNames.has(team.name.toLowerCase()) && !psEntities.some(e => e.name.toLowerCase() === team.name.toLowerCase())) {
+          psEntities.push({ name: team.name, url: `/teams/${psTeamSlug(team.name)}` })
+        }
+      }
+    }
+  }
+  const allEntities = [...dbEntities, ...psEntities]
+
   const SITE_URL = 'https://dota2protips.com'
 
   const mdComponents = {
@@ -205,12 +234,13 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         firstChild?.type === 'element' && firstChild.tagName === 'a'
           ? firstChild.properties?.href as string
           : undefined
-      // Fallback: match raw heading text to a known team
+      // Fallback: match raw heading text to DB team, then PandaScore team
       if (!href) {
         const text = extractNodeText(node).trim().toLowerCase()
-        href = teamUrlByName.get(text)
+        href = teamUrlByName.get(text) ?? psTeamMap.get(text)?.url
       }
-      const logo = href ? teamLogoMap.get(href) : undefined
+      const text = extractNodeText(node).trim().toLowerCase()
+      const logo = (href ? teamLogoMap.get(href) : undefined) ?? psTeamMap.get(text)?.imageUrl ?? undefined
       const needsWrapLink = href && !(firstChild?.type === 'element' && firstChild.tagName === 'a')
       return (
         <h2 className="font-display text-2xl font-bold mt-8 mb-3 flex items-center gap-2.5" style={{ color: 'var(--text)' }}>
@@ -248,7 +278,28 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     tbody: ({ children }: any) => <tbody>{children}</tbody>,
     tr: ({ children }: any) => <tr style={{ borderBottom: '1px solid var(--border)' }}>{children}</tr>,
     th: ({ children }: any) => <th className="text-left px-4 py-2 font-bold text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>{children}</th>,
-    td: ({ children }: any) => <td className="px-4 py-2.5" style={{ color: 'var(--text)' }}>{children}</td>,
+    td: ({ children, node }: any) => {
+      // Check if this cell contains a single team link — if so, prepend the logo
+      const firstChild = node?.children?.[0]
+      const href: string | undefined = firstChild?.type === 'element' && firstChild.tagName === 'a'
+        ? firstChild.properties?.href as string
+        : undefined
+      const cellText = extractNodeText(node).trim().toLowerCase()
+      const logo = (href ? teamLogoMap.get(href) : undefined)
+        ?? psTeamMap.get(cellText)?.imageUrl
+        ?? undefined
+      return (
+        <td className="px-4 py-2.5" style={{ color: 'var(--text)' }}>
+          {logo ? (
+            <span className="flex items-center gap-1.5">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={logo} alt="" className="w-5 h-5 object-contain rounded shrink-0" style={{ background: 'rgba(255,255,255,0.06)', padding: '1px' }} />
+              {children}
+            </span>
+          ) : children}
+        </td>
+      )
+    },
   }
 
   return (
@@ -336,7 +387,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         if (seg.type === 'markdown') {
           return (
             <ReactMarkdown key={i} remarkPlugins={[remarkGfm]} components={mdComponents}>
-              {autoLink(seg.content, entities)}
+              {autoLink(seg.content, allEntities)}
             </ReactMarkdown>
           )
         }
