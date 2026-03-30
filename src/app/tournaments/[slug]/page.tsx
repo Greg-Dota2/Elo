@@ -13,6 +13,7 @@ import type { MatchPrediction } from '@/lib/types'
 import {
   fetchUpcomingTier1Matches,
   fetchRunningTier1Matches,
+  fetchRecentTier1Matches,
   fetchTournamentStandings,
   fetchMatchesForSubTournament,
   type PSTeam,
@@ -110,54 +111,81 @@ export default async function TournamentPage({ params }: Props) {
     return acc
   }, {})
 
-  // Build group stage data: fetch ALL matches + standings per sub-tournament
-  const groupsData: GroupData[] = await Promise.all(
-    Object.entries(scheduleByGroup).map(async ([subId, upcomingMatches]) => {
-      const sub = upcomingMatches[0].tournament
-      const [standings, allMatches] = await Promise.all([
-        fetchTournamentStandings(Number(subId)).catch(() => []),
-        fetchMatchesForSubTournament(Number(subId)).catch(() => upcomingMatches),
-      ])
+  // Helper: build a GroupData entry from a sub-tournament ID + name + seed matches
+  const buildGroupData = async (subId: number, subName: string, seedMatches: typeof psMatches): Promise<GroupData> => {
+    const [standings, allMatches] = await Promise.all([
+      fetchTournamentStandings(subId).catch(() => []),
+      fetchMatchesForSubTournament(subId).catch(() => seedMatches),
+    ])
 
-      // Compute standings from finished matches as fallback
-      const computedStandings = (() => {
-        const record = new Map<number, { team: PSTeam; wins: number; draws: number; losses: number }>()
-        const ensure = (team: PSTeam) => {
-          if (!record.has(team.id)) record.set(team.id, { team, wins: 0, draws: 0, losses: 0 })
-        }
+    // Compute standings from finished matches as fallback
+    const record = new Map<number, { team: PSTeam; wins: number; draws: number; losses: number }>()
+    const ensure = (team: PSTeam) => {
+      if (!record.has(team.id)) record.set(team.id, { team, wins: 0, draws: 0, losses: 0 })
+    }
+    for (const m of allMatches) {
+      if (m.status !== 'finished' || m.results.length < 2) continue
+      const [r1, r2] = m.results
+      const t1 = m.opponents.find(o => o.opponent.id === r1.team_id)?.opponent
+      const t2 = m.opponents.find(o => o.opponent.id === r2.team_id)?.opponent
+      if (!t1 || !t2) continue
+      ensure(t1); ensure(t2)
+      if (r1.score > r2.score) { record.get(t1.id)!.wins++; record.get(t2.id)!.losses++ }
+      else if (r2.score > r1.score) { record.get(t2.id)!.wins++; record.get(t1.id)!.losses++ }
+      else { record.get(t1.id)!.draws++; record.get(t2.id)!.draws++ }
+    }
+    const computedStandings = Array.from(record.values())
+      .sort((a, b) => (b.wins * 3 + b.draws) - (a.wins * 3 + a.draws))
+      .map((r, i) => ({ rank: i + 1, team: r.team, wins: r.wins, draws: r.draws, losses: r.losses, total: r.wins + r.draws + r.losses }))
+
+    const apiHasData = standings.length > 1 && standings.some(s => s.wins > 0 || s.losses > 0)
+    const derivedStandings = apiHasData ? standings
+      : computedStandings.length > 1 ? computedStandings
+      : (() => {
+        const seen = new Map<number, PSTeam>()
         for (const m of allMatches) {
-          if (m.status !== 'finished' || m.results.length < 2) continue
-          const [r1, r2] = m.results
-          const t1 = m.opponents.find(o => o.opponent.id === r1.team_id)?.opponent
-          const t2 = m.opponents.find(o => o.opponent.id === r2.team_id)?.opponent
-          if (!t1 || !t2) continue
-          ensure(t1); ensure(t2)
-          if (r1.score > r2.score) { record.get(t1.id)!.wins++; record.get(t2.id)!.losses++ }
-          else if (r2.score > r1.score) { record.get(t2.id)!.wins++; record.get(t1.id)!.losses++ }
-          else { record.get(t1.id)!.draws++; record.get(t2.id)!.draws++ }
+          for (const opp of m.opponents) {
+            if (!seen.has(opp.opponent.id)) seen.set(opp.opponent.id, opp.opponent)
+          }
         }
-        return Array.from(record.values())
-          .sort((a, b) => (b.wins * 3 + b.draws) - (a.wins * 3 + a.draws))
-          .map((r, i) => ({ rank: i + 1, team: r.team, wins: r.wins, draws: r.draws, losses: r.losses, total: r.wins + r.draws + r.losses }))
+        return Array.from(seen.values()).map((team, i) => ({ rank: i + 1, team, wins: 0, draws: 0, losses: 0, total: 0 }))
       })()
 
-      // Use PandaScore standings if they have real data, otherwise computed, otherwise blank list
-      const apiHasData = standings.length > 1 && standings.some(s => s.wins > 0 || s.losses > 0)
-      const derivedStandings = apiHasData ? standings
-        : computedStandings.length > 1 ? computedStandings
-        : (() => {
-          const seen = new Map<number, PSTeam>()
-          for (const m of allMatches) {
-            for (const opp of m.opponents) {
-              if (!seen.has(opp.opponent.id)) seen.set(opp.opponent.id, opp.opponent)
-            }
-          }
-          return Array.from(seen.values()).map((team, i) => ({ rank: i + 1, team, wins: 0, draws: 0, losses: 0, total: 0 }))
-        })()
+    return { id: subId, name: subName, standings: derivedStandings, matches: allMatches }
+  }
 
-      return { id: Number(subId), name: sub.name, standings: derivedStandings, matches: allMatches }
+  // Build group stage data: fetch ALL matches + standings per sub-tournament
+  let groupsData: GroupData[]
+
+  if (Object.keys(scheduleByGroup).length > 0) {
+    // Normal path: running/upcoming matches tell us which sub-tournaments exist
+    groupsData = await Promise.all(
+      Object.entries(scheduleByGroup).map(([subId, upcomingMatches]) =>
+        buildGroupData(Number(subId), upcomingMatches[0].tournament.name, upcomingMatches)
+      )
+    ).then(groups => groups.filter(g => g.standings.length > 1))
+  } else {
+    // Fallback: tournament is over — find sub-tournament IDs from recent finished matches
+    const recentFinished = await fetchRecentTier1Matches(100).catch(() => [])
+    const finishedPsMatches = recentFinished.filter(m => {
+      const psSlug = `${m.league.name}-${m.serie.full_name}`
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '')
+      return psSlug === tournament.slug
     })
-  ).then(groups => groups.filter(g => g.standings.length > 1))
+    const finishedByGroup = finishedPsMatches.reduce<Record<string, typeof finishedPsMatches>>((acc, m) => {
+      const key = String(m.tournament.id)
+      if (!acc[key]) acc[key] = []
+      acc[key].push(m)
+      return acc
+    }, {})
+    groupsData = await Promise.all(
+      Object.entries(finishedByGroup).map(([subId, matches]) =>
+        buildGroupData(Number(subId), matches[0].tournament.name, matches)
+      )
+    ).then(groups => groups.filter(g => g.standings.length > 1))
+  }
 
   const stages = groupByStage(predictions).map(s => ({ ...s, matches: sortMatchesByStatus(s.matches) }))
 
@@ -307,7 +335,7 @@ export default async function TournamentPage({ params }: Props) {
       )}
 
       {/* ── Group Stage ── */}
-      <GroupStageView groups={groupsData} />
+      <GroupStageView groups={groupsData.filter(g => !/upper|lower|bracket|playoff|elimination|grand.?final/i.test(g.name) || /group/i.test(g.name))} />
 
       {/* ── Playoff Bracket (PandaScore) ── */}
       <PSBracketView groups={groupsData} />

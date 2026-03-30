@@ -5,8 +5,103 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import GroupStageView, { type GroupData } from '@/components/GroupStageView'
+import PSBracketView from '@/components/PSBracketView'
+import {
+  fetchUpcomingTier1Matches,
+  fetchRunningTier1Matches,
+  fetchRecentTier1Matches,
+  fetchTournamentStandings,
+  fetchMatchesForSubTournament,
+  type PSTeam,
+  type PSMatch,
+} from '@/lib/pandascore'
 
 export const revalidate = 60
+
+// ── Shortcode parsing ────────────────────────────────────────────────────────
+type Segment =
+  | { type: 'markdown'; content: string }
+  | { type: 'group-stage'; slug: string }
+  | { type: 'playoff-bracket'; slug: string }
+
+function parseSegments(content: string): Segment[] {
+  const segments: Segment[] = []
+  const rx = /\[(group-stage|playoff-bracket):([^\]]+)\]/g
+  let last = 0
+  let m: RegExpExecArray | null
+  while ((m = rx.exec(content)) !== null) {
+    if (m.index > last) segments.push({ type: 'markdown', content: content.slice(last, m.index) })
+    segments.push({ type: m[1] as 'group-stage' | 'playoff-bracket', slug: m[2].trim() })
+    last = m.index + m[0].length
+  }
+  if (last < content.length) segments.push({ type: 'markdown', content: content.slice(last) })
+  return segments
+}
+
+// ── Tournament data fetcher (same logic as tournament page) ──────────────────
+async function fetchGroupsForTournament(tournamentSlug: string): Promise<GroupData[]> {
+  const slugify = (league: string, serie: string) =>
+    `${league}-${serie}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+
+  const buildGroup = async (subId: number, subName: string, seed: PSMatch[]): Promise<GroupData> => {
+    const [standings, allMatches] = await Promise.all([
+      fetchTournamentStandings(subId).catch(() => []),
+      fetchMatchesForSubTournament(subId).catch(() => seed),
+    ])
+    const record = new Map<number, { team: PSTeam; wins: number; draws: number; losses: number }>()
+    const ensure = (t: PSTeam) => { if (!record.has(t.id)) record.set(t.id, { team: t, wins: 0, draws: 0, losses: 0 }) }
+    for (const m of allMatches) {
+      if (m.status !== 'finished' || m.results.length < 2) continue
+      const [r1, r2] = m.results
+      const t1 = m.opponents.find(o => o.opponent.id === r1.team_id)?.opponent
+      const t2 = m.opponents.find(o => o.opponent.id === r2.team_id)?.opponent
+      if (!t1 || !t2) continue
+      ensure(t1); ensure(t2)
+      if (r1.score > r2.score) { record.get(t1.id)!.wins++; record.get(t2.id)!.losses++ }
+      else if (r2.score > r1.score) { record.get(t2.id)!.wins++; record.get(t1.id)!.losses++ }
+      else { record.get(t1.id)!.draws++; record.get(t2.id)!.draws++ }
+    }
+    const computed = Array.from(record.values())
+      .sort((a, b) => (b.wins * 3 + b.draws) - (a.wins * 3 + a.draws))
+      .map((r, i) => ({ rank: i + 1, team: r.team, wins: r.wins, draws: r.draws, losses: r.losses, total: r.wins + r.draws + r.losses }))
+    const apiHasData = standings.length > 1 && standings.some(s => s.wins > 0 || s.losses > 0)
+    const derived = apiHasData ? standings
+      : computed.length > 1 ? computed
+      : (() => {
+          const seen = new Map<number, PSTeam>()
+          for (const m of allMatches) for (const o of m.opponents) if (!seen.has(o.opponent.id)) seen.set(o.opponent.id, o.opponent)
+          return Array.from(seen.values()).map((team, i) => ({ rank: i + 1, team, wins: 0, draws: 0, losses: 0, total: 0 }))
+        })()
+    return { id: subId, name: subName, standings: derived, matches: allMatches }
+  }
+
+  const [upcoming, running] = await Promise.all([
+    fetchUpcomingTier1Matches(50).catch(() => []),
+    fetchRunningTier1Matches(20).catch(() => []),
+  ])
+  const psMatches = [...running, ...upcoming].filter(m => slugify(m.league.name, m.serie.full_name) === tournamentSlug)
+
+  const groupBy = (matches: PSMatch[]) =>
+    matches.reduce<Record<string, PSMatch[]>>((acc, m) => {
+      const k = String(m.tournament.id)
+      if (!acc[k]) acc[k] = []
+      acc[k].push(m)
+      return acc
+    }, {})
+
+  if (psMatches.length > 0) {
+    const by = groupBy(psMatches)
+    return Promise.all(Object.entries(by).map(([id, ms]) => buildGroup(Number(id), ms[0].tournament.name, ms)))
+      .then(gs => gs.filter(g => g.standings.length > 1))
+  }
+
+  const recent = await fetchRecentTier1Matches(100).catch(() => [])
+  const finished = recent.filter(m => slugify(m.league.name, m.serie.full_name) === tournamentSlug)
+  const by = groupBy(finished)
+  return Promise.all(Object.entries(by).map(([id, ms]) => buildGroup(Number(id), ms[0].tournament.name, ms)))
+    .then(gs => gs.filter(g => g.standings.length > 1))
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -43,16 +138,20 @@ function autoLink(
   content: string,
   entities: Array<{ name: string; url: string }>
 ): string {
-  // Sort longest first to avoid partial matches (e.g. "Team Spirit" before "Spirit")
   const sorted = [...entities].sort((a, b) => b.name.length - a.name.length)
-
   for (const { name, url } of sorted) {
     const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    // Match the name only when NOT already inside [...]
     const regex = new RegExp(`(?<!\\[)\\b${escaped}\\b(?![^[]*?\\]\\()`, 'g')
     content = content.replace(regex, `[${name}](${url})`)
   }
   return content
+}
+
+function extractNodeText(node: any): string {
+  if (!node) return ''
+  if (node.type === 'text') return node.value ?? ''
+  if (Array.isArray(node.children)) return node.children.map(extractNodeText).join('')
+  return ''
 }
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -62,7 +161,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   const [{ data: post }, { data: teams }, { data: players }] = await Promise.all([
     supabase.from('blog_posts').select('*').eq('slug', slug).eq('is_published', true).single(),
-    admin.from('teams').select('name, slug').not('slug', 'is', null),
+    admin.from('teams').select('name, slug, image_url').not('slug', 'is', null),
     admin.from('players').select('ign, slug').eq('is_published', true),
   ])
 
@@ -73,12 +172,84 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     ...(players ?? []).map(p => ({ name: p.ign, url: `/players/${p.slug}` })),
   ]
 
-  const processed = autoLink(
-    (post.content ?? '').replace(/^(#{1,6})([^\s#])/gm, '$1 $2'),
-    entities
+  const teamLogoMap = new Map<string, string>(
+    (teams ?? [])
+      .filter(t => t.slug && t.image_url)
+      .map(t => [`/teams/${t.slug}`, t.image_url as string])
+  )
+
+  // Team name → url for fallback heading detection
+  const teamUrlByName = new Map<string, string>(
+    (teams ?? []).filter(t => t.slug).map(t => [t.name.toLowerCase(), `/teams/${t.slug}`])
+  )
+
+  const rawContent = (post.content ?? '').replace(/^(#{1,6})([^\s#])/gm, '$1 $2')
+  const segments = parseSegments(rawContent)
+
+  // Fetch tournament data for any shortcode segments
+  const tournamentSlugs = [...new Set(
+    segments.filter(s => s.type !== 'markdown').map(s => (s as { slug: string }).slug)
+  )]
+  const groupsDataMap: Record<string, GroupData[]> = Object.fromEntries(
+    await Promise.all(tournamentSlugs.map(async ts => [ts, await fetchGroupsForTournament(ts)]))
   )
 
   const SITE_URL = 'https://dota2protips.com'
+
+  const mdComponents = {
+    h1: ({ children }: any) => <h2 className="font-display text-3xl font-black mt-8 mb-4" style={{ color: 'var(--text)' }}>{children}</h2>,
+    h2: ({ children, node }: any) => {
+      // Try link injected by autoLink first
+      const firstChild = node?.children?.[0]
+      let href: string | undefined =
+        firstChild?.type === 'element' && firstChild.tagName === 'a'
+          ? firstChild.properties?.href as string
+          : undefined
+      // Fallback: match raw heading text to a known team
+      if (!href) {
+        const text = extractNodeText(node).trim().toLowerCase()
+        href = teamUrlByName.get(text)
+      }
+      const logo = href ? teamLogoMap.get(href) : undefined
+      const needsWrapLink = href && !(firstChild?.type === 'element' && firstChild.tagName === 'a')
+      return (
+        <h2 className="font-display text-2xl font-bold mt-8 mb-3 flex items-center gap-2.5" style={{ color: 'var(--text)' }}>
+          {logo && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={logo} alt="" className="w-8 h-8 object-contain rounded shrink-0" style={{ background: 'rgba(255,255,255,0.06)', padding: '2px' }} />
+          )}
+          {needsWrapLink
+            ? <a href={href} className="hover:opacity-80 transition-opacity">{children}</a>
+            : children}
+        </h2>
+      )
+    },
+    h3: ({ children }: any) => <h3 className="font-display text-xl font-bold mt-6 mb-2" style={{ color: 'hsl(var(--primary))' }}>{children}</h3>,
+    p: ({ children }: any) => <p className="text-base leading-8 mb-5" style={{ color: 'var(--text)' }}>{children}</p>,
+    strong: ({ children }: any) => <strong className="font-bold" style={{ color: 'var(--text)' }}>{children}</strong>,
+    em: ({ children }: any) => <em className="italic">{children}</em>,
+    ul: ({ children }: any) => <ul className="list-disc pl-6 mb-5 flex flex-col gap-1.5" style={{ color: 'var(--text)' }}>{children}</ul>,
+    ol: ({ children }: any) => <ol className="list-decimal pl-6 mb-5 flex flex-col gap-1.5" style={{ color: 'var(--text)' }}>{children}</ol>,
+    li: ({ children }: any) => <li className="text-base leading-7">{children}</li>,
+    blockquote: ({ children }: any) => <blockquote className="border-l-4 pl-4 my-5 italic" style={{ borderColor: 'hsl(var(--primary))', color: 'var(--text-muted)' }}>{children}</blockquote>,
+    hr: () => <hr className="my-8" style={{ borderColor: 'var(--border)' }} />,
+    a: ({ href, children }: any) => <a href={href} className="underline hover:opacity-70 transition-opacity" style={{ color: 'hsl(var(--primary))' }}>{children}</a>,
+    code: ({ children }: any) => <code className="px-1.5 py-0.5 rounded text-sm font-mono" style={{ background: 'var(--surface-2)', color: 'hsl(var(--primary))' }}>{children}</code>,
+    img: ({ src, alt }: any) => (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={src} alt={alt ?? ''} className="w-full rounded-xl my-6 object-cover" loading="lazy" />
+    ),
+    table: ({ children }: any) => (
+      <div className="overflow-x-auto mb-6">
+        <table className="w-full text-sm border-collapse">{children}</table>
+      </div>
+    ),
+    thead: ({ children }: any) => <thead style={{ background: 'var(--surface-2)' }}>{children}</thead>,
+    tbody: ({ children }: any) => <tbody>{children}</tbody>,
+    tr: ({ children }: any) => <tr style={{ borderBottom: '1px solid var(--border)' }}>{children}</tr>,
+    th: ({ children }: any) => <th className="text-left px-4 py-2 font-bold text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>{children}</th>,
+    td: ({ children }: any) => <td className="px-4 py-2.5" style={{ color: 'var(--text)' }}>{children}</td>,
+  }
 
   return (
     <div className="fade-in-up max-w-2xl mx-auto py-8">
@@ -160,41 +331,25 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
       <hr className="mb-8" style={{ borderColor: 'var(--border)' }} />
 
-      {/* Body */}
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        components={{
-          h1: ({ children }) => <h2 className="font-display text-3xl font-black mt-8 mb-4" style={{ color: 'var(--text)' }}>{children}</h2>,
-          h2: ({ children }) => <h2 className="font-display text-2xl font-bold mt-8 mb-3" style={{ color: 'var(--text)' }}>{children}</h2>,
-          h3: ({ children }) => <h3 className="font-display text-xl font-bold mt-6 mb-2" style={{ color: 'hsl(var(--primary))' }}>{children}</h3>,
-          p: ({ children }) => <p className="text-base leading-8 mb-5" style={{ color: 'var(--text)' }}>{children}</p>,
-          strong: ({ children }) => <strong className="font-bold" style={{ color: 'var(--text)' }}>{children}</strong>,
-          em: ({ children }) => <em className="italic">{children}</em>,
-          ul: ({ children }) => <ul className="list-disc pl-6 mb-5 flex flex-col gap-1.5" style={{ color: 'var(--text)' }}>{children}</ul>,
-          ol: ({ children }) => <ol className="list-decimal pl-6 mb-5 flex flex-col gap-1.5" style={{ color: 'var(--text)' }}>{children}</ol>,
-          li: ({ children }) => <li className="text-base leading-7">{children}</li>,
-          blockquote: ({ children }) => <blockquote className="border-l-4 pl-4 my-5 italic" style={{ borderColor: 'hsl(var(--primary))', color: 'var(--text-muted)' }}>{children}</blockquote>,
-          hr: () => <hr className="my-8" style={{ borderColor: 'var(--border)' }} />,
-          a: ({ href, children }) => <a href={href} className="underline hover:opacity-70 transition-opacity" style={{ color: 'hsl(var(--primary))' }}>{children}</a>,
-          code: ({ children }) => <code className="px-1.5 py-0.5 rounded text-sm font-mono" style={{ background: 'var(--surface-2)', color: 'hsl(var(--primary))' }}>{children}</code>,
-          img: ({ src, alt }) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={src} alt={alt ?? ''} className="w-full rounded-xl my-6 object-cover" loading="lazy" />
-          ),
-          table: ({ children }) => (
-            <div className="overflow-x-auto mb-6">
-              <table className="w-full text-sm border-collapse">{children}</table>
-            </div>
-          ),
-          thead: ({ children }) => <thead style={{ background: 'var(--surface-2)' }}>{children}</thead>,
-          tbody: ({ children }) => <tbody>{children}</tbody>,
-          tr: ({ children }) => <tr style={{ borderBottom: '1px solid var(--border)' }}>{children}</tr>,
-          th: ({ children }) => <th className="text-left px-4 py-2 font-bold text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>{children}</th>,
-          td: ({ children }) => <td className="px-4 py-2.5" style={{ color: 'var(--text)' }}>{children}</td>,
-        }}
-      >
-        {processed}
-      </ReactMarkdown>
+      {/* Body — markdown segments interleaved with live tournament components */}
+      {segments.map((seg, i) => {
+        if (seg.type === 'markdown') {
+          return (
+            <ReactMarkdown key={i} remarkPlugins={[remarkGfm]} components={mdComponents}>
+              {autoLink(seg.content, entities)}
+            </ReactMarkdown>
+          )
+        }
+        const groups = groupsDataMap[(seg as any).slug] ?? []
+        if (seg.type === 'group-stage') {
+          const groupOnly = groups.filter(g => !/upper|lower|bracket|playoff|elimination|grand.?final/i.test(g.name) || /group/i.test(g.name))
+          return <GroupStageView key={i} groups={groupOnly} />
+        }
+        if (seg.type === 'playoff-bracket') {
+          return <PSBracketView key={i} groups={groups} />
+        }
+        return null
+      })}
 
       {/* Back */}
       <div className="mt-12 pt-8" style={{ borderTop: '1px solid var(--border)' }}>
