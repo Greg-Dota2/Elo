@@ -141,7 +141,7 @@ function autoLink(
   const sorted = [...entities].sort((a, b) => b.name.length - a.name.length)
   for (const { name, url } of sorted) {
     const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    const regex = new RegExp(`(?<!\\[)\\b${escaped}\\b(?![^[]*?\\]\\()`, 'g')
+    const regex = new RegExp(`(?<!\\[)\\b${escaped}\\b(?![^[]*?\\]\\()`)
     content = content.replace(regex, `[${name}](${url})`)
   }
   return content
