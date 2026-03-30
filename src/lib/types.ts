@@ -32,6 +32,8 @@ export interface Tournament {
   liquipedia_url: string | null
   telegram_url: string | null
   opendota_league_id: number | null
+  location_name: string | null
+  location_type: 'lan' | 'online' | null
   is_published: boolean
   created_at: string
 }

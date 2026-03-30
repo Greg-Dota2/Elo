@@ -206,12 +206,19 @@ export default async function TournamentPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify([
-            ...(tournament.logo_url ? [{
+            ...(tournament.start_date ? [{
               '@context': 'https://schema.org',
               '@type': 'Event',
               name: tournament.name,
               url: `https://dota2protips.com/tournaments/${slug}`,
-              image: tournament.logo_url,
+              startDate: tournament.start_date,
+              ...(tournament.end_date ? { endDate: tournament.end_date } : {}),
+              ...(tournament.logo_url ? { image: tournament.logo_url } : {}),
+              ...(tournament.overview ? { description: tournament.overview } : {}),
+              location: tournament.location_type === 'lan' && tournament.location_name
+                ? { '@type': 'Place', name: tournament.location_name }
+                : { '@type': 'VirtualLocation', url: `https://dota2protips.com/tournaments/${slug}` },
+              eventStatus: 'https://schema.org/EventScheduled',
             }] : []),
             {
               '@context': 'https://schema.org',

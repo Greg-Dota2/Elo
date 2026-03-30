@@ -175,6 +175,8 @@ export default function EditTournamentPage({ params }: Props) {
         liquipedia_url: form.get('liquipedia_url') || null,
         overview: form.get('overview') || null,
         format: form.get('format') || null,
+        location_name: form.get('location_name') || null,
+        location_type: form.get('location_type') || null,
       }),
     })
     const data = await res.json()
@@ -434,6 +436,18 @@ export default function EditTournamentPage({ params }: Props) {
           <Field label="Format text">
             <textarea name="format" rows={3} defaultValue={tournament.format ?? ''} className={inputClass} />
           </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Location name">
+              <input name="location_name" type="text" defaultValue={tournament.location_name ?? ''} className={inputClass} placeholder="e.g. Birmingham, UK" />
+            </Field>
+            <Field label="Location type">
+              <select name="location_type" defaultValue={tournament.location_type ?? ''} className={inputClass}>
+                <option value="">— Select —</option>
+                <option value="lan">LAN</option>
+                <option value="online">Online</option>
+              </select>
+            </Field>
+          </div>
           <Field label="Logo URL">
             <input name="logo_url" type="url" defaultValue={tournament.logo_url ?? ''} className={inputClass} placeholder="https://cdn.pandascore.co/images/tournament/image/..." />
           </Field>
