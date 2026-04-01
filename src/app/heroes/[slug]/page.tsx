@@ -13,13 +13,17 @@ import {
   decodeBehavior,
   formatLevelValues,
   interpolateAbilityDesc,
+  buildTalentValueMap,
+  resolveTalentName,
   type ValveAbility,
   type HeroData,
 } from '@/lib/heroes'
 import { fetchItemIdMap, fetchAllItems, itemIconUrl } from '@/lib/items'
 import { getPlayersBySignatureHero } from '@/lib/queries'
+import { fetchHeroRadarStats } from '@/lib/opendota'
 import type { Player } from '@/lib/types'
 import AbilityIcon from '@/components/AbilityIcon'
+import HeroRadar from '@/components/HeroRadar'
 
 export const revalidate = 86400
 
@@ -219,12 +223,13 @@ export default async function HeroPage({
     allItems.filter(i => i.components?.length).map(i => [i.key, i.components!])
   )
 
-  const [detailResult, matchupsResult, signaturePlayersResult, itemsResult, neutralItemsResult] = await Promise.allSettled([
+  const [detailResult, matchupsResult, signaturePlayersResult, itemsResult, neutralItemsResult, heroRadarResult] = await Promise.allSettled([
     fetchHeroDetail(hero.id),
     fetchHeroMatchups(hero.id),
     getPlayersBySignatureHero(hero.localized_name),
     fetchHeroItemPopularity(hero.id, itemIdMap, basicItemKeys, componentsMap),
     fetchHeroNeutralItems(hero.id),
+    fetchHeroRadarStats(hero.id),
   ])
 
   const detail = detailResult.status === 'fulfilled' ? detailResult.value : null
@@ -232,6 +237,16 @@ export default async function HeroPage({
   const signaturePlayers: Player[] = signaturePlayersResult.status === 'fulfilled' ? signaturePlayersResult.value : []
   const itemPhases = itemsResult.status === 'fulfilled' ? itemsResult.value : []
   const neutralItemIds = neutralItemsResult.status === 'fulfilled' ? neutralItemsResult.value : []
+  const heroRadarStats = heroRadarResult.status === 'fulfilled' ? heroRadarResult.value : null
+
+  const rawTalents = detail?.talents ?? []
+  const talentValueMap = buildTalentValueMap(detail?.abilities ?? [])
+  const TALENT_LEVELS = [10, 15, 20, 25]
+  const talentRows = TALENT_LEVELS.map((level, i) => ({
+    level,
+    left: rawTalents[i * 2] ? resolveTalentName(rawTalents[i * 2].name_loc, rawTalents[i * 2], talentValueMap) : '',
+    right: rawTalents[i * 2 + 1] ? resolveTalentName(rawTalents[i * 2 + 1].name_loc, rawTalents[i * 2 + 1], talentValueMap) : '',
+  }))
   const neutralItems = neutralItemIds
     .map(({ itemId }) => allItems.find(i => i.id === itemId))
     .filter(Boolean) as typeof allItems
@@ -444,6 +459,42 @@ export default async function HeroPage({
         </div>
       )}
 
+      {/* Talents */}
+      {rawTalents.length > 0 && (
+        <div className="mb-6">
+          <p className="section-label mb-3">Talents</p>
+          <div className="rounded-2xl border border-border/60 bg-card/60 p-5">
+            <div className="flex flex-col items-stretch gap-0">
+              {talentRows.map(({ level, left, right }, i) => (
+                <div key={level} className="flex flex-col items-center">
+                  {/* Vertical connector between rows */}
+                  {i > 0 && <div className="w-px h-4 bg-amber-500/30 shrink-0" />}
+                  {/* Row: left box — line — badge — line — right box */}
+                  <div className="w-full flex items-center gap-0">
+                    {/* Left talent */}
+                    <div className="flex-1 rounded-xl border border-border/60 bg-secondary/40 px-3 py-2.5 text-right">
+                      <span className="text-sm font-medium leading-snug">{left}</span>
+                    </div>
+                    {/* Horizontal connector left */}
+                    <div className="w-4 h-px bg-amber-500/30 shrink-0" />
+                    {/* Level badge */}
+                    <div className="shrink-0 w-11 h-11 rounded-full border-2 border-amber-500/50 bg-amber-500/10 flex items-center justify-center z-10">
+                      <span className="font-display font-bold text-sm text-amber-400">{level}</span>
+                    </div>
+                    {/* Horizontal connector right */}
+                    <div className="w-4 h-px bg-amber-500/30 shrink-0" />
+                    {/* Right talent */}
+                    <div className="flex-1 rounded-xl border border-border/60 bg-secondary/40 px-3 py-2.5 text-left">
+                      <span className="text-sm font-medium leading-snug">{right}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Aghanim's Scepter */}
       {hasScepter && (
         <div className="mb-6">
@@ -495,6 +546,9 @@ export default async function HeroPage({
           Ability data temporarily unavailable.
         </div>
       )}
+
+      {/* Hero Performance Radar */}
+      {heroRadarStats && <HeroRadar stats={heroRadarStats} />}
 
       {/* Matchups */}
       {(bestAgainst.length > 0 || worstAgainst.length > 0) && (

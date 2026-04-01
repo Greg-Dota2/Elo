@@ -32,6 +32,7 @@ export interface ValveSpecialValue {
   is_percentage: boolean
   required_facet?: string
   facet_bonus?: { name: string; values: number[]; operation: number }
+  bonuses?: { name: string; value: number; operation: number }[]
 }
 
 export interface ValveAbility {
@@ -74,6 +75,7 @@ export interface ValveHeroDetail {
   bio_loc: string
   hype_loc: string
   abilities: ValveAbility[]
+  talents: ValveAbility[]
   facets: ValveFacet[]
   facet_abilities: { abilities: ValveAbility[] }[]
 }
@@ -338,6 +340,51 @@ export async function fetchHeroMatchups(heroId: number): Promise<HeroMatchup[]> 
   return data
     .filter(m => m.games_played >= 100)
     .map(m => ({ ...m, win_rate: m.wins / m.games_played }))
+}
+
+/**
+ * Build a map of { talentAbilityName → { paramName → value } } by scanning
+ * the main abilities' special_values.bonuses arrays. The Valve datafeed stores
+ * talent bonus values there rather than in the talent ability itself.
+ *
+ * e.g. chaos_knight_chaos_strike.special_values has:
+ *   { name: "lifesteal", bonuses: [{ name: "special_bonus_unique_chaos_knight_6", value: 30 }] }
+ * → map["special_bonus_unique_chaos_knight_6"]["bonus_lifesteal"] = 30
+ */
+export function buildTalentValueMap(abilities: ValveAbility[]): Record<string, Record<string, number>> {
+  const map: Record<string, Record<string, number>> = {}
+  for (const ability of abilities) {
+    for (const sv of ability.special_values) {
+      for (const bonus of (sv.bonuses ?? [])) {
+        if (!bonus.name.startsWith('special_bonus_')) continue
+        if (!map[bonus.name]) map[bonus.name] = {}
+        map[bonus.name][`bonus_${sv.name.toLowerCase()}`] = bonus.value
+      }
+    }
+  }
+  return map
+}
+
+/** Resolve a talent's name_loc using both its own special_values and the cross-ability value map */
+export function resolveTalentName(
+  nameLocTemplate: string,
+  talent: ValveAbility,
+  valueMap: Record<string, Record<string, number>>
+): string {
+  if (!nameLocTemplate) return ''
+  // Step 1: resolve tokens that are in the talent's own special_values
+  const afterOwn = interpolateAbilityDesc(nameLocTemplate, talent.special_values)
+  // Step 2: resolve any remaining {s:...} tokens using the cross-ability bonus map
+  if (!afterOwn.includes('{s:') && !afterOwn.includes('%')) return afterOwn
+  const values = valueMap[talent.name] ?? {}
+  const lookup = (key: string): string | undefined => {
+    const k = key.toLowerCase()
+    const v = values[k] ?? values[`bonus_${k}`] ?? values[k.replace(/^bonus_/, '')]
+    return v !== undefined ? String(v) : undefined
+  }
+  return afterOwn
+    .replace(/\{s:([^}]+)\}/g, (match, key) => lookup(key) ?? match)
+    .replace(/%%|%([^%]+)%/g, (match, key) => key ? (lookup(key) ?? match) : '%')
 }
 
 export async function fetchHeroDetail(heroId: number): Promise<ValveHeroDetail> {
