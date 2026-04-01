@@ -20,6 +20,7 @@ import {
 } from '@/lib/pandascore'
 import GroupStageView, { type GroupData } from '@/components/GroupStageView'
 import PSBracketView from '@/components/PSBracketView'
+import { fetchGroupsFromDB } from '@/lib/groupStageDB'
 import { format, isSameDay } from 'date-fns'
 
 export const revalidate = 60
@@ -154,18 +155,24 @@ export default async function TournamentPage({ params }: Props) {
     return { id: subId, name: subName, standings: derivedStandings, matches: allMatches }
   }
 
-  // Build group stage data: fetch ALL matches + standings per sub-tournament
+  // If this tournament has manually managed group stages in the DB, use them —
+  // this lets admin-entered scores take effect immediately without waiting for PandaScore.
+  const dbGroups = await fetchGroupsFromDB(tournament.slug)
+
   let groupsData: GroupData[]
 
-  if (Object.keys(scheduleByGroup).length > 0) {
-    // Normal path: running/upcoming matches tell us which sub-tournaments exist
+  if (dbGroups.length > 0) {
+    // DB takes priority: admin has set up stages manually
+    groupsData = dbGroups
+  } else if (Object.keys(scheduleByGroup).length > 0) {
+    // Normal PandaScore path: running/upcoming matches tell us which sub-tournaments exist
     groupsData = await Promise.all(
       Object.entries(scheduleByGroup).map(([subId, upcomingMatches]) =>
         buildGroupData(Number(subId), upcomingMatches[0].tournament.name, upcomingMatches)
       )
     ).then(groups => groups.filter(g => g.standings.length > 1))
   } else {
-    // Fallback: tournament is over — find sub-tournament IDs from recent finished matches
+    // PandaScore fallback: tournament is over — find sub-tournament IDs from recent finished matches
     const recentFinished = await fetchRecentTier1Matches(100).catch(() => [])
     const finishedPsMatches = recentFinished.filter(m => {
       const psSlug = `${m.league.name}-${m.serie.full_name}`

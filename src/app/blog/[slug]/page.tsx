@@ -1,12 +1,18 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { draftMode } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import GroupStageView, { type GroupData } from '@/components/GroupStageView'
 import PSBracketView from '@/components/PSBracketView'
+import TweetEmbed from '@/components/TweetEmbed'
+import HeroCard from '@/components/HeroCard'
+import TeamCard from '@/components/TeamCard'
+import PlayerCard from '@/components/PlayerCard'
+import ItemCard from '@/components/ItemCard'
 import {
   fetchUpcomingTier1Matches,
   fetchRunningTier1Matches,
@@ -16,6 +22,7 @@ import {
   type PSTeam,
   type PSMatch,
 } from '@/lib/pandascore'
+import { fetchGroupsFromDB } from '@/lib/groupStageDB'
 
 export const revalidate = 60
 
@@ -24,15 +31,32 @@ type Segment =
   | { type: 'markdown'; content: string }
   | { type: 'group-stage'; slug: string }
   | { type: 'playoff-bracket'; slug: string }
+  | { type: 'tweet'; url: string }
+  | { type: 'hero'; slug: string }
+  | { type: 'team'; slug: string }
+  | { type: 'player'; slug: string }
+  | { type: 'item'; key: string }
 
 function parseSegments(content: string): Segment[] {
   const segments: Segment[] = []
-  const rx = /\[(group-stage|playoff-bracket):([^\]]+)\]/g
+  const rx = /\[(group-stage|playoff-bracket):([^\]]+)\]|\[tweet:([^\]]+)\]|\[hero:([^\]]+)\]|\[team:([^\]]+)\]|\[player:([^\]]+)\]|\[item:([^\]]+)\]/g
   let last = 0
   let m: RegExpExecArray | null
   while ((m = rx.exec(content)) !== null) {
     if (m.index > last) segments.push({ type: 'markdown', content: content.slice(last, m.index) })
-    segments.push({ type: m[1] as 'group-stage' | 'playoff-bracket', slug: m[2].trim() })
+    if (m[1]) {
+      segments.push({ type: m[1] as 'group-stage' | 'playoff-bracket', slug: m[2].trim() })
+    } else if (m[3]) {
+      segments.push({ type: 'tweet', url: m[3].trim() })
+    } else if (m[4]) {
+      segments.push({ type: 'hero', slug: m[4].trim() })
+    } else if (m[5]) {
+      segments.push({ type: 'team', slug: m[5].trim() })
+    } else if (m[6]) {
+      segments.push({ type: 'player', slug: m[6].trim() })
+    } else {
+      segments.push({ type: 'item', key: m[7].trim() })
+    }
     last = m.index + m[0].length
   }
   if (last < content.length) segments.push({ type: 'markdown', content: content.slice(last) })
@@ -101,6 +125,7 @@ async function fetchGroupsForTournament(tournamentSlug: string): Promise<GroupDa
   const by = groupBy(finished)
   return Promise.all(Object.entries(by).map(([id, ms]) => buildGroup(Number(id), ms[0].tournament.name, ms)))
     .then(gs => gs.filter(g => g.standings.length > 1))
+    .then(gs => gs.length > 0 ? gs : fetchGroupsFromDB(tournamentSlug))
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -156,12 +181,15 @@ function extractNodeText(node: any): string {
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const supabase = await createClient()
+  const { isEnabled: isDraft } = await draftMode()
   const admin = createAdminClient()
 
+  let postQuery = admin.from('blog_posts').select('*').eq('slug', slug)
+  if (!isDraft) postQuery = postQuery.eq('is_published', true)
+
   const [{ data: post }, { data: teams }, { data: players }, { data: tournaments }] = await Promise.all([
-    supabase.from('blog_posts').select('*').eq('slug', slug).eq('is_published', true).single(),
-    admin.from('teams').select('name, slug, image_url').not('slug', 'is', null),
+    postQuery.single(),
+    admin.from('teams').select('name, slug, logo_url').not('slug', 'is', null),
     admin.from('players').select('ign, slug').eq('is_published', true),
     admin.from('tournaments').select('name, slug').not('slug', 'is', null),
   ])
@@ -176,8 +204,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   const teamLogoMap = new Map<string, string>(
     (teams ?? [])
-      .filter(t => t.slug && t.image_url)
-      .map(t => [`/teams/${t.slug}`, t.image_url as string])
+      .filter(t => t.slug && t.logo_url)
+      .map(t => [`/teams/${t.slug}`, t.logo_url as string])
   )
 
   // Team name → url for fallback heading detection (DB only; PS teams added after fetch)
@@ -188,9 +216,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const rawContent = (post.content ?? '').replace(/^(#{1,6})([^\s#])/gm, '$1 $2')
   const segments = parseSegments(rawContent)
 
-  // Fetch tournament data for any shortcode segments
+  // Fetch tournament data only for tournament shortcode segments
   const tournamentSlugs = [...new Set(
-    segments.filter(s => s.type !== 'markdown').map(s => (s as { slug: string }).slug)
+    segments
+      .filter(s => s.type === 'group-stage' || s.type === 'playoff-bracket')
+      .map(s => (s as { slug: string }).slug)
   )]
   const groupsDataMap: Record<string, GroupData[]> = Object.fromEntries(
     await Promise.all(tournamentSlugs.map(async ts => [ts, await fetchGroupsForTournament(ts)]))
@@ -267,7 +297,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     code: ({ children }: any) => <code className="px-1.5 py-0.5 rounded text-sm font-mono" style={{ background: 'var(--surface-2)', color: 'hsl(var(--primary))' }}>{children}</code>,
     img: ({ src, alt }: any) => (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={src} alt={alt ?? ''} className="w-full rounded-xl my-6 object-cover" loading="lazy" />
+      <img src={src} alt={alt ?? ''} className="max-w-full h-auto rounded-xl my-6 block" loading="lazy" />
     ),
     table: ({ children }: any) => (
       <div className="overflow-x-auto mb-6">
@@ -335,6 +365,14 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           ]),
         }}
       />
+      {/* Draft preview banner */}
+      {isDraft && (
+        <div className="flex items-center justify-between rounded-xl px-4 py-3 mb-6 text-sm font-semibold" style={{ background: 'hsl(45 100% 50% / 0.12)', border: '1px solid hsl(45 100% 50% / 0.3)', color: 'hsl(45 100% 60%)' }}>
+          <span>Draft preview — not published</span>
+          <a href="/api/admin/blog/preview/disable" className="text-xs underline hover:opacity-70">Exit preview</a>
+        </div>
+      )}
+
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 mb-6 text-xs" style={{ color: 'var(--text-muted)' }}>
         <Link href="/blog" className="hover:text-white transition-colors">Blog</Link>
@@ -398,6 +436,21 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         }
         if (seg.type === 'playoff-bracket') {
           return <PSBracketView key={i} groups={groups} />
+        }
+        if (seg.type === 'tweet') {
+          return <TweetEmbed key={i} url={(seg as { type: 'tweet'; url: string }).url} />
+        }
+        if (seg.type === 'hero') {
+          return <HeroCard key={i} slug={(seg as { type: 'hero'; slug: string }).slug} />
+        }
+        if (seg.type === 'team') {
+          return <TeamCard key={i} slug={(seg as { type: 'team'; slug: string }).slug} />
+        }
+        if (seg.type === 'player') {
+          return <PlayerCard key={i} slug={(seg as { type: 'player'; slug: string }).slug} />
+        }
+        if (seg.type === 'item') {
+          return <ItemCard key={i} itemKey={(seg as { type: 'item'; key: string }).key} />
         }
         return null
       })}
