@@ -65,7 +65,7 @@ export default async function ItemPage({ params }: Props) {
           __html: JSON.stringify([
             {
               '@context': 'https://schema.org',
-              '@type': 'Product',
+              '@type': 'Thing',
               name: item.dname,
               url: `${SITE_URL}/items/${key}`,
               image: itemIconUrl(key),
