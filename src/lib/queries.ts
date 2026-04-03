@@ -30,11 +30,14 @@ export async function getTournaments() {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('tournaments')
-    .select('*')
+    .select('*, match_predictions(id)')
     .eq('is_published', true)
   if (error) throw error
-  // Sort descending by start_date, nulls last
+  // Tournaments with predictions come before those without, then sort by start_date desc
   return (data ?? []).sort((a, b) => {
+    const aHas = (a.match_predictions?.length ?? 0) > 0 ? 0 : 1
+    const bHas = (b.match_predictions?.length ?? 0) > 0 ? 0 : 1
+    if (aHas !== bHas) return aHas - bHas
     if (!a.start_date && !b.start_date) return 0
     if (!a.start_date) return 1
     if (!b.start_date) return -1
