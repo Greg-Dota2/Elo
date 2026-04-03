@@ -55,6 +55,22 @@ export default async function AdminPage() {
           <div className="font-semibold text-sm">Players</div>
         </Link>
         <Link
+          href="/admin/items"
+          className="rounded-lg p-4 text-center transition-colors"
+          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+        >
+          <div className="text-2xl mb-1">⚗️</div>
+          <div className="font-semibold text-sm">Item Guides</div>
+        </Link>
+        <Link
+          href="/admin/heroes"
+          className="rounded-lg p-4 text-center transition-colors"
+          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+        >
+          <div className="text-2xl mb-1">⚔️</div>
+          <div className="font-semibold text-sm">Hero Guides</div>
+        </Link>
+        <Link
           href="/admin/transfers"
           className="rounded-lg p-4 text-center transition-colors"
           style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}

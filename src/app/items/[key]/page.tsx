@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { fetchAllItems, fetchItemByKey, itemIconUrl } from '@/lib/items'
 import { fetchHeroesForItem, fetchNeutralItemHeroes, heroSlug, heroPortraitUrl, ATTR_CONFIG } from '@/lib/heroes'
+import { fetchItemGuide } from '@/lib/guides'
 
 export const revalidate = 86400
 
@@ -47,9 +48,12 @@ export default async function ItemPage({ params }: Props) {
   if (!item) notFound()
 
   const itemMap = new Map(allItems.map(i => [i.key, i]))
-  const heroUsage = item.category === 'neutral'
-    ? (await fetchNeutralItemHeroes(item.id)).map(({ hero, count }) => ({ hero, phase: 'Neutral', count }))
-    : await fetchHeroesForItem(item.id)
+  const [heroUsage, guide] = await Promise.all([
+    item.category === 'neutral'
+      ? fetchNeutralItemHeroes(item.id).then(r => r.map(({ hero, count }) => ({ hero, phase: 'Neutral', count })))
+      : fetchHeroesForItem(item.id),
+    fetchItemGuide(key).catch(() => null),
+  ])
 
   const SITE_URL = 'https://dota2protips.com'
 
@@ -177,6 +181,46 @@ export default async function ItemPage({ params }: Props) {
                 </Link>
               )
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Guide */}
+      {guide && (guide.why_buy || guide.when_to_buy || guide.tips.length > 0 || guide.summary) && (
+        <div className="rounded-2xl border border-border/60 bg-card/60 p-5 mb-4">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Strategy</p>
+          <div className="space-y-4">
+            {guide.why_buy && (
+              <div>
+                <p className="text-sm font-bold text-foreground mb-1">Why Buy {item.dname}?</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{guide.why_buy}</p>
+              </div>
+            )}
+            {guide.when_to_buy && (
+              <div>
+                <p className="text-sm font-bold text-foreground mb-1">When to Buy {item.dname}?</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{guide.when_to_buy}</p>
+              </div>
+            )}
+            {guide.tips.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-primary/80 uppercase tracking-wider mb-2">Tips & common mistakes</p>
+                <ul className="space-y-1.5">
+                  {guide.tips.map((tip, i) => (
+                    <li key={i} className="flex gap-2 text-sm text-muted-foreground leading-relaxed">
+                      <span className="text-primary/60 shrink-0 mt-0.5">·</span>
+                      <span>{tip}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {guide.summary && (
+              <div className="pt-3 border-t border-border/40">
+                <p className="text-xs font-semibold text-primary/80 uppercase tracking-wider mb-1">Summary</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{guide.summary}</p>
+              </div>
+            )}
           </div>
         </div>
       )}

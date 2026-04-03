@@ -21,6 +21,7 @@ import {
 import { fetchItemIdMap, fetchAllItems, itemIconUrl } from '@/lib/items'
 import { getPlayersBySignatureHero } from '@/lib/queries'
 import { fetchHeroRadarStats } from '@/lib/opendota'
+import { fetchHeroGuide } from '@/lib/guides'
 import type { Player } from '@/lib/types'
 import AbilityIcon from '@/components/AbilityIcon'
 import HeroRadar from '@/components/HeroRadar'
@@ -223,13 +224,14 @@ export default async function HeroPage({
     allItems.filter(i => i.components?.length).map(i => [i.key, i.components!])
   )
 
-  const [detailResult, matchupsResult, signaturePlayersResult, itemsResult, neutralItemsResult, heroRadarResult] = await Promise.allSettled([
+  const [detailResult, matchupsResult, signaturePlayersResult, itemsResult, neutralItemsResult, heroRadarResult, heroGuideResult] = await Promise.allSettled([
     fetchHeroDetail(hero.id),
     fetchHeroMatchups(hero.id),
     getPlayersBySignatureHero(hero.localized_name),
     fetchHeroItemPopularity(hero.id, itemIdMap, basicItemKeys, componentsMap),
     fetchHeroNeutralItems(hero.id),
     fetchHeroRadarStats(hero.id),
+    fetchHeroGuide(hero.id),
   ])
 
   const detail = detailResult.status === 'fulfilled' ? detailResult.value : null
@@ -238,6 +240,7 @@ export default async function HeroPage({
   const itemPhases = itemsResult.status === 'fulfilled' ? itemsResult.value : []
   const neutralItemIds = neutralItemsResult.status === 'fulfilled' ? neutralItemsResult.value : []
   const heroRadarStats = heroRadarResult.status === 'fulfilled' ? heroRadarResult.value : null
+  const heroGuide = heroGuideResult.status === 'fulfilled' ? heroGuideResult.value : null
 
   const rawTalents = detail?.talents ?? []
   const talentValueMap = buildTalentValueMap(detail?.abilities ?? [])
@@ -549,6 +552,40 @@ export default async function HeroPage({
 
       {/* Hero Performance Radar */}
       {heroRadarStats && <HeroRadar stats={heroRadarStats} />}
+
+      {/* Guide */}
+      {heroGuide && (heroGuide.when_to_pick || heroGuide.tips.length > 0 || heroGuide.summary) && (
+        <div className="rounded-2xl border border-border/60 bg-card/60 p-5 mb-6">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Strategy</p>
+          <div className="space-y-4">
+            {heroGuide.when_to_pick && (
+              <div>
+                <p className="text-sm font-bold text-foreground mb-1">When to Pick {hero.localized_name}?</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{heroGuide.when_to_pick}</p>
+              </div>
+            )}
+            {heroGuide.tips.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-primary/80 uppercase tracking-wider mb-2">Tips & common mistakes</p>
+                <ul className="space-y-1.5">
+                  {heroGuide.tips.map((tip, i) => (
+                    <li key={i} className="flex gap-2 text-sm text-muted-foreground leading-relaxed">
+                      <span className="text-primary/60 shrink-0 mt-0.5">·</span>
+                      <span>{tip}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {heroGuide.summary && (
+              <div className="pt-3 border-t border-border/40">
+                <p className="text-xs font-semibold text-primary/80 uppercase tracking-wider mb-1">Summary</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{heroGuide.summary}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Matchups */}
       {(bestAgainst.length > 0 || worstAgainst.length > 0) && (
