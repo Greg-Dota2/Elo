@@ -1,5 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { createAdminClient } from '@/lib/supabase/admin'
+
+export const revalidate = 3600 // rebuild sitemap at most once per hour
 import { fetchAllHeroes, heroSlug } from '@/lib/heroes'
 import { fetchAllItems } from '@/lib/items'
 

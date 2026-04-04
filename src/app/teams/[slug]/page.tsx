@@ -7,7 +7,7 @@ import BioRenderer from '@/components/BioRenderer'
 import type { Team } from '@/lib/types'
 import { fetchUpcomingTier1Matches, fetchRunningTier1Matches, fetchRecentTier1Matches, type PSMatch } from '@/lib/pandascore'
 
-export const revalidate = 60
+export const revalidate = 300
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params

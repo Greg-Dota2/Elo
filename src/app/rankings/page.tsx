@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-export const revalidate = 60
+export const revalidate = 300
 
 export const metadata: Metadata = {
   title: 'Dota 2 ELO Rankings',

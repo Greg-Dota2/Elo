@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { getTournaments, getTournamentStats } from '@/lib/queries'
 import TournamentCard from '@/components/TournamentCard'
 
-export const revalidate = 60
+export const revalidate = 300
 
 export const metadata: Metadata = {
   title: 'Dota 2 Tournaments — Predictions & Results',

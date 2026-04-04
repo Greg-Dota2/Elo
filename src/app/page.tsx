@@ -8,7 +8,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { fetchUpcomingTier1Matches, fetchRunningTier1Matches, fetchMatchesForSubTournament } from '@/lib/pandascore'
 
-export const revalidate = 60
+export const revalidate = 300
 
 export const metadata: Metadata = {
   title: 'Dota2ProTips — Dota 2 Match Predictions',

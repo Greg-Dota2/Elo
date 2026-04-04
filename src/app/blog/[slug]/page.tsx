@@ -24,7 +24,7 @@ import {
 } from '@/lib/pandascore'
 import { fetchGroupsFromDB } from '@/lib/groupStageDB'
 
-export const revalidate = 60
+export const revalidate = 300
 
 // ── Shortcode parsing ────────────────────────────────────────────────────────
 type Segment =

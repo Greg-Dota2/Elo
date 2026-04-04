@@ -23,7 +23,7 @@ import PSBracketView from '@/components/PSBracketView'
 import { fetchGroupsFromDB } from '@/lib/groupStageDB'
 import { format, isSameDay } from 'date-fns'
 
-export const revalidate = 60
+export const revalidate = 300
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
