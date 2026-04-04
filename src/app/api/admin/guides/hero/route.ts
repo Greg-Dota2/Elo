@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { upsertHeroGuide } from '@/lib/guides'
 import { heroSlug } from '@/lib/heroes'
+import { submitToIndexNow } from '@/lib/indexnow'
 
 export async function POST(req: Request) {
   try {
@@ -15,7 +16,11 @@ export async function POST(req: Request) {
       summary: summary || null,
     })
 
-    if (hero_name) revalidatePath(`/heroes/${heroSlug(hero_name)}`)
+    const slug = hero_name ? heroSlug(hero_name) : null
+    if (slug) {
+      revalidatePath(`/heroes/${slug}`)
+      submitToIndexNow([`https://dota2protips.com/heroes/${slug}`])
+    }
     return NextResponse.json({ ok: true })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })

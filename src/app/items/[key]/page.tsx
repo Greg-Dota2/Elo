@@ -15,8 +15,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { key } = await params
   const item = await fetchItemByKey(key)
   if (!item) return {}
-  const title = `${item.dname} — Dota 2 Item`
-  const description = item.lore ?? `${item.dname} — Dota 2 item stats, cost, and abilities.`
+  const title = `${item.dname} — Dota 2 Item Guide`
+  const categoryLabel: Record<string, string> = { consumable: 'consumable', basic: 'basic component', upgrade: 'upgrade item', neutral: 'neutral item' }
+  const costPart = item.cost > 0 ? ` Costs ${item.cost.toLocaleString()} gold.` : ''
+  const lorePart = item.lore ? ` ${item.lore.slice(0, 80)}` : ''
+  const description = `${item.dname} is a Dota 2 ${categoryLabel[item.category] ?? 'item'}.${costPart} Full stats, when to buy, tips and hero synergies on Dota2ProTips.${lorePart}`.slice(0, 160)
   return {
     title,
     description,

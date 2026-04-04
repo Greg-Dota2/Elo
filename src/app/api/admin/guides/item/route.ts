@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { upsertItemGuide } from '@/lib/guides'
+import { submitToIndexNow } from '@/lib/indexnow'
 
 export async function POST(req: Request) {
   try {
@@ -16,6 +17,7 @@ export async function POST(req: Request) {
     })
 
     revalidatePath(`/items/${item_key}`)
+    submitToIndexNow([`https://dota2protips.com/items/${item_key}`])
     return NextResponse.json({ ok: true })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })
