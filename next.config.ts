@@ -98,8 +98,24 @@ const nextConfig: NextConfig = {
       { source: '/pgl-wallachia-season-5-group-stage-day-4-predictions',    destination: '/tournaments/pgl-wallachia-season-5',    permanent: true },
 
       // ── Dead team slugs ───────────────────────────────────────────────────
-      { source: '/teams/aurora',  destination: '/teams/aurora-gaming', permanent: true },
-      { source: '/teams/rekonix', destination: '/teams',               permanent: true },
+      { source: '/teams/aurora',          destination: '/teams/aurora-gaming', permanent: true },
+      { source: '/teams/rekonix',         destination: '/teams',               permanent: true },
+      { source: '/teams/per-rejects',     destination: '/teams',               permanent: true },
+      { source: '/teams/inner-circle',    destination: '/teams',               permanent: true },
+      { source: '/teams/x5-gaming',       destination: '/teams',               permanent: true },
+      { source: '/teams/looking-for-org', destination: '/teams',               permanent: true },
+      { source: '/teams/new-growth',      destination: '/teams',               permanent: true },
+      { source: '/teams/estar-backs',     destination: '/teams',               permanent: true },
+      { source: '/teams/1win',            destination: '/teams',               permanent: true },
+      { source: '/teams/9z-team',         destination: '/teams',               permanent: true },
+      { source: '/teams/rottweilas-latam',destination: '/teams',               permanent: true },
+
+      // ── Dead hero/item slugs ──────────────────────────────────────────────
+      { source: '/heroes/disrupto',              destination: '/heroes/disruptor',       permanent: true },
+      { source: '/items/recipe_necronomicon',    destination: '/items',                  permanent: true },
+
+      // ── Dead tournament slugs ─────────────────────────────────────────────
+      { source: '/tournaments/dl-s25',           destination: '/tournaments/dreamleague-season-25', permanent: true },
 
       // ── Blog/news articles with no equivalent → home ──────────────────────
       { source: '/mirana-lore',                                   destination: '/', permanent: true },
