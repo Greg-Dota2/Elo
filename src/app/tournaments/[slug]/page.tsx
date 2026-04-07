@@ -227,6 +227,47 @@ export default async function TournamentPage({ params }: Props) {
                 : { '@type': 'VirtualLocation', url: `https://dota2protips.com/tournaments/${slug}` },
               eventStatus: 'https://schema.org/EventScheduled',
             }] : []),
+            ...predictions
+              .filter(p => p.is_published && p.team_1 && p.team_2)
+              .map(p => {
+                const startDate = p.match_date
+                  ? (p.match_time ? `${p.match_date}T${p.match_time}` : p.match_date)
+                  : undefined
+                const isFinished = p.score_team_1 !== null && p.score_team_2 !== null
+                const descParts = [
+                  `Best of ${p.best_of}`,
+                  p.predicted_winner ? `Predicted winner: ${p.predicted_winner.name}` : null,
+                  isFinished ? `Result: ${p.team_1!.name} ${p.score_team_1}–${p.score_team_2} ${p.team_2!.name}` : null,
+                  p.pre_analysis ? p.pre_analysis.slice(0, 150) : null,
+                ].filter(Boolean).join('. ')
+                return {
+                  '@context': 'https://schema.org',
+                  '@type': 'SportsEvent',
+                  name: `${p.team_1!.name} vs ${p.team_2!.name}`,
+                  sport: 'Dota 2',
+                  ...(startDate ? { startDate } : {}),
+                  homeTeam: {
+                    '@type': 'SportsTeam',
+                    name: p.team_1!.name,
+                    ...(p.team_1!.logo_url ? { image: p.team_1!.logo_url } : {}),
+                  },
+                  awayTeam: {
+                    '@type': 'SportsTeam',
+                    name: p.team_2!.name,
+                    ...(p.team_2!.logo_url ? { image: p.team_2!.logo_url } : {}),
+                  },
+                  location: tournament.location_type === 'lan' && tournament.location_name
+                    ? { '@type': 'Place', name: tournament.location_name }
+                    : { '@type': 'VirtualLocation', url: `https://dota2protips.com/tournaments/${slug}` },
+                  superEvent: {
+                    '@type': 'Event',
+                    name: tournament.name,
+                    url: `https://dota2protips.com/tournaments/${slug}`,
+                  },
+                  url: `https://dota2protips.com/tournaments/${slug}`,
+                  description: descParts,
+                }
+              }),
             {
               '@context': 'https://schema.org',
               '@type': 'BreadcrumbList',

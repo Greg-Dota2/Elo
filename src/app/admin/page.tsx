@@ -5,6 +5,7 @@ import RecalcCorrectButton from './RecalcCorrectButton'
 import SeedEloButton from './SeedEloButton'
 import SyncScheduleButton from './SyncScheduleButton'
 import SyncResultsButton from './SyncResultsButton'
+import RefreshGameCacheButton from './RefreshGameCacheButton'
 
 export default async function AdminPage() {
   let tournaments: Awaited<ReturnType<typeof getAllTournamentsAdmin>> = []
@@ -91,6 +92,7 @@ export default async function AdminPage() {
         <SeedEloButton />
         <SyncScheduleButton />
         <SyncResultsButton />
+        <RefreshGameCacheButton />
       </div>
 
       <h2 className="text-sm font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-muted)' }}>

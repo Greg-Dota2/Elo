@@ -25,12 +25,13 @@ import { fetchHeroGuide } from '@/lib/guides'
 import type { Player } from '@/lib/types'
 import AbilityIcon from '@/components/AbilityIcon'
 import HeroRadar from '@/components/HeroRadar'
+import { getCachedHeroes } from '@/lib/game-cache'
 
 export const revalidate = 86400
 
 export async function generateStaticParams() {
   try {
-    const heroes = await fetchAllHeroes()
+    const heroes = await getCachedHeroes() ?? await fetchAllHeroes()
     return heroes.map(h => ({ slug: heroSlug(h.name) }))
   } catch {
     return []

@@ -27,8 +27,8 @@ const REMOVED_ITEMS = new Set([
   'pocket_tower', 'pocket_roshan',
 ])
 
-export async function fetchAllItems(): Promise<ItemData[]> {
-  const res = await fetch(`${OPENDOTA_BASE}/items`, { next: { revalidate: 86400 } })
+export async function fetchAllItems(opts?: { revalidate?: number }): Promise<ItemData[]> {
+  const res = await fetch(`${OPENDOTA_BASE}/items`, { next: { revalidate: opts?.revalidate ?? 86400 } })
   if (!res.ok) throw new Error('Failed to fetch items')
   const raw: Record<string, {
     id: number; dname?: string; qual?: string; cost?: number | null

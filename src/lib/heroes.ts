@@ -172,9 +172,9 @@ export function interpolateAbilityDesc(
     .replace(/\{s:([^}]+)\}/g, (match, key) => resolve(key, match))
 }
 
-export async function fetchAllHeroes(): Promise<HeroData[]> {
+export async function fetchAllHeroes(opts?: { revalidate?: number }): Promise<HeroData[]> {
   const res = await fetch(`${OPENDOTA_BASE}/heroes`, {
-    next: { revalidate: 86400 },
+    next: { revalidate: opts?.revalidate ?? 86400 },
   })
   if (!res.ok) throw new Error('Failed to fetch heroes')
   const data: Record<string, HeroData> = await res.json()

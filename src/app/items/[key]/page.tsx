@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { fetchAllItems, fetchItemByKey, itemIconUrl } from '@/lib/items'
 import { fetchHeroesForItem, fetchNeutralItemHeroes, heroSlug, heroPortraitUrl, ATTR_CONFIG } from '@/lib/heroes'
 import { fetchItemGuide } from '@/lib/guides'
+import { getCachedItems } from '@/lib/game-cache'
 
 export const revalidate = 86400
 
@@ -31,7 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export async function generateStaticParams() {
   try {
-    const items = await fetchAllItems()
+    const items = await getCachedItems() ?? await fetchAllItems()
     return items.map(i => ({ key: i.key }))
   } catch {
     return []
