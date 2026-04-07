@@ -46,14 +46,14 @@ function TeamChip({ name, logo, slug, fallback }: {
 }) {
   if (!name) {
     return (
-      <span className="flex items-center gap-2 w-36 justify-center">
+      <span className="flex items-center gap-1.5">
         <span className="text-sm italic font-medium" style={{ color: 'var(--text-muted)' }}>{fallback ?? '—'}</span>
       </span>
     )
   }
 
   const content = (
-    <span className="flex items-center gap-2 w-36 justify-center">
+    <span className="flex items-center gap-1.5">
       {logo ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={logo} alt={name} className="w-6 h-6 object-contain shrink-0" />
@@ -83,9 +83,9 @@ function TransferRow({ t, teamMap }: { t: Transfer; teamMap: TeamMap }) {
 
   return (
     <div className="px-5 py-4" style={{ borderBottom: '1px solid hsl(var(--border) / 0.5)' }}>
-      {/* Main row */}
-      <div className="grid items-center gap-4" style={{ gridTemplateColumns: '1fr auto 1fr' }}>
-        {/* Player — left */}
+
+      {/* Player row — always visible */}
+      <div className="flex items-center justify-between gap-3 mb-2">
         <div className="flex items-center gap-3 min-w-0">
           {t.player_photo_url ? (
             <Image src={t.player_photo_url} alt={t.player_ign} width={36} height={36}
@@ -104,18 +104,7 @@ function TransferRow({ t, teamMap }: { t: Transfer; teamMap: TeamMap }) {
             <span className="font-bold text-base truncate">{t.player_ign}</span>
           )}
         </div>
-
-        {/* Transfer arrow — center */}
-        <div className="flex items-center gap-3 shrink-0">
-          <TeamChip name={t.from_team} logo={t.from_team_logo_url} slug={fromSlug} fallback="Unknown" />
-          <svg width="20" height="12" viewBox="0 0 20 12" fill="none" className="shrink-0" style={{ color: 'var(--text-muted)' }}>
-            <path d="M0 6h16M11 1l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          <TeamChip name={t.to_team} logo={t.to_team_logo_url} slug={toSlug} fallback={FALLBACK_DESTINATION[t.type]} />
-        </div>
-
-        {/* Meta — right */}
-        <div className="flex items-center gap-2 justify-end">
+        <div className="flex items-center gap-2 shrink-0">
           <span className="text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap" style={{ background: bg, color }}>
             {TYPE_LABELS[t.type]}
           </span>
@@ -123,7 +112,16 @@ function TransferRow({ t, teamMap }: { t: Transfer; teamMap: TeamMap }) {
         </div>
       </div>
 
-      {/* Notes — full width below the row */}
+      {/* Teams row — centered */}
+      <div className="flex items-center justify-center gap-2 mt-2">
+        <TeamChip name={t.from_team} logo={t.from_team_logo_url} slug={fromSlug} fallback="Unknown" />
+        <svg width="16" height="10" viewBox="0 0 20 12" fill="none" className="shrink-0" style={{ color: 'var(--text-muted)' }}>
+          <path d="M0 6h16M11 1l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        <TeamChip name={t.to_team} logo={t.to_team_logo_url} slug={toSlug} fallback={FALLBACK_DESTINATION[t.type]} />
+      </div>
+
+      {/* Notes */}
       {t.notes && (
         <p className="mt-2 text-sm leading-6" style={{ color: 'var(--text-muted)' }}>{t.notes}</p>
       )}

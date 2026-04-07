@@ -1,7 +1,20 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(find /d/AIVC/elo/app -type f \\\\\\(-name *.ts -o -name *.tsx \\\\\\))",
+      "Bash(xargs grep:*)",
+      "WebSearch",
+      "WebFetch(domain:developers.pandascore.co)",
+      "WebFetch(domain:api.pandascore.co)",
+      "WebFetch(domain:ggscore.com)",
+      "Bash(curl -X POST http://localhost:3000/api/admin/elo/override)",
+      "Bash(xargs perl:*)",
+      "Bash(rm -rf \"d:/AIVC/elo/.next/**\")",
+      "Bash(cmd /c \"rd /s /q D:\\\\AIVC\\\\elo\\\\.next\")",
+      "Bash(curl -s \"http://localhost:3000/api/debug/tournaments\")",
+      "Bash(curl -s \"http://localhost:3000/sitemap.xml\")",
+      "Bash(curl -s \"https://api.pandascore.co/dota2/matches?filter[id]=1406295&token=4pDVTuC3yqszFKH-b4UBar3arvpio-ar_OGeZJt5SFqeS3rZcsw\")"
     ]
   }
 }

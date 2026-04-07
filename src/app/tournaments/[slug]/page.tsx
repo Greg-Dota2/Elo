@@ -487,7 +487,7 @@ export default async function TournamentPage({ params }: Props) {
             const bWon = hasScore && !isLiveMatch && scoreB! > scoreA!
             const drew = hasScore && !isLiveMatch && scoreA === scoreB
             return (
-              <div key={m.id} className="px-5 py-2.5 flex items-center gap-3 text-sm" style={{ borderBottom: i < dayMatches.length - 1 ? '1px solid hsl(var(--border) / 0.4)' : 'none', background: i % 2 !== 0 ? 'hsl(var(--secondary) / 0.2)' : 'transparent' }}>
+              <div key={`${m.id}-${i}`} className="px-5 py-2.5 flex items-center gap-3 text-sm" style={{ borderBottom: i < dayMatches.length - 1 ? '1px solid hsl(var(--border) / 0.4)' : 'none', background: i % 2 !== 0 ? 'hsl(var(--secondary) / 0.2)' : 'transparent' }}>
                 <span className="w-12 text-xs shrink-0 tabular-nums text-muted-foreground">{time}</span>
                 <div className="flex items-center gap-1.5 flex-1 justify-end min-w-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}

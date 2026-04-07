@@ -97,7 +97,11 @@ export default function TournamentContent({ tournament, stages, stats, teamAccur
     </>
   )
 
-  const bracketContent = <BracketView rounds={stages} />
+  const bracketStages = stages.filter(s => {
+    const n = s.stageName.toLowerCase()
+    return n.includes('upper') || n.includes('lower') || n.includes('grand final') || /\bub\b/.test(n) || /\blb\b/.test(n)
+  })
+  const bracketContent = <BracketView rounds={bracketStages} />
 
   return (
     <>

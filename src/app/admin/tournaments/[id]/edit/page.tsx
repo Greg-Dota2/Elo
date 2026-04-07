@@ -138,6 +138,16 @@ export default function EditTournamentPage({ params }: Props) {
     setMatches(prev => prev.filter(m => m.id !== matchId))
   }
 
+  async function handleRevalidate() {
+    if (!tournament?.slug) return
+    await fetch('/api/admin/revalidate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: `/tournaments/${tournament.slug}` }),
+    })
+    alert(`Cache cleared for /tournaments/${tournament.slug}`)
+  }
+
   async function handleDeleteTournament() {
     if (!confirm(`Delete "${tournament?.name}" and ALL its matches? This cannot be undone.`)) return
     setDeleting(true)
@@ -505,6 +515,21 @@ export default function EditTournamentPage({ params }: Props) {
               Clear results for &quot;{tournament.name}&quot;
             </button>
           </div>
+          <hr style={{ borderColor: 'rgba(255,255,255,0.08)' }} />
+          <div>
+            <p className="text-sm font-medium mb-1" style={{ color: 'var(--text)' }}>Flush page cache</p>
+            <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>
+              Forces the tournament page to reload fresh data immediately, without waiting for the 5-minute cache.
+            </p>
+            <button
+              onClick={handleRevalidate}
+              className="px-4 py-2 rounded font-semibold text-sm"
+              style={{ background: 'rgba(99,102,241,0.15)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.3)' }}
+            >
+              🔄 Flush Cache
+            </button>
+          </div>
+
           <hr style={{ borderColor: 'rgba(239,68,68,0.2)' }} />
           <div>
             <p className="text-sm font-medium mb-1" style={{ color: 'var(--text)' }}>Delete tournament</p>

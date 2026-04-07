@@ -1,66 +1,57 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { ELO_SEEDS, PINNED_TOP, PINNED_GAP } from '@/lib/elo-seeds'
 
-const ELO_TABLE: Record<string, number> = {
-  'Tundra Esports':    6610,
-  'Aurora Gaming':     4730,
-  'Xtreme Gaming':     4660,
-  'PARIVISION':        4310,
-  'Team Liquid':       4125,
-  'Team Yandex':       3700,
-  'Team Spirit':       3300,
-  'Team Falcons':      3125,
-  'OG':                2100,
-  'MOUZ':              1560,
-  'BetBoom Team':      1460,
-  'Virtus.pro':        1000,
-  'Natus Vincere':      800,
-  'GamerLegion':        512,
-  'Nigma Galaxy':       500,
-  'Power Rangers':      400,
-  'Pipsqueak+4':        400,
-  'HEROIC':             300,
-  'Yakult Brothers':    288,
-  'Vici Gaming':        280,
-  'paiN Gaming':        212,
-  'Pasika UA':          200,
-  'Amaru Gaming':       147,
-  '1w Team':            140,
-  'REKONIX':            100,
-  'Execration':          48,
-  'Team Nemesis':         0,
-  'Passion UA':           0,
-  'Runa Team':            0,
-  'Team Tidebound':       0,
-}
-
+// Workflow: POST /api/elo/recalculate first, then POST here.
+// - Recalculate gives all teams with match history a fair ELO from results.
+// - This override then forces PINNED_TOP teams above everyone else (in order),
+//   pins no-match teams to their seed values, and deactivates unknown teams.
 export async function POST() {
   const supabase = createAdminClient()
   const log: string[] = []
   let updated = 0
   let notFound = 0
 
-  for (const [name, elo] of Object.entries(ELO_TABLE)) {
+  // Fetch current ELOs for all teams
+  const { data: allTeams } = await supabase.from('teams').select('id, name, current_elo')
+  const teamMap = new Map((allTeams ?? []).map(t => [t.name.toLowerCase(), t]))
+
+  // Find the highest ELO among non-pinned teams
+  const pinnedLower = PINNED_TOP.map(n => n.toLowerCase())
+  const nonPinnedMax = Math.max(
+    ...(allTeams ?? [])
+      .filter(t => !pinnedLower.includes(t.name.toLowerCase()))
+      .map(t => t.current_elo ?? 0)
+  )
+
+  // Set pinned teams above everyone else, in order
+  for (let i = 0; i < PINNED_TOP.length; i++) {
+    const name = PINNED_TOP[i]
+    const elo = nonPinnedMax + PINNED_GAP * (PINNED_TOP.length - i)
     const { data, error } = await supabase
       .from('teams')
-      .update({ current_elo: elo })
+      .update({ current_elo: elo, is_active: true })
       .ilike('name', name)
       .select('name')
 
-    if (error) {
-      log.push(`❌ ${name}: ${error.message}`)
-    } else if (!data?.length) {
-      log.push(`⚠️ ${name}: not found in DB`)
-      notFound++
-    } else {
-      log.push(`✅ ${data[0].name}: ${elo}`)
-      updated++
-    }
+    if (error) log.push(`❌ ${name}: ${error.message}`)
+    else if (!data?.length) { log.push(`⚠️ ${name}: not found in DB`); notFound++ }
+    else { log.push(`📌 ${data[0].name}: pinned to ${elo} (#${i + 1})`); updated++ }
   }
 
-  // Null out ELO for any team not in the ratings table
-  const knownNames = Object.keys(ELO_TABLE)
-  const { data: allTeams } = await supabase.from('teams').select('id, name, current_elo')
+  // Ensure all seeded teams are active; pin no-match teams (still at seed) to their seed value
+  const knownNames = Object.keys(ELO_SEEDS)
+  for (const name of knownNames) {
+    if (PINNED_TOP.some(p => p.toLowerCase() === name.toLowerCase())) continue
+
+    const team = teamMap.get(name.toLowerCase())
+    if (!team) { log.push(`⚠️ ${name}: not found in DB`); notFound++; continue }
+
+    // Just ensure is_active — don't touch ELO (recalculate already set it correctly)
+    await supabase.from('teams').update({ is_active: true }).eq('id', team.id)
+  }
+
+  // Deactivate teams not in seeds
   const toWipe = (allTeams ?? []).filter(t =>
     !knownNames.some(n => n.toLowerCase() === t.name.toLowerCase())
   )
@@ -69,5 +60,5 @@ export async function POST() {
     log.push(`🗑 ${t.name}: deactivated`)
   }
 
-  return NextResponse.json({ ok: true, updated, notFound, removed: toWipe.length, log })
+  return NextResponse.json({ ok: true, updated, notFound, removed: toWipe.length, top3Baseline: nonPinnedMax, log })
 }

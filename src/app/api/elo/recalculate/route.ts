@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { calculateElo, BASE_ELO } from '@/lib/elo'
+import { ELO_SEEDS } from '@/lib/elo-seeds'
 
 export async function POST() {
   const supabase = createAdminClient()
@@ -33,10 +34,13 @@ export async function POST() {
   if (matchErr) return NextResponse.json({ error: matchErr.message }, { status: 500 })
   if (!matches?.length) return NextResponse.json({ ok: true, processed: 0 })
 
-  // 4. Load current ELOs into a live map
-  const { data: teams } = await supabase.from('teams').select('id, current_elo')
+  // 4. Load teams and seed the live ELO map from ELO_SEEDS (falling back to BASE_ELO)
+  const { data: teams } = await supabase.from('teams').select('id, name')
   const eloMap = new Map<string, number>()
-  for (const t of teams ?? []) eloMap.set(t.id, t.current_elo ?? BASE_ELO)
+  for (const t of teams ?? []) {
+    const seedName = Object.keys(ELO_SEEDS).find(n => n.toLowerCase() === t.name.toLowerCase())
+    eloMap.set(t.id, seedName !== undefined ? ELO_SEEDS[seedName] : BASE_ELO)
+  }
 
   // 5. Process each match in order
   const historyRows: object[] = []
