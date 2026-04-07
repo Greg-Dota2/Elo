@@ -1,10 +1,11 @@
 import { fetchAllHeroes, heroSlug, heroPortraitUrl } from '@/lib/heroes'
+import { getCachedHeroes } from '@/lib/game-cache'
 import { NextResponse } from 'next/server'
 
-export const revalidate = 86400
+export const dynamic = 'force-dynamic'
 
 export async function GET() {
-  const heroes = await fetchAllHeroes()
+  const heroes = await getCachedHeroes() ?? await fetchAllHeroes()
   const data = heroes.map(h => ({
     localized_name: h.localized_name,
     slug: heroSlug(h.name),
