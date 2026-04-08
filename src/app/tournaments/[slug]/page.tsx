@@ -21,7 +21,7 @@ import {
 import GroupStageView, { type GroupData } from '@/components/GroupStageView'
 import PSBracketView from '@/components/PSBracketView'
 import { fetchGroupsFromDB } from '@/lib/groupStageDB'
-import { format, isSameDay } from 'date-fns'
+import { format } from 'date-fns'
 
 export const revalidate = 300
 
@@ -240,12 +240,18 @@ export default async function TournamentPage({ params }: Props) {
                   isFinished ? `Result: ${p.team_1!.name} ${p.score_team_1}–${p.score_team_2} ${p.team_2!.name}` : null,
                   p.pre_analysis ? p.pre_analysis.slice(0, 150) : null,
                 ].filter(Boolean).join('. ')
+                const eventLocation = tournament.location_type === 'lan' && tournament.location_name
+                  ? { '@type': 'Place', name: tournament.location_name }
+                  : { '@type': 'VirtualLocation', url: `https://dota2protips.com/tournaments/${slug}` }
                 return {
                   '@context': 'https://schema.org',
                   '@type': 'SportsEvent',
                   name: `${p.team_1!.name} vs ${p.team_2!.name}`,
                   sport: 'Dota 2',
+                  eventStatus: 'https://schema.org/EventScheduled',
+                  eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
                   ...(startDate ? { startDate } : {}),
+                  ...(tournament.logo_url ? { image: tournament.logo_url } : {}),
                   homeTeam: {
                     '@type': 'SportsTeam',
                     name: p.team_1!.name,
@@ -256,13 +262,15 @@ export default async function TournamentPage({ params }: Props) {
                     name: p.team_2!.name,
                     ...(p.team_2!.logo_url ? { image: p.team_2!.logo_url } : {}),
                   },
-                  location: tournament.location_type === 'lan' && tournament.location_name
-                    ? { '@type': 'Place', name: tournament.location_name }
-                    : { '@type': 'VirtualLocation', url: `https://dota2protips.com/tournaments/${slug}` },
+                  location: eventLocation,
                   superEvent: {
                     '@type': 'Event',
                     name: tournament.name,
                     url: `https://dota2protips.com/tournaments/${slug}`,
+                    ...(tournament.start_date ? { startDate: tournament.start_date } : {}),
+                    ...(tournament.end_date ? { endDate: tournament.end_date } : {}),
+                    ...(tournament.logo_url ? { image: tournament.logo_url } : {}),
+                    location: eventLocation,
                   },
                   url: `https://dota2protips.com/tournaments/${slug}`,
                   description: descParts,
