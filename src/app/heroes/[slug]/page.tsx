@@ -29,7 +29,12 @@ export const revalidate = 86400
 export const dynamicParams = true
 
 export async function generateStaticParams() {
-  return []
+  try {
+    const heroes = await fetchAllHeroes()
+    return heroes.map(h => ({ slug: heroSlug(h.name) }))
+  } catch {
+    return []
+  }
 }
 
 export async function generateMetadata({

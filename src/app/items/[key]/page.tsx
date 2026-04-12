@@ -32,7 +32,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export const dynamicParams = true
 
 export async function generateStaticParams() {
-  return []
+  try {
+    const items = await fetchAllItems()
+    return items.map(i => ({ key: i.key }))
+  } catch {
+    return []
+  }
 }
 
 const CATEGORY_LABEL: Record<string, string> = {
