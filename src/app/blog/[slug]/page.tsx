@@ -253,7 +253,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   }
   const allEntities = [...dbEntities, ...psEntities]
 
-  const SITE_URL = 'https://dota2protips.com'
+  const SITE_URL = 'https://www.dota2protips.com'
 
   const mdComponents = {
     h1: ({ children }: any) => <h2 className="font-display text-3xl font-black mt-8 mb-4" style={{ color: 'var(--text)' }}>{children}</h2>,

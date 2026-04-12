@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   const { data, error } = await supabase.from('teams').insert(payload).select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
   revalidatePath('/teams', 'layout')
-  submitToIndexNow([`https://dota2protips.com/teams/${data.slug}`, 'https://dota2protips.com/teams'])
+  submitToIndexNow([`https://www.dota2protips.com/teams/${data.slug}`, 'https://www.dota2protips.com/teams'])
   return NextResponse.json(data, { status: 201 })
 }
 
@@ -45,7 +45,7 @@ export async function PATCH(req: NextRequest) {
   revalidatePath('/teams', 'layout')
   if (data.slug) {
     revalidatePath('/teams/' + data.slug, 'layout')
-    submitToIndexNow([`https://dota2protips.com/teams/${data.slug}`, 'https://dota2protips.com/teams'])
+    submitToIndexNow([`https://www.dota2protips.com/teams/${data.slug}`, 'https://www.dota2protips.com/teams'])
   }
   return NextResponse.json(data)
 }

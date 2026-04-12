@@ -23,7 +23,7 @@ const oxanium = Oxanium({
   display: 'swap',
 })
 
-const SITE_URL = 'https://dota2protips.com'
+const SITE_URL = 'https://www.dota2protips.com'
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

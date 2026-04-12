@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   revalidatePath('/tournaments', 'layout')
   revalidatePath('/')
   if (body.is_published) {
-    submitToIndexNow([`https://dota2protips.com/tournaments/${data.slug}`, 'https://dota2protips.com/tournaments', 'https://dota2protips.com/'])
+    submitToIndexNow([`https://www.dota2protips.com/tournaments/${data.slug}`, 'https://www.dota2protips.com/tournaments', 'https://www.dota2protips.com/'])
   }
   return NextResponse.json(data, { status: 201 })
 }
@@ -50,7 +50,7 @@ export async function PATCH(req: NextRequest) {
   revalidatePath('/tournaments', 'layout')
   revalidatePath('/')
   if (body.is_published !== false) {
-    submitToIndexNow([`https://dota2protips.com/tournaments/${data.slug}`, 'https://dota2protips.com/tournaments', 'https://dota2protips.com/'])
+    submitToIndexNow([`https://www.dota2protips.com/tournaments/${data.slug}`, 'https://www.dota2protips.com/tournaments', 'https://www.dota2protips.com/'])
   }
   return NextResponse.json(data)
 }

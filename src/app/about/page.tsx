@@ -21,8 +21,8 @@ const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Person',
   name: 'Greg Spencer',
-  url: 'https://dota2protips.com/about',
-  image: 'https://dota2protips.com/Greg.jpg',
+  url: 'https://www.dota2protips.com/about',
+  image: 'https://www.dota2protips.com/Greg.jpg',
   jobTitle: 'Dota 2 Analyst',
   description: 'Greg Spencer — Dota 2 enthusiast, ex semi-pro, and the sole analyst behind every prediction and breakdown on Dota2ProTips.',
   knowsAbout: ['Dota 2', 'Esports', 'Pro Dota 2', 'Match predictions'],
@@ -34,7 +34,7 @@ const jsonLd = {
   worksFor: {
     '@type': 'WebSite',
     name: 'Dota2ProTips',
-    url: 'https://dota2protips.com',
+    url: 'https://www.dota2protips.com',
   },
 }
 

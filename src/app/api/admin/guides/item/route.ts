@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     })
 
     revalidatePath(`/items/${item_key}`)
-    submitToIndexNow([`https://dota2protips.com/items/${item_key}`])
+    submitToIndexNow([`https://www.dota2protips.com/items/${item_key}`])
     return NextResponse.json({ ok: true })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })

@@ -77,8 +77,8 @@ export default async function PlayerPage({ params }: Props) {
               '@context': 'https://schema.org',
               '@type': 'BreadcrumbList',
               itemListElement: [
-                { '@type': 'ListItem', position: 1, name: 'Players', item: 'https://dota2protips.com/players' },
-                { '@type': 'ListItem', position: 2, name: player.ign, item: `https://dota2protips.com/players/${slug}` },
+                { '@type': 'ListItem', position: 1, name: 'Players', item: 'https://www.dota2protips.com/players' },
+                { '@type': 'ListItem', position: 2, name: player.ign, item: `https://www.dota2protips.com/players/${slug}` },
               ],
             },
             {
@@ -86,7 +86,7 @@ export default async function PlayerPage({ params }: Props) {
               '@type': 'Person',
               name: player.full_name ?? player.ign,
               alternateName: player.ign,
-              url: `https://dota2protips.com/players/${slug}`,
+              url: `https://www.dota2protips.com/players/${slug}`,
               ...(player.photo_url ? { image: player.photo_url } : {}),
               ...(player.nationality ? { nationality: player.nationality } : {}),
               ...(player.date_of_birth ? { birthDate: player.date_of_birth } : {}),

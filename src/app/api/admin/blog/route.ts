@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     .single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   if (body.is_published) {
-    submitToIndexNow([`https://dota2protips.com/blog/${slug}`, 'https://dota2protips.com/blog'])
+    submitToIndexNow([`https://www.dota2protips.com/blog/${slug}`, 'https://www.dota2protips.com/blog'])
   }
   return NextResponse.json(data)
 }
@@ -55,7 +55,7 @@ export async function PATCH(req: NextRequest) {
     .eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   if (fields.is_published && fields.slug) {
-    submitToIndexNow([`https://dota2protips.com/blog/${fields.slug}`, 'https://dota2protips.com/blog'])
+    submitToIndexNow([`https://www.dota2protips.com/blog/${fields.slug}`, 'https://www.dota2protips.com/blog'])
   }
   return NextResponse.json({ ok: true })
 }

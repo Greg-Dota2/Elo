@@ -42,7 +42,7 @@ export async function POST(req: Request) {
 
     revalidatePath('/players', 'layout')
     if (data.is_published) {
-      submitToIndexNow([`https://dota2protips.com/players/${data.slug}`, 'https://dota2protips.com/players'])
+      submitToIndexNow([`https://www.dota2protips.com/players/${data.slug}`, 'https://www.dota2protips.com/players'])
     }
     return NextResponse.json(data, { status: 201 })
   } catch (e) {
@@ -89,7 +89,7 @@ export async function PATCH(req: Request) {
     revalidatePath('/players', 'layout')
     revalidatePath(`/players/${data.slug}`, 'layout')
     if (data.is_published) {
-      submitToIndexNow([`https://dota2protips.com/players/${data.slug}`, 'https://dota2protips.com/players'])
+      submitToIndexNow([`https://www.dota2protips.com/players/${data.slug}`, 'https://www.dota2protips.com/players'])
     }
     return NextResponse.json(data)
   } catch (e) {

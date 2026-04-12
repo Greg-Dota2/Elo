@@ -6,7 +6,7 @@ import { getCachedHeroes, getCachedItems } from '@/lib/game-cache'
 
 export const revalidate = 3600 // rebuild sitemap at most once per hour
 
-const SITE_URL = 'https://dota2protips.com'
+const SITE_URL = 'https://www.dota2protips.com'
 
 // Fallback hero slugs — used if OpenDota API is unavailable at sitemap generation time.
 // Update occasionally as new heroes ship.

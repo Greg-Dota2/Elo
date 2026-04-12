@@ -55,7 +55,7 @@ export default async function ItemPage({ params }: Props) {
     fetchItemGuide(key).catch(() => null),
   ])
 
-  const SITE_URL = 'https://dota2protips.com'
+  const SITE_URL = 'https://www.dota2protips.com'
 
   return (
     <div className="fade-in-up max-w-2xl mx-auto">

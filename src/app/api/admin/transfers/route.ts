@@ -30,7 +30,7 @@ export async function POST(req: Request) {
 
     revalidatePath('/transfers', 'layout')
     if (data.is_published) {
-      submitToIndexNow(['https://dota2protips.com/transfers'])
+      submitToIndexNow(['https://www.dota2protips.com/transfers'])
     }
     return NextResponse.json(data, { status: 201 })
   } catch (e) {
@@ -68,7 +68,7 @@ export async function PATCH(req: Request) {
 
     revalidatePath('/transfers', 'layout')
     if (data.is_published) {
-      submitToIndexNow(['https://dota2protips.com/transfers'])
+      submitToIndexNow(['https://www.dota2protips.com/transfers'])
     }
     return NextResponse.json(data)
   } catch (e) {

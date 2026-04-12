@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   if (body.is_published && body.tournament_id) {
     const { data: tournament } = await supabase.from('tournaments').select('slug').eq('id', body.tournament_id).single()
     if (tournament?.slug) {
-      submitToIndexNow([`https://dota2protips.com/tournaments/${tournament.slug}`])
+      submitToIndexNow([`https://www.dota2protips.com/tournaments/${tournament.slug}`])
     }
   }
 
@@ -83,7 +83,7 @@ export async function PATCH(req: NextRequest) {
   if (body.is_published !== false && data.tournament_id) {
     const { data: tournament } = await supabase.from('tournaments').select('slug').eq('id', data.tournament_id).single()
     if (tournament?.slug) {
-      submitToIndexNow([`https://dota2protips.com/tournaments/${tournament.slug}`])
+      submitToIndexNow([`https://www.dota2protips.com/tournaments/${tournament.slug}`])
     }
   }
 

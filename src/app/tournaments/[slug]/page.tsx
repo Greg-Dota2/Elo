@@ -217,7 +217,7 @@ export default async function TournamentPage({ params }: Props) {
               '@context': 'https://schema.org',
               '@type': 'Event',
               name: tournament.name,
-              url: `https://dota2protips.com/tournaments/${slug}`,
+              url: `https://www.dota2protips.com/tournaments/${slug}`,
               startDate: tournament.start_date,
               ...(tournament.end_date ? { endDate: tournament.end_date } : {}),
               ...(tournament.logo_url ? { image: tournament.logo_url } : {}),
@@ -230,7 +230,7 @@ export default async function TournamentPage({ params }: Props) {
                   }
                 : {
                     eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
-                    location: { '@type': 'VirtualLocation', url: `https://dota2protips.com/tournaments/${slug}` },
+                    location: { '@type': 'VirtualLocation', url: `https://www.dota2protips.com/tournaments/${slug}` },
                   }),
             }] : []),
             ...predictions
@@ -248,7 +248,7 @@ export default async function TournamentPage({ params }: Props) {
                 ].filter(Boolean).join('. ')
                 const eventLocation = tournament.location_type === 'lan' && tournament.location_name
                   ? { '@type': 'Place', name: tournament.location_name }
-                  : { '@type': 'VirtualLocation', url: `https://dota2protips.com/tournaments/${slug}` }
+                  : { '@type': 'VirtualLocation', url: `https://www.dota2protips.com/tournaments/${slug}` }
                 return {
                   '@context': 'https://schema.org',
                   '@type': 'SportsEvent',
@@ -272,7 +272,7 @@ export default async function TournamentPage({ params }: Props) {
                   superEvent: {
                     '@type': 'Event',
                     name: tournament.name,
-                    url: `https://dota2protips.com/tournaments/${slug}`,
+                    url: `https://www.dota2protips.com/tournaments/${slug}`,
                     ...(tournament.start_date ? { startDate: tournament.start_date } : {}),
                     ...(tournament.end_date ? { endDate: tournament.end_date } : {}),
                     ...(tournament.logo_url ? { image: tournament.logo_url } : {}),
@@ -281,7 +281,7 @@ export default async function TournamentPage({ params }: Props) {
                       : 'https://schema.org/OnlineEventAttendanceMode',
                     location: eventLocation,
                   },
-                  url: `https://dota2protips.com/tournaments/${slug}`,
+                  url: `https://www.dota2protips.com/tournaments/${slug}`,
                   description: descParts,
                 }
               }),
@@ -289,8 +289,8 @@ export default async function TournamentPage({ params }: Props) {
               '@context': 'https://schema.org',
               '@type': 'BreadcrumbList',
               itemListElement: [
-                { '@type': 'ListItem', position: 1, name: 'Tournaments', item: 'https://dota2protips.com/tournaments' },
-                { '@type': 'ListItem', position: 2, name: tournament.name, item: `https://dota2protips.com/tournaments/${slug}` },
+                { '@type': 'ListItem', position: 1, name: 'Tournaments', item: 'https://www.dota2protips.com/tournaments' },
+                { '@type': 'ListItem', position: 2, name: tournament.name, item: `https://www.dota2protips.com/tournaments/${slug}` },
               ],
             },
           ]),

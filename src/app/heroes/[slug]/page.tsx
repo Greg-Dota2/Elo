@@ -295,7 +295,7 @@ export default async function HeroPage({
     },
   ]
 
-  const SITE_URL = 'https://dota2protips.com'
+  const SITE_URL = 'https://www.dota2protips.com'
 
   return (
     <div className="fade-in-up">

@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/admin/', '/api/'],
     },
-    sitemap: 'https://dota2protips.com/sitemap.xml',
+    sitemap: 'https://www.dota2protips.com/sitemap.xml',
   }
 }
