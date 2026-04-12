@@ -222,10 +222,16 @@ export default async function TournamentPage({ params }: Props) {
               ...(tournament.end_date ? { endDate: tournament.end_date } : {}),
               ...(tournament.logo_url ? { image: tournament.logo_url } : {}),
               ...(tournament.overview ? { description: tournament.overview } : {}),
-              location: tournament.location_type === 'lan' && tournament.location_name
-                ? { '@type': 'Place', name: tournament.location_name }
-                : { '@type': 'VirtualLocation', url: `https://dota2protips.com/tournaments/${slug}` },
               eventStatus: 'https://schema.org/EventScheduled',
+              ...(tournament.location_type === 'lan' && tournament.location_name
+                ? {
+                    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+                    location: { '@type': 'Place', name: tournament.location_name, address: tournament.location_name },
+                  }
+                : {
+                    eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
+                    location: { '@type': 'VirtualLocation', url: `https://dota2protips.com/tournaments/${slug}` },
+                  }),
             }] : []),
             ...predictions
               .filter(p => p.is_published && p.team_1 && p.team_2)
@@ -270,6 +276,9 @@ export default async function TournamentPage({ params }: Props) {
                     ...(tournament.start_date ? { startDate: tournament.start_date } : {}),
                     ...(tournament.end_date ? { endDate: tournament.end_date } : {}),
                     ...(tournament.logo_url ? { image: tournament.logo_url } : {}),
+                    eventAttendanceMode: tournament.location_type === 'lan'
+                      ? 'https://schema.org/OfflineEventAttendanceMode'
+                      : 'https://schema.org/OnlineEventAttendanceMode',
                     location: eventLocation,
                   },
                   url: `https://dota2protips.com/tournaments/${slug}`,
