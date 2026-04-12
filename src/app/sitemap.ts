@@ -1,33 +1,34 @@
 import type { MetadataRoute } from 'next'
 import { createAdminClient } from '@/lib/supabase/admin'
-
-export const revalidate = 3600 // rebuild sitemap at most once per hour
 import { fetchAllHeroes, heroSlug } from '@/lib/heroes'
 import { fetchAllItems } from '@/lib/items'
+import { getCachedHeroes, getCachedItems } from '@/lib/game-cache'
+
+export const revalidate = 3600 // rebuild sitemap at most once per hour
 
 const SITE_URL = 'https://dota2protips.com'
 
 // Fallback hero slugs — used if OpenDota API is unavailable at sitemap generation time.
 // Update occasionally as new heroes ship.
 const HERO_SLUG_FALLBACK = [
-  'abaddon','alchemist','ancient_apparition','anti_mage','arc_warden','axe','bane',
+  'abaddon','alchemist','ancient_apparition','antimage','arc_warden','axe','bane',
   'batrider','beastmaster','bloodseeker','bounty_hunter','brewmaster','bristleback',
-  'broodmother','centaur_warrunner','chaos_knight','chen','clinkz','clockwerk',
+  'broodmother','centaur','chaos_knight','chen','clinkz','rattletrap',
   'crystal_maiden','dark_seer','dark_willow','dawnbreaker','dazzle','death_prophet',
   'disruptor','doom_bringer','dragon_knight','drow_ranger','earth_spirit','earthshaker',
   'elder_titan','ember_spirit','enchantress','enigma','faceless_void','grimstroke',
-  'gyrocopter','hoodwink','huskar','invoker','io','jakiro','juggernaut','keeper_of_the_light',
-  'kez','kunkka','legion_commander','leshrac','lich','lifestealer','lina','lion',
+  'gyrocopter','hoodwink','huskar','invoker','wisp','jakiro','juggernaut','keeper_of_the_light',
+  'kez','kunkka','legion_commander','leshrac','lich','life_stealer','lina','lion',
   'lone_druid','luna','lycan','magnataur','marci','mars','medusa','meepo','mirana',
-  'monkey_king','morphling','muerta','naga_siren','natures_prophet','necrolyte','nevermore',
-  'night_stalker','nyx_assassin','ogre_magi','omniknight','oracle','outworld_destroyer',
+  'monkey_king','morphling','muerta','naga_siren','furion','necrolyte','nevermore',
+  'night_stalker','nyx_assassin','ogre_magi','omniknight','oracle','obsidian_destroyer',
   'pangolier','phantom_assassin','phantom_lancer','phoenix','primal_beast','puck','pudge',
-  'pugna','queen_of_pain','razor','riki','ringmaster','rubick','sand_king','shadow_demon',
-  'shadow_fiend','shadow_shaman','silencer','skeletonking','skywrath_mage','slardar',
+  'pugna','queenofpain','razor','riki','ringmaster','rubick','sand_king','shadow_demon',
+  'shadow_shaman','silencer','skeleton_king','skywrath_mage','slardar',
   'slark','snapfire','sniper','spectre','spirit_breaker','storm_spirit','sven','templar_assassin',
-  'terrorblade','tidehunter','timbersaw','tinker','tiny','treant','troll_warlord','tusk',
-  'underlord','undying','ursa','vengefulspirit','venomancer','viper','visage','void_spirit',
-  'warlock','weaver','windrunner','winter_wyvern','witch_doctor','wraith_king','zeus',
+  'terrorblade','tidehunter','shredder','tinker','tiny','treant','troll_warlord','tusk',
+  'abyssal_underlord','undying','ursa','vengefulspirit','venomancer','viper','visage','void_spirit',
+  'warlock','weaver','windrunner','winter_wyvern','witch_doctor','skeleton_king','zuus',
 ]
 
 // Fallback item keys — used if OpenDota API is unavailable.
@@ -72,15 +73,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .select('slug, updated_at')
     .eq('is_published', true)
 
-  // Fetch heroes and items from API, fall back to static lists if unavailable
+  // Fetch heroes and items — Supabase cache first, then live API, then static fallback
   let heroSlugs: string[] = HERO_SLUG_FALLBACK
   let itemKeys: string[] = ITEM_KEY_FALLBACK
   try {
-    const [heroes, items] = await Promise.all([fetchAllHeroes(), fetchAllItems()])
+    const [cachedHeroes, cachedItems] = await Promise.all([getCachedHeroes(), getCachedItems()])
+    const [heroes, items] = await Promise.all([
+      cachedHeroes ?? fetchAllHeroes(),
+      cachedItems ?? fetchAllItems(),
+    ])
     if (heroes.length > 0) heroSlugs = heroes.map(h => heroSlug(h.name))
     if (items.length > 0) itemKeys = items.map(i => i.key)
   } catch {
-    // API unavailable — fallback lists ensure sitemap stays complete
+    // All sources unavailable — static fallback lists ensure sitemap stays complete
   }
 
   const staticRoutes: MetadataRoute.Sitemap = [

@@ -16,7 +16,6 @@ import {
   buildTalentValueMap,
   resolveTalentName,
   type ValveAbility,
-  type HeroData,
 } from '@/lib/heroes'
 import { fetchItemIdMap, fetchAllItems, itemIconUrl } from '@/lib/items'
 import { getPlayersBySignatureHero } from '@/lib/queries'
@@ -25,17 +24,12 @@ import { fetchHeroGuide } from '@/lib/guides'
 import type { Player } from '@/lib/types'
 import AbilityIcon from '@/components/AbilityIcon'
 import HeroRadar from '@/components/HeroRadar'
-import { getCachedHeroes } from '@/lib/game-cache'
 
 export const revalidate = 86400
+export const dynamicParams = true
 
 export async function generateStaticParams() {
-  try {
-    const heroes = await getCachedHeroes() ?? await fetchAllHeroes()
-    return heroes.map(h => ({ slug: heroSlug(h.name) }))
-  } catch {
-    return []
-  }
+  return []
 }
 
 export async function generateMetadata({
