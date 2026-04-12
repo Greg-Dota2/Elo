@@ -11,6 +11,14 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      // ── www → non-www canonical redirect ──────────────────────────────────
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.dota2protips.com' }],
+        destination: 'https://dota2protips.com/:path*',
+        permanent: true,
+      },
+
       // ── Teams ─────────────────────────────────────────────────────────────
       { source: '/mouz-esports',   destination: '/teams/mouz-esports',   permanent: true },
       { source: '/xtreme-gaming',  destination: '/teams/xtreme-gaming',  permanent: true },
