@@ -103,14 +103,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/terms-of-use`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
   ]
 
+  const GAME_DATA_DATE = new Date('2025-01-01') // site launch / initial game data date
+
   const heroRoutes: MetadataRoute.Sitemap = heroSlugs.map(slug => ({
     url: `${SITE_URL}/heroes/${slug}`,
+    lastModified: GAME_DATA_DATE,
     changeFrequency: 'weekly',
     priority: 0.75,
   }))
 
   const itemRoutes: MetadataRoute.Sitemap = itemKeys.map(key => ({
     url: `${SITE_URL}/items/${key}`,
+    lastModified: GAME_DATA_DATE,
     changeFrequency: 'weekly' as const,
     priority: 0.6,
   }))
