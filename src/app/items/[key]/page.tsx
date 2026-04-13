@@ -6,6 +6,7 @@ import { fetchHeroesForItem, fetchNeutralItemHeroes, heroSlug, heroPortraitUrl, 
 import { fetchItemGuide } from '@/lib/guides'
 
 export const revalidate = 86400
+export const maxDuration = 60
 
 interface Props {
   params: Promise<{ key: string }>
@@ -32,12 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export const dynamicParams = true
 
 export async function generateStaticParams() {
-  try {
-    const items = await fetchAllItems()
-    return items.map(i => ({ key: i.key }))
-  } catch {
-    return []
-  }
+  return []
 }
 
 const CATEGORY_LABEL: Record<string, string> = {

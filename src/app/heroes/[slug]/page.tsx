@@ -27,14 +27,10 @@ import HeroRadar from '@/components/HeroRadar'
 
 export const revalidate = 86400
 export const dynamicParams = true
+export const maxDuration = 60
 
 export async function generateStaticParams() {
-  try {
-    const heroes = await fetchAllHeroes()
-    return heroes.map(h => ({ slug: heroSlug(h.name) }))
-  } catch {
-    return []
-  }
+  return []
 }
 
 export async function generateMetadata({
