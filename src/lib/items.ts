@@ -97,6 +97,19 @@ export async function fetchItemByKey(key: string): Promise<ItemData | null> {
   return items.find(i => i.key === key) ?? null
 }
 
+// Returns a map of ALL items including recipes — used for component display on item pages.
+// Recipes are filtered from fetchAllItems() (no dedicated page), but they must appear in component lists.
+export async function fetchComponentMap(): Promise<Map<string, { key: string; dname: string; cost: number }>> {
+  const res = await fetch(`${OPENDOTA_BASE}/items`, { next: { revalidate: 86400 } })
+  if (!res.ok) return new Map()
+  const raw: Record<string, { dname?: string; cost?: number | null }> = await res.json()
+  const map = new Map<string, { key: string; dname: string; cost: number }>()
+  for (const [key, v] of Object.entries(raw)) {
+    if (v.dname) map.set(key, { key, dname: v.dname, cost: v.cost ?? 0 })
+  }
+  return map
+}
+
 export async function fetchItemIdMap(): Promise<Map<number, string>> {
   const res = await fetch(`${OPENDOTA_BASE}/item_ids`, { next: { revalidate: 86400 } })
   if (!res.ok) return new Map()

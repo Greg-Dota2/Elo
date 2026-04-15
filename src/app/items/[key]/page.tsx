@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { fetchAllItems, fetchItemByKey, itemIconUrl } from '@/lib/items'
+import { fetchAllItems, fetchItemByKey, fetchComponentMap, itemIconUrl } from '@/lib/items'
 import { fetchHeroesForItem, fetchNeutralItemHeroes, heroSlug, heroPortraitUrl, ATTR_CONFIG } from '@/lib/heroes'
 import { fetchItemGuide } from '@/lib/guides'
 import { getCachedItems } from '@/lib/game-cache'
@@ -48,7 +48,7 @@ const CATEGORY_LABEL: Record<string, string> = {
 
 export default async function ItemPage({ params }: Props) {
   const { key } = await params
-  const [item, allItems] = await Promise.all([fetchItemByKey(key), fetchAllItems()])
+  const [item, allItems, compMap] = await Promise.all([fetchItemByKey(key), fetchAllItems(), fetchComponentMap()])
   if (!item) notFound()
 
   const itemMap = new Map(allItems.map(i => [i.key, i]))
@@ -163,31 +163,75 @@ export default async function ItemPage({ params }: Props) {
       )}
 
       {/* Components */}
-      {item.components && item.components.length > 0 && (
-        <div className="rounded-2xl border border-border/60 bg-card/60 p-5 mb-4">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Components</p>
-          <div className="flex flex-wrap gap-3">
-            {item.components.map(comp => {
-              const compItem = itemMap.get(comp)
-              return (
-                <Link
-                  key={comp}
-                  href={`/items/${comp}`}
-                  className="flex items-center gap-2 rounded-xl border border-border/50 bg-secondary/40 hover:border-primary/40 hover:bg-card/80 transition-all duration-200 pr-3 overflow-hidden"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={itemIconUrl(comp)}
-                    alt={compItem?.dname ?? comp}
-                    className="w-12 h-[35px] object-cover shrink-0"
-                  />
-                  <span className="text-xs font-semibold text-foreground">{compItem?.dname ?? comp.replace(/_/g, ' ')}</span>
-                </Link>
-              )
-            })}
+      {item.components && item.components.length > 0 && (() => {
+        const hasRecipeInData = item.components!.some(c => c.includes('recipe'))
+        const componentTotal = item.components!.reduce((sum, c) => sum + (compMap.get(c)?.cost ?? 0), 0)
+        const recipeCost = !hasRecipeInData && item.category === 'upgrade' && item.cost > 0
+          ? item.cost - componentTotal
+          : 0
+
+        const renderChip = (comp: string, name: string, cost: number, navigable: boolean) => {
+          const inner = (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={itemIconUrl(comp)}
+                alt={name}
+                className="w-12 h-[35px] object-cover shrink-0"
+              />
+              <div className="flex flex-col pr-3">
+                <span className="text-xs font-semibold text-foreground leading-tight">{name}</span>
+                {cost > 0 && (
+                  <span className="text-[11px] font-bold text-amber-400 tabular-nums">{cost.toLocaleString()} Gold</span>
+                )}
+              </div>
+            </>
+          )
+          return navigable ? (
+            <Link
+              key={comp}
+              href={`/items/${comp}`}
+              className="flex items-center gap-2 rounded-xl border border-border/50 bg-secondary/40 hover:border-primary/40 hover:bg-card/80 transition-all duration-200 overflow-hidden"
+            >
+              {inner}
+            </Link>
+          ) : (
+            <div
+              key={comp}
+              className="flex items-center gap-2 rounded-xl border border-border/50 bg-secondary/40 overflow-hidden"
+            >
+              {inner}
+            </div>
+          )
+        }
+
+        const chips = [
+          ...item.components!.map(comp => {
+            const compData = compMap.get(comp)
+            const isRecipe = comp.includes('recipe')
+            const name = compData?.dname ?? comp.replace(/_/g, ' ')
+            const cost = compData?.cost ?? 0
+            return renderChip(comp, name, cost, !isRecipe && itemMap.has(comp))
+          }),
+          ...(recipeCost > 0 ? [renderChip('recipe', 'Recipe', recipeCost, false)] : []),
+        ]
+
+        return (
+          <div className="rounded-2xl border border-border/60 bg-card/60 p-5 mb-4">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Components</p>
+            <div className="flex flex-wrap items-center gap-2">
+              {chips.map((chip, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  {chip}
+                  {i < chips.length - 1 && (
+                    <span className="text-muted-foreground font-bold text-base select-none">+</span>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* Guide */}
       {guide && (guide.why_buy || guide.when_to_buy || guide.tips.length > 0 || guide.summary) && (
