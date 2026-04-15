@@ -46,6 +46,28 @@ export default async function ItemsPage({ searchParams }: Props) {
 
   return (
     <div className="fade-in-up">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'CollectionPage',
+            name: 'Dota 2 Items — Complete Item List',
+            description: 'Complete list of all Dota 2 items — consumables, basic items, upgrades, and neutral items. Stats, costs, and abilities.',
+            url: 'https://www.dota2protips.com/items',
+            mainEntity: {
+              '@type': 'ItemList',
+              numberOfItems: allItems.length,
+              itemListElement: allItems.map((item, i) => ({
+                '@type': 'ListItem',
+                position: i + 1,
+                name: item.dname,
+                url: `https://www.dota2protips.com/items/${item.key}`,
+              })),
+            },
+          }),
+        }}
+      />
       <div className="mb-8">
         <p className="section-label mb-2">Dota 2</p>
         <h1 className="text-3xl font-black tracking-tight mb-1">Items</h1>

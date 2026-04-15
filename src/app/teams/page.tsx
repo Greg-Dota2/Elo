@@ -60,6 +60,28 @@ export default async function TeamsPage() {
 
   return (
     <div className="fade-in-up">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'CollectionPage',
+            name: 'Dota 2 Teams — Profiles & ELO Ratings',
+            description: 'Profiles for pro Dota 2 teams — ELO ratings, rosters, region, and prediction accuracy.',
+            url: 'https://www.dota2protips.com/teams',
+            mainEntity: {
+              '@type': 'ItemList',
+              numberOfItems: active.length,
+              itemListElement: active.filter(t => t.slug).map((t, i) => ({
+                '@type': 'ListItem',
+                position: i + 1,
+                name: t.name,
+                url: `https://www.dota2protips.com/teams/${t.slug}`,
+              })),
+            },
+          }),
+        }}
+      />
       <div className="mb-8">
         <p className="section-label mb-2">Tier 1 Scene</p>
         <h1 className="text-3xl font-black tracking-tight mb-1">Dota 2 Teams</h1>

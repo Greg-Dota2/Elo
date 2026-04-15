@@ -129,6 +129,28 @@ export default async function PlayersPage({
 
   return (
     <div className="fade-in-up">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'CollectionPage',
+            name: 'Dota 2 Pro Players — Profiles & Stats',
+            description: 'Profiles for Tier 1 Dota 2 professional players — position, team, country, and career highlights.',
+            url: 'https://www.dota2protips.com/players',
+            mainEntity: {
+              '@type': 'ItemList',
+              numberOfItems: players.length,
+              itemListElement: players.filter(p => p.slug).map((p, i) => ({
+                '@type': 'ListItem',
+                position: i + 1,
+                name: p.ign,
+                url: `https://www.dota2protips.com/players/${p.slug}`,
+              })),
+            },
+          }),
+        }}
+      />
       <div className="mb-6">
         <p className="section-label mb-2">Tier 1 Scene</p>
         <h1 className="text-3xl font-black tracking-tight mb-1">Dota 2 Players</h1>

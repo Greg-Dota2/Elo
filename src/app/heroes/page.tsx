@@ -44,6 +44,28 @@ export default async function HeroesPage({
 
   return (
     <div className="fade-in-up">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'CollectionPage',
+            name: 'Dota 2 Heroes — Abilities, Stats & Roles',
+            description: 'All Dota 2 heroes with abilities, base stats, roles, and lore.',
+            url: 'https://www.dota2protips.com/heroes',
+            mainEntity: {
+              '@type': 'ItemList',
+              numberOfItems: heroes.length,
+              itemListElement: heroes.map((hero, i) => ({
+                '@type': 'ListItem',
+                position: i + 1,
+                name: hero.localized_name,
+                url: `https://www.dota2protips.com/heroes/${heroSlug(hero.name)}`,
+              })),
+            },
+          }),
+        }}
+      />
       {/* Header */}
       <div className="mb-6">
         <p className="section-label mb-2">Game Knowledge</p>
