@@ -288,25 +288,19 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ slu
             </div>
           )}
 
-          {/* Match history from PandaScore */}
-          {psRecentTeam.length > 0 && (
+          {/* Match history from our DB — includes tournament links */}
+          {completedMatches.length > 0 && (
             <div className="rounded-2xl border border-border/60 p-5" style={{ background: 'hsl(var(--card) / 0.6)' }}>
               <p className="section-label mb-3">Match History</p>
               <div className="grid gap-2">
-                {psRecentTeam.map(m => {
-                  const tA = m.opponents[0]?.opponent
-                  const tB = m.opponents[1]?.opponent
-                  const psSlug = (n: string) => n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-                  const isMyTeam = (n: string) => { const ps = n.toLowerCase(); return ps === teamNameLower || ps.startsWith(teamNameLower + ' ') || teamNameLower.startsWith(ps + ' ') }
-                  const myOpp = m.opponents.find(o => isMyTeam(o.opponent.name))
-                  const oppOpp = m.opponents.find(o => !isMyTeam(o.opponent.name))
-                  const myResult = m.results.find(r => r.team_id === myOpp?.opponent.id)
-                  const oppResult = m.results.find(r => r.team_id === oppOpp?.opponent.id)
-                  const myScore = myResult?.score
-                  const oppScore = oppResult?.score
-                  const hasScore = myScore !== undefined && oppScore !== undefined
-                  const won = hasScore && myScore > oppScore
-                  const drew = hasScore && myScore === oppScore
+                {completedMatches.map(m => {
+                  const t1 = m.team_1
+                  const t2 = m.team_2
+                  const teamIsTeam1 = m.team_1_id === team.id
+                  const myScore = teamIsTeam1 ? m.score_team_1 : m.score_team_2
+                  const oppScore = teamIsTeam1 ? m.score_team_2 : m.score_team_1
+                  const won = myScore !== null && oppScore !== null && myScore > oppScore
+                  const drew = myScore !== null && oppScore !== null && myScore === oppScore
                   const resultColor = drew ? '#f59e0b' : won ? 'hsl(var(--success))' : 'hsl(var(--destructive))'
                   const resultLabel = drew ? 'D' : won ? 'W' : 'L'
                   return (
@@ -319,24 +313,30 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ slu
                       </span>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap text-sm font-semibold text-foreground">
-                          {tA?.image_url && <img loading="lazy" src={tA.image_url} alt={tA.name} className="w-5 h-5 object-contain shrink-0" />}
-                          <Link href={`/teams/${psSlug(tA?.name ?? '')}`} className="hover:text-primary transition-colors">{tA?.name ?? 'TBD'}</Link>
+                          {t1?.logo_url && <img loading="lazy" src={t1.logo_url} alt={t1.name} className="w-5 h-5 object-contain shrink-0" />}
+                          {t1?.slug ? <Link href={`/teams/${t1.slug}`} className="hover:text-primary transition-colors">{t1.name}</Link> : <span>{t1?.name}</span>}
                           <span className="text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded" style={{ color: 'var(--text-muted)', background: 'hsl(var(--muted))' }}>VS</span>
-                          {tB?.image_url && <img loading="lazy" src={tB.image_url} alt={tB.name} className="w-5 h-5 object-contain shrink-0" />}
-                          <Link href={`/teams/${psSlug(tB?.name ?? '')}`} className="hover:text-primary transition-colors">{tB?.name ?? 'TBD'}</Link>
+                          {t2?.logo_url && <img loading="lazy" src={t2.logo_url} alt={t2.name} className="w-5 h-5 object-contain shrink-0" />}
+                          {t2?.slug ? <Link href={`/teams/${t2.slug}`} className="hover:text-primary transition-colors">{t2.name}</Link> : <span>{t2?.name}</span>}
                         </div>
-                        <div className="text-xs text-muted-foreground truncate">{m.league.name} · {m.tournament.name}</div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {m.tournament?.slug ? (
+                            <Link href={`/tournaments/${m.tournament.slug}`} className="hover:text-primary transition-colors">
+                              {m.tournament.name}
+                            </Link>
+                          ) : (
+                            m.tournament?.name
+                          )}
+                        </div>
                       </div>
                       <div className="text-right shrink-0">
-                        {hasScore && (
+                        {myScore !== null && oppScore !== null && (
                           <div className="text-sm font-black tabular-nums" style={{ color: resultColor }}>
                             {myScore}–{oppScore}
                           </div>
                         )}
                         <div className="text-xs text-muted-foreground/60">
-                          {(m.begin_at ?? m.scheduled_at)
-                            ? new Date(m.begin_at ?? m.scheduled_at!).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Europe/Athens' })
-                            : '–'}
+                          {m.match_date ? new Date(m.match_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '–'}
                         </div>
                       </div>
                     </div>

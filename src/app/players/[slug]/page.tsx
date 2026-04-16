@@ -6,6 +6,7 @@ import BioRenderer from '@/components/BioRenderer'
 import PlayerRadar from '@/components/PlayerRadar'
 import { heroDisplayNameToSlug, heroPortraitUrl, fetchAllHeroes, ATTR_CONFIG } from '@/lib/heroes'
 import { fetchPlayerRadarStats } from '@/lib/opendota'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export const revalidate = 300
 
@@ -61,10 +62,37 @@ export default async function PlayerPage({ params }: Props) {
   try { player = await getPlayerBySlug(slug) } catch { notFound() }
 
   const posColor = player.position ? POSITION_COLOR[player.position] : ''
-  const [allHeroes, radarStats] = await Promise.all([
+  const supabase = createAdminClient()
+
+  const [allHeroes, radarStats, teamMatchesResult] = await Promise.all([
     fetchAllHeroes().catch(() => []),
     player.opendota_id ? fetchPlayerRadarStats(player.opendota_id) : Promise.resolve(null),
+    player.team?.id ? supabase
+      .from('match_predictions')
+      .select(`
+        id, match_date, score_team_1, score_team_2,
+        team_1_id, team_2_id,
+        team_1:teams!match_predictions_team_1_id_fkey(id, name, logo_url, slug),
+        team_2:teams!match_predictions_team_2_id_fkey(id, name, logo_url, slug),
+        tournament:tournaments(name, slug)
+      `)
+      .eq('is_published', true)
+      .or(`team_1_id.eq.${player.team.id},team_2_id.eq.${player.team.id}`)
+      .not('score_team_1', 'is', null)
+      .order('match_date', { ascending: false })
+      .limit(10)
+    : Promise.resolve({ data: [] }),
   ])
+
+  type TeamMatch = {
+    id: string; match_date: string | null
+    score_team_1: number | null; score_team_2: number | null
+    team_1_id: string; team_2_id: string
+    team_1: { id: string; name: string; logo_url: string | null; slug: string | null } | null
+    team_2: { id: string; name: string; logo_url: string | null; slug: string | null } | null
+    tournament: { name: string; slug: string } | null
+  }
+  const teamMatches = (teamMatchesResult.data ?? []) as unknown as TeamMatch[]
   const heroByName = new Map(allHeroes.map(h => [h.localized_name, h]))
 
   return (
@@ -278,6 +306,59 @@ export default async function PlayerPage({ params }: Props) {
 
         {/* Radar stats */}
         {radarStats && <PlayerRadar stats={radarStats} />}
+
+        {/* Match history */}
+        {teamMatches.length > 0 && (
+          <div className="rounded-2xl border border-border/60 bg-card/40 p-5 md:col-span-2">
+            <p className="section-label mb-3">Recent Matches — {player.team?.name}</p>
+            <div className="grid gap-2">
+              {teamMatches.map(m => {
+                const teamIsTeam1 = m.team_1_id === player.team?.id
+                const myScore = teamIsTeam1 ? m.score_team_1 : m.score_team_2
+                const oppScore = teamIsTeam1 ? m.score_team_2 : m.score_team_1
+                const won = myScore !== null && oppScore !== null && myScore > oppScore
+                const drew = myScore !== null && oppScore !== null && myScore === oppScore
+                const resultColor = drew ? '#f59e0b' : won ? 'hsl(var(--success))' : 'hsl(var(--destructive))'
+                const t1 = m.team_1
+                const t2 = m.team_2
+                return (
+                  <div key={m.id} className="flex items-center gap-3 py-2 border-t border-border/40 first:border-0">
+                    <span
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black shrink-0"
+                      style={{ background: drew ? 'rgba(245,158,11,0.15)' : won ? 'hsl(var(--success) / 0.15)' : 'hsl(var(--destructive) / 0.15)', color: resultColor }}
+                    >
+                      {drew ? 'D' : won ? 'W' : 'L'}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap text-sm font-semibold text-foreground">
+                        {t1?.logo_url && <img loading="lazy" src={t1.logo_url} alt={t1.name} className="w-5 h-5 object-contain shrink-0" />}
+                        {t1?.slug ? <Link href={`/teams/${t1.slug}`} className="hover:text-primary transition-colors">{t1.name}</Link> : <span>{t1?.name}</span>}
+                        <span className="text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded" style={{ color: 'var(--text-muted)', background: 'hsl(var(--muted))' }}>VS</span>
+                        {t2?.logo_url && <img loading="lazy" src={t2.logo_url} alt={t2.name} className="w-5 h-5 object-contain shrink-0" />}
+                        {t2?.slug ? <Link href={`/teams/${t2.slug}`} className="hover:text-primary transition-colors">{t2.name}</Link> : <span>{t2?.name}</span>}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {m.tournament?.slug ? (
+                          <Link href={`/tournaments/${m.tournament.slug}`} className="hover:text-primary transition-colors">
+                            {m.tournament.name}
+                          </Link>
+                        ) : m.tournament?.name}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      {myScore !== null && oppScore !== null && (
+                        <div className="text-sm font-black tabular-nums" style={{ color: resultColor }}>{myScore}–{oppScore}</div>
+                      )}
+                      <div className="text-xs text-muted-foreground/60">
+                        {m.match_date ? new Date(m.match_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '–'}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
