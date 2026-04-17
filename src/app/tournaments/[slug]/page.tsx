@@ -562,9 +562,18 @@ export default async function TournamentPage({ params }: Props) {
             )
           })
 
+        const totalMatches = allMatches.length
         return (
           <div className="mb-6">
-            <p className="section-label mb-4">Schedule & Results</p>
+            <details className="group/schedule">
+              <summary className="flex items-center justify-between gap-3 mb-4 cursor-pointer select-none list-none">
+                <p className="section-label">Schedule & Results</p>
+                <span className="text-xs font-semibold px-3 py-1 rounded-full transition-colors"
+                  style={{ background: 'hsl(var(--primary) / 0.1)', color: 'hsl(var(--primary))' }}>
+                  <span className="group-open/schedule:hidden">{totalMatches} matches · Show ▾</span>
+                  <span className="hidden group-open/schedule:inline">Hide ▴</span>
+                </span>
+              </summary>
             <div className="rounded-2xl overflow-hidden" style={{ background: 'hsl(var(--card) / 0.6)', border: '1px solid hsl(var(--border) / 0.6)' }}>
               {league && (
                 <div className="px-5 py-3 flex items-center gap-3" style={{ borderBottom: '1px solid hsl(var(--border) / 0.5)' }}>
@@ -619,6 +628,7 @@ export default async function TournamentPage({ params }: Props) {
                 </details>
               )}
             </div>
+            </details>
           </div>
         )
       })()}
