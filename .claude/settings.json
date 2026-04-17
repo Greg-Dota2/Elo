@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(node -e \":*)",
-      "WebFetch(domain:docs.api.imprint.gg)"
+      "WebFetch(domain:docs.api.imprint.gg)",
+      "Bash(curl -s \"https://api.pandascore.co/dota2/tournaments?token=4pDVTuC3yqszFKH-b4UBar3arvpio-ar_OGeZJt5SFqeS3rZcsw&filter[serie_id]=10457&per_page=50\" -o \"d:\\\\AIVC\\\\elo\\\\ps_debug.json\")",
+      "Bash(node -e \"const fs=require\\('fs'\\);const t=JSON.parse\\(fs.readFileSync\\('d:/AIVC/elo/ps_debug.json','utf8'\\)\\);t.forEach\\(x=>console.log\\('id='+x.id+' | '+x.name+' | begin='+x.begin_at\\)\\)\")",
+      "Bash(curl -s \"https://api.pandascore.co/dota2/tournaments?token=4pDVTuC3yqszFKH-b4UBar3arvpio-ar_OGeZJt5SFqeS3rZcsw&filter[serie_id]=10457&per_page=50\" -o ps_debug.json)",
+      "Bash(node -e \"const fs=require\\('fs'\\);const t=JSON.parse\\(fs.readFileSync\\('ps_debug.json','utf8'\\)\\);t.forEach\\(x=>console.log\\('id='+x.id+' | '+x.name+' | begin='+x.begin_at\\)\\)\")"
     ]
   }
 }

@@ -7,6 +7,8 @@ import PlayerRadar from '@/components/PlayerRadar'
 import { heroDisplayNameToSlug, heroPortraitUrl, fetchAllHeroes, ATTR_CONFIG } from '@/lib/heroes'
 import { fetchPlayerRadarStats } from '@/lib/opendota'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { fetchUpcomingTier1Matches, fetchRunningTier1Matches, type PSMatch } from '@/lib/pandascore'
+import { TIER1_TOURNAMENTS } from '@/lib/tier1tournaments'
 
 export const revalidate = 300
 
@@ -64,7 +66,16 @@ export default async function PlayerPage({ params }: Props) {
   const posColor = player.position ? POSITION_COLOR[player.position] : ''
   const supabase = createAdminClient()
 
-  const [allHeroes, radarStats, teamMatchesResult] = await Promise.all([
+  const { data: psTeamRows } = await supabase
+    .from('teams').select('pandascore_team_id, slug')
+    .not('pandascore_team_id', 'is', null).not('slug', 'is', null)
+  const psTeamSlugMap = new Map<number, string>(
+    (psTeamRows ?? []).map(t => [t.pandascore_team_id as number, t.slug as string])
+  )
+  const resolveTeamLink = (psId: number | undefined, psName: string) =>
+    (psId && psTeamSlugMap.get(psId)) ?? psName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+
+  const [allHeroes, radarStats, teamMatchesResult, psUpcoming, psRunning] = await Promise.all([
     fetchAllHeroes().catch(() => []),
     player.opendota_id ? fetchPlayerRadarStats(player.opendota_id) : Promise.resolve(null),
     player.team?.id ? supabase
@@ -82,6 +93,8 @@ export default async function PlayerPage({ params }: Props) {
       .order('match_date', { ascending: false })
       .limit(10)
     : Promise.resolve({ data: [] }),
+    fetchUpcomingTier1Matches(100).catch(() => [] as PSMatch[]),
+    fetchRunningTier1Matches(50).catch(() => [] as PSMatch[]),
   ])
 
   type TeamMatch = {
@@ -94,6 +107,15 @@ export default async function PlayerPage({ params }: Props) {
   }
   const teamMatches = (teamMatchesResult.data ?? []) as unknown as TeamMatch[]
   const heroByName = new Map(allHeroes.map(h => [h.localized_name, h]))
+
+  // Filter PandaScore upcoming/live matches to this player's team
+  const teamNameLower = player.team?.name.toLowerCase() ?? ''
+  const psUpcomingTeam = player.team ? [...psRunning, ...psUpcoming].filter(m =>
+    m.opponents.some(o => {
+      const ps = o.opponent.name.toLowerCase()
+      return ps === teamNameLower || ps.startsWith(teamNameLower + ' ') || teamNameLower.startsWith(ps + ' ')
+    })
+  ) : []
 
   return (
     <div className="fade-in-up">
@@ -308,6 +330,52 @@ export default async function PlayerPage({ params }: Props) {
         {radarStats && <PlayerRadar stats={radarStats} />}
 
         {/* Match history */}
+        {psUpcomingTeam.length > 0 && (
+          <div className="rounded-2xl border border-border/60 p-5" style={{ background: 'hsl(var(--card) / 0.6)' }}>
+            <p className="section-label mb-3">Upcoming Matches — {player.team?.name}</p>
+            <div className="grid gap-2">
+              {psUpcomingTeam.map(m => {
+                const tA = m.opponents[0]?.opponent
+                const tB = m.opponents[1]?.opponent
+                const isLive = m.status === 'running'
+                const d = m.scheduled_at ? new Date(m.scheduled_at) : null
+                const known = d ? TIER1_TOURNAMENTS.find(t =>
+                  t.league_id === m.league.id &&
+                  new Date(t.start_date) <= d &&
+                  d <= new Date(t.end_date + 'T23:59:59Z')
+                ) : undefined
+                const tournamentLabel = known?.name ?? `${m.league.name} · ${m.tournament.name}`
+                return (
+                  <div key={m.id} className="flex items-center gap-3 py-2 border-t border-border/40 first:border-0">
+                    {isLive && (
+                      <span className="text-[9px] font-black px-1.5 py-0.5 rounded shrink-0" style={{ background: 'hsl(var(--destructive) / 0.15)', color: 'hsl(var(--destructive))' }}>LIVE</span>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap text-sm font-semibold text-foreground">
+                        {tA?.image_url && <img loading="lazy" src={tA.image_url} alt={tA.name} className="w-5 h-5 object-contain shrink-0" />}
+                        <Link href={`/teams/${resolveTeamLink(tA?.id, tA?.name ?? '')}`} className="hover:text-primary transition-colors">{tA?.name ?? 'TBD'}</Link>
+                        <span className="text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded" style={{ color: 'var(--text-muted)', background: 'hsl(var(--muted))' }}>VS</span>
+                        {tB?.image_url && <img loading="lazy" src={tB.image_url} alt={tB.name} className="w-5 h-5 object-contain shrink-0" />}
+                        <Link href={`/teams/${resolveTeamLink(tB?.id, tB?.name ?? '')}`} className="hover:text-primary transition-colors">{tB?.name ?? 'TBD'}</Link>
+                      </div>
+                      {known?.slug
+                        ? <Link href={`/tournaments/${known.slug}`} className="text-xs text-muted-foreground hover:text-primary transition-colors truncate">{tournamentLabel}</Link>
+                        : <div className="text-xs text-muted-foreground truncate">{tournamentLabel}</div>
+                      }
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-xs text-muted-foreground">
+                        {m.scheduled_at ? new Date(m.scheduled_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Europe/Athens' }) : '–'}
+                      </div>
+                      <div className="text-xs font-medium text-muted-foreground/60">BO{m.number_of_games}</div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
         {teamMatches.length > 0 && (
           <div className="rounded-2xl border border-border/60 bg-card/40 p-5 md:col-span-2">
             <p className="section-label mb-3">Recent Matches — {player.team?.name}</p>

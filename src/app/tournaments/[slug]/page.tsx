@@ -20,7 +20,9 @@ import {
 } from '@/lib/pandascore'
 import GroupStageView, { type GroupData } from '@/components/GroupStageView'
 import PSBracketView from '@/components/PSBracketView'
+import SwissStandings from '@/components/SwissStandings'
 import { fetchGroupsFromDB } from '@/lib/groupStageDB'
+import { TIER1_TOURNAMENTS } from '@/lib/tier1tournaments'
 import { format } from 'date-fns'
 
 export const revalidate = 300
@@ -87,16 +89,28 @@ export default async function TournamentPage({ params }: Props) {
     notFound()
   }
 
-  const [predictions, stats, teamAccuracy, upcomingPS, runningPS] = await Promise.all([
+  // Look up PandaScore sub-tournament IDs for this tournament (if configured)
+  const tier1Entry = TIER1_TOURNAMENTS.find(t => t.slug === tournament.slug) as
+    | (typeof TIER1_TOURNAMENTS[0] & { ps_group_stage_id?: number; ps_playoff_id?: number })
+    | undefined
+
+  const [predictions, stats, teamAccuracy, upcomingPS, runningPS, swissMatches] = await Promise.all([
     getPredictionsByTournament(tournament.id).catch(() => []),
     getTournamentStats(tournament.id).catch(() => null),
     getTeamAccuracy(tournament.id, 3).catch(() => []),
     fetchUpcomingTier1Matches(50).catch(() => []),
     fetchRunningTier1Matches(20).catch(() => []),
+    tier1Entry?.ps_group_stage_id
+      ? fetchMatchesForSubTournament(tier1Entry.ps_group_stage_id).catch(() => [])
+      : Promise.resolve([]),
   ])
 
-  // Filter PandaScore matches to this tournament by matching slug
+  // Filter PandaScore matches to this tournament — try serie_id first (exact match),
+  // fall back to derived slug comparison (works for ESL, DreamLeague, TI).
   const psMatches = [...runningPS, ...upcomingPS].filter(m => {
+    if (tier1Entry && 'ps_serie_id' in tier1Entry && tier1Entry.ps_serie_id) {
+      return m.serie.id === tier1Entry.ps_serie_id
+    }
     const psSlug = `${m.league.name}-${m.serie.full_name}`
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
@@ -415,8 +429,16 @@ export default async function TournamentPage({ params }: Props) {
         </div>
       )}
 
-      {/* ── Group Stage ── */}
-      <GroupStageView groups={groupsData.filter(g => !/upper|lower|bracket|playoff|elimination|grand.?final/i.test(g.name) || /group/i.test(g.name))} />
+      {/* ── Swiss Group Stage (Liquipedia-style) ── */}
+      {swissMatches.length > 0 && (
+        <SwissStandings matches={swissMatches} advanceCount={8} groupStageName="Swiss Group Stage" />
+      )}
+
+      {/* ── Group Stage (round-robin only — hidden when Swiss standings are shown) ── */}
+      <GroupStageView groups={groupsData.filter(g => {
+        if (swissMatches.length > 0 && tier1Entry?.ps_group_stage_id && g.id === tier1Entry.ps_group_stage_id) return false
+        return !/upper|lower|bracket|playoff|elimination|grand.?final/i.test(g.name) || /group/i.test(g.name)
+      })} />
 
       {/* ── Playoff Bracket (PandaScore) ── */}
       <PSBracketView groups={groupsData} />

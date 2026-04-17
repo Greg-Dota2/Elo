@@ -66,7 +66,10 @@ export function calculateElo(
 
 // Per-game win probability for display on the ELO bar
 export function winProbability(eloA: number, eloB: number): { pctA: number; pctB: number } {
-  const pA = Math.round(expectedScore(eloA, eloB) * 100)
+  const raw = expectedScore(eloA, eloB)
+  // Cap at 90/10 — extreme values (e.g. 100/0) mean one team has no match history, which is misleading
+  const capped = Math.min(0.90, Math.max(0.10, raw))
+  const pA = Math.round(capped * 100)
   return { pctA: pA, pctB: 100 - pA }
 }
 

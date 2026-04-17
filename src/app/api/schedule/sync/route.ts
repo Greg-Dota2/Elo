@@ -17,6 +17,17 @@ export async function POST() {
     return NextResponse.json({ ok: true, created: 0, skipped: 0, message: 'No upcoming Tier 1 matches found' })
   }
 
+  // Backfill slugs for any teams that were created without one (older syncs)
+  const { data: sluglessTeams } = await supabase
+    .from('teams')
+    .select('id, name')
+    .is('slug', null)
+    .not('pandascore_team_id', 'is', null)
+  for (const t of sluglessTeams ?? []) {
+    const slug = t.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+    await supabase.from('teams').update({ slug }).eq('id', t.id)
+  }
+
   let created = 0
   let skipped = 0
   const log: string[] = []
@@ -46,10 +57,10 @@ export async function POST() {
       continue
     }
 
-    // Deduplicate by pandascore_match_id
+    // Deduplicate by pandascore_match_id — also fix tournament if match landed in wrong one
     const { data: existing } = await supabase
       .from('match_predictions')
-      .select('id, twitch_url, match_time')
+      .select('id, twitch_url, match_time, tournament_id')
       .eq('pandascore_match_id', match.id)
       .maybeSingle()
 
@@ -65,13 +76,20 @@ export async function POST() {
     const matchTimeStr = matchDate ? matchDate.split('T')[1]?.slice(0, 5) : null
 
     if (existing) {
-      const updates: Record<string, string> = {}
-      if (stream) updates.twitch_url = stream
+      const updates: Record<string, unknown> = {}
+      if (stream && !existing.twitch_url) updates.twitch_url = stream
       if (matchTimeStr && !existing.match_time) updates.match_time = matchTimeStr
+      // If the match ended up under the wrong tournament (e.g. a sync-created duplicate),
+      // move it to the correct one now that we have the right tournament ID.
+      if (existing.tournament_id !== tournamentDbId) {
+        updates.tournament_id = tournamentDbId
+        log.push(`🔀 Moved "${match.name}" to correct tournament`)
+      }
       if (Object.keys(updates).length) {
         await supabase.from('match_predictions').update(updates).eq('id', existing.id)
       }
-      skipped++
+      if (!updates.tournament_id) skipped++
+      else created++ // count reassigned matches as "created" so the user sees progress
       continue
     }
 
@@ -115,7 +133,18 @@ async function resolveTeam(
     .maybeSingle()
   if (byPsId) return byPsId.id
 
-  // 2. Match by name
+  // 2. Check prefix match first — if "Aurora Gaming" exists, prefer it over an exact "Aurora" duplicate.
+  // Only trust a unique prefix match to avoid "Team" matching Team Spirit, Team Liquid, etc.
+  const { data: byPrefix } = await supabase
+    .from('teams')
+    .select('id, name')
+    .ilike('name', team.name + ' %')  // note trailing space: "Aurora " won't match "Aurora" itself
+  if (byPrefix && byPrefix.length === 1) {
+    await supabase.from('teams').update({ pandascore_team_id: team.id }).eq('id', byPrefix[0].id)
+    return byPrefix[0].id
+  }
+
+  // 3. Exact name match (fallback when no extended name exists)
   const { data: byName } = await supabase
     .from('teams')
     .select('id')
@@ -126,11 +155,24 @@ async function resolveTeam(
     return byName.id
   }
 
-  // 3. Create new team
+  // 4. Match where DB name starts with PandaScore name (reverse: "Aurora Gaming" contains "Aurora")
+  // Already covered by prefix above — also try DB name contained in PS name (e.g. "Na'Vi" → "Natus Vincere")
+  const { data: bySubstring } = await supabase
+    .from('teams')
+    .select('id, name')
+    .ilike('name', '%' + team.name + '%')
+  if (bySubstring && bySubstring.length === 1) {
+    await supabase.from('teams').update({ pandascore_team_id: team.id }).eq('id', bySubstring[0].id)
+    return bySubstring[0].id
+  }
+
+  // 5. Create new team with auto-generated slug
+  const slug = team.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
   const { data: newTeam } = await supabase
     .from('teams')
     .insert({
       name: team.name,
+      slug,
       short_name: team.acronym || null,
       logo_url: team.image_url || null,
       pandascore_team_id: team.id,
@@ -147,10 +189,21 @@ async function resolveTournament(
   match: Awaited<ReturnType<typeof fetchUpcomingTier1Matches>>[number]
 ): Promise<string | null> {
   const tournamentName = `${match.league.name} ${match.serie.full_name}`
-  const slug = `${match.league.name}-${match.serie.full_name}`
+  const derivedSlug = `${match.league.name}-${match.serie.full_name}`
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '')
+
+  // Find the known TIER1 entry by league_id + scheduled date falling in the known window.
+  // This handles leagues like PGL (4108) where multiple seasons share the same league_id.
+  const scheduledAt = match.scheduled_at ? new Date(match.scheduled_at) : null
+  const knownByDate = scheduledAt
+    ? TIER1_TOURNAMENTS.find(t =>
+        t.league_id === match.league.id &&
+        new Date(t.start_date) <= scheduledAt &&
+        scheduledAt <= new Date(t.end_date + 'T23:59:59Z')
+      )
+    : TIER1_TOURNAMENTS.find(t => t.league_id === match.league.id)
 
   // Fetch league image from PandaScore (match objects don't include image_url)
   let logo_url: string | null = null
@@ -166,11 +219,26 @@ async function resolveTournament(
     }
   } catch { /* non-critical */ }
 
-  // Match by slug — update logo if we now have one
+  // Try the known canonical slug first (avoids creating duplicate tournaments)
+  if (knownByDate) {
+    const { data: byKnownSlug } = await supabase
+      .from('tournaments')
+      .select('id, logo_url')
+      .eq('slug', knownByDate.slug)
+      .maybeSingle()
+    if (byKnownSlug) {
+      if (logo_url && !byKnownSlug.logo_url) {
+        await supabase.from('tournaments').update({ logo_url }).eq('id', byKnownSlug.id)
+      }
+      return byKnownSlug.id
+    }
+  }
+
+  // Fallback: try the PandaScore-derived slug
   const { data: bySlug } = await supabase
     .from('tournaments')
     .select('id, logo_url')
-    .eq('slug', slug)
+    .eq('slug', derivedSlug)
     .maybeSingle()
   if (bySlug) {
     if (logo_url && !bySlug.logo_url) {
@@ -179,10 +247,8 @@ async function resolveTournament(
     return bySlug.id
   }
 
-  // Look up dates from our known tournament list by league_id
-  const known = TIER1_TOURNAMENTS.find(t => t.league_id === match.league.id)
-
-  // Create new tournament record (draft)
+  // Neither slug exists — create a new tournament using the known slug when available
+  const slug = knownByDate?.slug ?? derivedSlug
   const { data: created } = await supabase
     .from('tournaments')
     .insert({
@@ -191,7 +257,7 @@ async function resolveTournament(
       tier: 1,
       logo_url,
       is_published: false,
-      ...(known ? { start_date: known.start_date, end_date: known.end_date } : {}),
+      ...(knownByDate ? { start_date: knownByDate.start_date, end_date: knownByDate.end_date } : {}),
     })
     .select('id')
     .single()

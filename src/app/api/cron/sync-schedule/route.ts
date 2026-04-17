@@ -68,13 +68,25 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Resolve tournament
+    // Resolve tournament — prefer the canonical slug from TIER1_TOURNAMENTS (matched by
+    // league_id + scheduled date falling within the known window) over the PandaScore-derived slug.
     const tournamentName = `${match.league.name} ${match.serie.full_name}`
-    const slug = `${match.league.name}-${match.serie.full_name}`
+    const derivedSlug = `${match.league.name}-${match.serie.full_name}`
       .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+    const scheduledAt = match.scheduled_at ? new Date(match.scheduled_at) : null
+    const knownByDate = scheduledAt
+      ? TIER1_TOURNAMENTS.find(t =>
+          t.league_id === match.league.id &&
+          new Date(t.start_date) <= scheduledAt &&
+          scheduledAt <= new Date(t.end_date + 'T23:59:59Z')
+        )
+      : undefined
+    const slug = (knownByDate && tournamentBySlug.has(knownByDate.slug))
+      ? knownByDate.slug
+      : derivedSlug
 
     if (!tournamentBySlug.has(slug)) {
-      const known = TIER1_TOURNAMENTS.find(t => t.league_id === match.league.id)
+      const known = knownByDate ?? TIER1_TOURNAMENTS.find(t => t.league_id === match.league.id)
       newTournaments.push({
         name: tournamentName,
         slug,
@@ -130,8 +142,19 @@ export async function GET(req: NextRequest) {
     const team2DbId = teamByPsId.get(opp2.id)
     if (!team1DbId || !team2DbId) { skipped++; continue }
 
-    const slug = `${match.league.name}-${match.serie.full_name}`
+    const scheduledAt2 = match.scheduled_at ? new Date(match.scheduled_at) : null
+    const knownByDate2 = scheduledAt2
+      ? TIER1_TOURNAMENTS.find(t =>
+          t.league_id === match.league.id &&
+          new Date(t.start_date) <= scheduledAt2 &&
+          scheduledAt2 <= new Date(t.end_date + 'T23:59:59Z')
+        )
+      : undefined
+    const derivedSlug2 = `${match.league.name}-${match.serie.full_name}`
       .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+    const slug = (knownByDate2 && tournamentBySlug.has(knownByDate2.slug))
+      ? knownByDate2.slug
+      : derivedSlug2
     const tournamentDbId = tournamentBySlug.get(slug)
     if (!tournamentDbId) { skipped++; continue }
 
