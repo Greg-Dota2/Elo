@@ -3,6 +3,7 @@ import type { MatchPrediction, Team } from '@/lib/types'
 import type { H2HData } from '@/lib/queries'
 import Image from 'next/image'
 import Link from 'next/link'
+import { renderWithLinks } from '@/lib/renderLinks'
 import { winProbability, seriesWinProbability, drawProbability } from '@/lib/elo'
 import MatchTimer from './MatchTimer'
 import ExpandableText from './ExpandableText'
@@ -353,7 +354,7 @@ export default function MatchCard({ match, tournament, h2h }: Props) {
                   {effectiveIsCorrect === true ? '✓ Aftermath' : effectiveIsCorrect === false ? '✗ Aftermath' : 'Aftermath'}
                 </p>
                 <p className="text-base leading-7 font-medium text-foreground">
-                  {match.post_commentary}
+                  {renderWithLinks(match.post_commentary)}
                 </p>
               </div>
             )}
