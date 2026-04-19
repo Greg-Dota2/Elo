@@ -46,26 +46,26 @@ export interface PSMatch {
 }
 
 
-export async function fetchUpcomingTier1Matches(perPage = 100): Promise<PSMatch[]> {
+export async function fetchUpcomingTier1Matches(perPage = 100, noCache = false): Promise<PSMatch[]> {
   const url = new URL(`${BASE}/dota2/matches/upcoming`)
   url.searchParams.set('token', TOKEN)
   url.searchParams.set('per_page', String(perPage))
   url.searchParams.set('filter[league_id]', TIER1_LEAGUE_IDS.join(','))
   url.searchParams.set('sort', 'scheduled_at')
 
-  const res = await fetch(url.toString(), { next: { revalidate: 900 } })
+  const res = await fetch(url.toString(), noCache ? { cache: 'no-store' } : { next: { revalidate: 900 } })
   if (!res.ok) throw new Error(`PandaScore error ${res.status}: ${await res.text()}`)
   return res.json()
 }
 
-export async function fetchRunningTier1Matches(perPage = 50): Promise<PSMatch[]> {
+export async function fetchRunningTier1Matches(perPage = 50, noCache = false): Promise<PSMatch[]> {
   const url = new URL(`${BASE}/dota2/matches/running`)
   url.searchParams.set('token', TOKEN)
   url.searchParams.set('per_page', String(perPage))
   url.searchParams.set('filter[league_id]', TIER1_LEAGUE_IDS.join(','))
   url.searchParams.set('sort', 'scheduled_at')
 
-  const res = await fetch(url.toString(), { next: { revalidate: 60 } })
+  const res = await fetch(url.toString(), noCache ? { cache: 'no-store' } : { next: { revalidate: 60 } })
   if (!res.ok) throw new Error(`PandaScore error ${res.status}: ${await res.text()}`)
   return res.json()
 }

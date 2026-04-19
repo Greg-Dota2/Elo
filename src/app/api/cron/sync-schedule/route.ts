@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   // ── 1. Fetch everything in parallel upfront ──────────────────────────────
   let matches
   try {
-    matches = await fetchUpcomingTier1Matches(100)
+    matches = await fetchUpcomingTier1Matches(100, true)
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 502 })
   }

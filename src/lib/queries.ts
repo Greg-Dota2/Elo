@@ -126,6 +126,54 @@ export async function getTeamAccuracy(
   return data.map(r => ({ ...r, team_slug: slugMap.get(r.team_id) ?? null }))
 }
 
+export interface H2HData {
+  t1Wins: number
+  t2Wins: number
+  total: number
+  last5: string[] // winner team IDs, newest first (up to 5)
+}
+
+export async function getH2HForTeams(
+  teamIds: string[]
+): Promise<Array<{ team_1_id: string; team_2_id: string; actual_winner_id: string; match_date: string | null }>> {
+  if (teamIds.length === 0) return []
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('match_predictions')
+    .select('team_1_id, team_2_id, actual_winner_id, match_date')
+    .in('team_1_id', teamIds)
+    .in('team_2_id', teamIds)
+    .not('actual_winner_id', 'is', null)
+    .order('match_date', { ascending: false })
+    .limit(500)
+  return (data ?? []) as Array<{ team_1_id: string; team_2_id: string; actual_winner_id: string; match_date: string | null }>
+}
+
+export function buildH2HMap(
+  predictions: import('@/lib/types').MatchPrediction[],
+  h2hMatches: Array<{ team_1_id: string; team_2_id: string; actual_winner_id: string; match_date: string | null }>
+): Record<string, H2HData> {
+  const map: Record<string, H2HData> = {}
+  for (const pred of predictions) {
+    const { id, team_1_id, team_2_id } = pred
+    const relevant = h2hMatches.filter(
+      m =>
+        (m.team_1_id === team_1_id && m.team_2_id === team_2_id) ||
+        (m.team_1_id === team_2_id && m.team_2_id === team_1_id)
+    )
+    let t1Wins = 0
+    let t2Wins = 0
+    const last5: string[] = []
+    for (const m of relevant) {
+      if (m.actual_winner_id === team_1_id) t1Wins++
+      else if (m.actual_winner_id === team_2_id) t2Wins++
+      if (last5.length < 5) last5.push(m.actual_winner_id)
+    }
+    map[id] = { t1Wins, t2Wins, total: t1Wins + t2Wins, last5 }
+  }
+  return map
+}
+
 export async function getAllTeams() {
   const supabase = await createClient()
   const { data, error } = await supabase

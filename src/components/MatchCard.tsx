@@ -1,5 +1,6 @@
 import type React from 'react'
 import type { MatchPrediction, Team } from '@/lib/types'
+import type { H2HData } from '@/lib/queries'
 import Image from 'next/image'
 import Link from 'next/link'
 import { winProbability, seriesWinProbability, drawProbability } from '@/lib/elo'
@@ -38,6 +39,7 @@ interface Props {
   match: MatchPrediction
   showTournament?: boolean
   tournament?: { name: string; slug?: string | null; logo_url: string | null; telegram_url?: string | null }
+  h2h?: H2HData
 }
 
 function TeamLogo({ logo_url, name, dim }: { logo_url: string | null; name: string; dim?: boolean }) {
@@ -57,7 +59,7 @@ function TeamLogo({ logo_url, name, dim }: { logo_url: string | null; name: stri
   )
 }
 
-export default function MatchCard({ match, tournament }: Props) {
+export default function MatchCard({ match, tournament, h2h }: Props) {
   const { team_1, team_2, is_correct } = match
   if (!team_1 || !team_2) return null
 
@@ -194,6 +196,36 @@ export default function MatchCard({ match, tournament }: Props) {
             <TeamName team={team_2} className={`font-display text-lg font-bold ${hasResult && t1Won ? 'text-muted-foreground' : 'text-foreground'}`} />
           </div>
         </div>
+
+        {/* ── Head to Head ── */}
+        {h2h && h2h.total > 0 && (
+          <div className="mt-6 rounded-xl px-4 py-3" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-center mb-2" style={{ color: 'var(--text-subtle)' }}>
+              Head to Head
+            </p>
+            <div className="flex items-center justify-center gap-3">
+              <span className="font-display text-xl font-black tabular-nums" style={{ color: h2h.t1Wins > h2h.t2Wins ? 'var(--correct)' : h2h.t1Wins < h2h.t2Wins ? 'var(--text-muted)' : 'var(--text)' }}>
+                {h2h.t1Wins}
+              </span>
+              <div className="flex items-center gap-1">
+                {h2h.last5.map((winnerId, i) => (
+                  <span
+                    key={i}
+                    title={winnerId === match.team_1_id ? team_1.name : team_2.name}
+                    className="inline-block w-2.5 h-2.5 rounded-full"
+                    style={{ background: winnerId === match.team_1_id ? 'var(--correct)' : 'var(--wrong)' }}
+                  />
+                ))}
+              </div>
+              <span className="font-display text-xl font-black tabular-nums" style={{ color: h2h.t2Wins > h2h.t1Wins ? 'var(--correct)' : h2h.t2Wins < h2h.t1Wins ? 'var(--text-muted)' : 'var(--text)' }}>
+                {h2h.t2Wins}
+              </span>
+            </div>
+            <p className="text-[10px] text-center mt-1" style={{ color: 'var(--text-subtle)' }}>
+              {h2h.total} tracked {h2h.total === 1 ? 'series' : 'series'} · newest left
+            </p>
+          </div>
+        )}
 
         {/* ── Dotabuff links ── */}
         {hasResult && match.dotabuff_game_ids && match.dotabuff_game_ids.length > 0 && (

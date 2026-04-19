@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { MatchPrediction, Team } from '@/lib/types'
+import MentionTextarea from '@/components/MentionTextarea'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -106,10 +107,9 @@ export default function WriteAnalysisPage({ params }: Props) {
         </Field>
 
         <Field label="Pre-match Analysis">
-          <textarea
+          <MentionTextarea
             name="pre_analysis"
             rows={8}
-            className={inputClass}
             defaultValue={match.pre_analysis ?? ''}
             placeholder={`After everything we saw, ${team1?.name ?? 'Team 1'} looks like the stronger side here...`}
           />

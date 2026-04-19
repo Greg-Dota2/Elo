@@ -8,7 +8,7 @@ export async function POST() {
 
   let matches
   try {
-    matches = await fetchUpcomingTier1Matches(100)
+    matches = await fetchUpcomingTier1Matches(100, true)
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 502 })
   }

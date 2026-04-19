@@ -3,6 +3,7 @@ import StatsTable from '@/components/StatsTable'
 import BracketView from '@/components/BracketView'
 import TournamentTabsClient from '@/components/TournamentTabsClient'
 import type { MatchPrediction, Tournament, TournamentStats, TeamAccuracy } from '@/lib/types'
+import type { H2HData } from '@/lib/queries'
 
 interface Stage {
   stageName: string
@@ -16,6 +17,7 @@ interface Props {
   stages: Stage[]
   stats: TournamentStats | null
   teamAccuracy: TeamAccuracy[]
+  h2hMap?: Record<string, H2HData>
 }
 
 function buildDateGroups(stages: Stage[]) {
@@ -39,7 +41,7 @@ function buildDateGroups(stages: Stage[]) {
     .map(([dateKey, matches]) => ({ dateKey, matches: [...matches].sort((a, b) => priority(b) - priority(a)) }))
 }
 
-export default function TournamentContent({ tournament, stages, stats, teamAccuracy }: Props) {
+export default function TournamentContent({ tournament, stages, stats, teamAccuracy, h2hMap }: Props) {
   const dateGroups = buildDateGroups(stages)
 
   const picksContent = (
@@ -87,7 +89,7 @@ export default function TournamentContent({ tournament, stages, stats, teamAccur
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {dateMatches.map((match) => (
-                  <MatchCard key={match.id} match={match} tournament={tournament} />
+                  <MatchCard key={match.id} match={match} tournament={tournament} h2h={h2hMap?.[match.id]} />
                 ))}
               </div>
             </div>

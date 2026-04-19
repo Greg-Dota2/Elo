@@ -6,6 +6,8 @@ import {
   getPredictionsByTournament,
   getTournamentStats,
   getTeamAccuracy,
+  getH2HForTeams,
+  buildH2HMap,
   sortMatchesByStatus,
 } from '@/lib/queries'
 import TournamentContent from '@/components/TournamentContent'
@@ -207,6 +209,10 @@ export default async function TournamentPage({ params }: Props) {
       )
     ).then(groups => groups.filter(g => g.standings.length > 1))
   }
+
+  const allTeamIds = [...new Set(predictions.flatMap(p => [p.team_1_id, p.team_2_id]))]
+  const h2hMatches = await getH2HForTeams(allTeamIds).catch(() => [])
+  const h2hMap = buildH2HMap(predictions, h2hMatches)
 
   const stages = groupByStage(predictions).map(s => ({ ...s, matches: sortMatchesByStatus(s.matches) }))
 
@@ -638,6 +644,7 @@ export default async function TournamentPage({ params }: Props) {
         stages={stages}
         stats={stats}
         teamAccuracy={teamAccuracy}
+        h2hMap={h2hMap}
       />
     </div>
   )

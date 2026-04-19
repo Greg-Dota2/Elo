@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { MatchPrediction } from '@/lib/types'
+import MentionTextarea from '@/components/MentionTextarea'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -103,10 +104,9 @@ export default function RecordResultPage({ params }: Props) {
         </div>
 
         <Field label="Post-match Commentary">
-          <textarea
+          <MentionTextarea
             name="post_commentary"
             rows={5}
-            className={inputClass}
             defaultValue={match.post_commentary ?? ''}
             placeholder="Oh my God, this best-of-three is probably THE LONGEST in a while..."
           />
