@@ -8,14 +8,14 @@ export async function GET() {
 
   const [{ data: teams }, { data: players }, heroes, items] = await Promise.all([
     supabase.from('teams').select('name, slug').eq('is_active', true).order('name'),
-    supabase.from('players').select('name, slug').not('slug', 'is', null).order('name'),
+    supabase.from('players').select('ign, slug').order('ign'),
     fetchAllHeroes().catch(() => []),
     fetchAllItems().catch(() => []),
   ])
 
   const entities = [
     ...(teams ?? []).filter(t => t.slug).map(t => ({ label: t.name, href: `/teams/${t.slug}`, type: 'team' as const })),
-    ...(players ?? []).filter(p => p.slug).map(p => ({ label: p.name, href: `/players/${p.slug}`, type: 'player' as const })),
+    ...(players ?? []).filter(p => p.ign && p.slug).map(p => ({ label: p.ign, href: `/players/${p.slug}`, type: 'player' as const })),
     ...heroes.map(h => ({ label: h.localized_name, href: `/heroes/${heroSlug(h.name)}`, type: 'hero' as const })),
     ...items.map(i => ({ label: i.dname, href: `/items/${i.key}`, type: 'item' as const })),
   ]

@@ -1,3 +1,5 @@
+import { renderWithLinks } from '@/lib/renderLinks'
+
 interface Props {
   text: string
   className?: string
@@ -13,7 +15,7 @@ export default function BioRenderer({ text, className = '' }: Props) {
           const content = line.replace(/^##\s*/, '')
           return (
             <h3 key={i} className="font-display font-bold text-base mt-4 first:mt-0" style={{ color: 'hsl(var(--primary))' }}>
-              {content}
+              {renderWithLinks(content)}
             </h3>
           )
         }
@@ -21,7 +23,7 @@ export default function BioRenderer({ text, className = '' }: Props) {
           const content = line.replace(/^#\s*/, '')
           return (
             <h2 key={i} className="font-display font-bold text-lg text-foreground mt-5 first:mt-0">
-              {content}
+              {renderWithLinks(content)}
             </h2>
           )
         }
@@ -30,7 +32,7 @@ export default function BioRenderer({ text, className = '' }: Props) {
         }
         return (
           <p key={i} className="text-sm leading-relaxed" style={{ color: 'hsl(var(--foreground) / 0.8)' }}>
-            {line}
+            {renderWithLinks(line)}
           </p>
         )
       })}
