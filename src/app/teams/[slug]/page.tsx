@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { getTeamBySlug } from '@/lib/queries'
@@ -47,6 +47,7 @@ const REGION_FLAG: Record<string, string> = {
 
 export default async function TeamDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
+  if (slug !== slug.toLowerCase()) redirect(`/teams/${slug.toLowerCase()}`)
 
   let team: Team
   try {

@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import {
@@ -83,6 +83,7 @@ function groupByStage(
 
 export default async function TournamentPage({ params }: Props) {
   const { slug } = await params
+  if (slug !== slug.toLowerCase()) redirect(`/tournaments/${slug.toLowerCase()}`)
 
   let tournament
   try {

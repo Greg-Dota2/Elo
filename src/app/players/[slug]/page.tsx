@@ -1,5 +1,5 @@
 import { getPlayerBySlug } from '@/lib/queries'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import BioRenderer from '@/components/BioRenderer'
@@ -60,6 +60,7 @@ function age(dob: string) {
 
 export default async function PlayerPage({ params }: Props) {
   const { slug } = await params
+  if (slug !== slug.toLowerCase()) redirect(`/players/${slug.toLowerCase()}`)
   let player
   try { player = await getPlayerBySlug(slug) } catch { notFound() }
 
