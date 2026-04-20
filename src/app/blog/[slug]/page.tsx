@@ -157,12 +157,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 }
 
-// Replace team/player name mentions in markdown with links,
-// skipping text that's already inside a markdown link [...](...).
-function autoLink(
-  content: string,
-  entities: Array<{ name: string; url: string }>
-): string {
+
+// Auto-link team/player/tournament mentions — only for posts created before manual-link era
+function autoLink(content: string, entities: Array<{ name: string; url: string }>): string {
   const sorted = [...entities].sort((a, b) => b.name.length - a.name.length)
   for (const { name, url } of sorted) {
     const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -196,11 +193,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   if (!post) notFound()
 
-  const dbEntities = [
-    ...(teams ?? []).map(t => ({ name: t.name, url: `/teams/${t.slug}` })),
-    ...(players ?? []).map(p => ({ name: p.ign, url: `/players/${p.slug}` })),
-    ...(tournaments ?? []).map(t => ({ name: t.name, url: `/tournaments/${t.slug}` })),
-  ]
+  // Posts created before 2026-04-20 use autoLink; newer posts use manual [text](url) links
+  const useAutoLink = new Date(post.created_at) < new Date('2026-04-20')
 
   const teamLogoMap = new Map<string, string>(
     (teams ?? [])
@@ -239,26 +233,18 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     }
   }
 
-  // Merge DB entities with PS teams (DB takes priority, PS fills in unknowns)
-  const dbNames = new Set(dbEntities.map(e => e.name.toLowerCase()))
-  const psEntities: { name: string; url: string }[] = []
-  for (const groups of Object.values(groupsDataMap)) {
-    for (const group of groups) {
-      for (const { team } of group.standings) {
-        if (!dbNames.has(team.name.toLowerCase()) && !psEntities.some(e => e.name.toLowerCase() === team.name.toLowerCase())) {
-          psEntities.push({ name: team.name, url: `/teams/${psTeamSlug(team.name)}` })
-        }
-      }
-    }
-  }
-  const allEntities = [...dbEntities, ...psEntities]
+  const allEntities = useAutoLink ? [
+    ...(teams ?? []).filter(t => t.slug).map(t => ({ name: t.name, url: `/teams/${t.slug}` })),
+    ...(players ?? []).filter(p => p.slug).map(p => ({ name: p.ign, url: `/players/${p.slug}` })),
+    ...(tournaments ?? []).filter(t => t.slug).map(t => ({ name: t.name, url: `/tournaments/${t.slug}` })),
+    ...[...psTeamMap.entries()].map(([, v]) => ({ name: v.url.split('/').pop()!, url: v.url })),
+  ] : []
 
   const SITE_URL = 'https://www.dota2protips.com'
 
   const mdComponents = {
     h1: ({ children }: any) => <h2 className="font-display text-3xl font-black mt-8 mb-4" style={{ color: 'var(--text)' }}>{children}</h2>,
     h2: ({ children, node }: any) => {
-      // Try link injected by autoLink first
       const firstChild = node?.children?.[0]
       let href: string | undefined =
         firstChild?.type === 'element' && firstChild.tagName === 'a'
@@ -425,7 +411,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         if (seg.type === 'markdown') {
           return (
             <ReactMarkdown key={i} remarkPlugins={[remarkGfm]} components={mdComponents}>
-              {autoLink(seg.content, allEntities)}
+              {useAutoLink ? autoLink(seg.content, allEntities) : seg.content}
             </ReactMarkdown>
           )
         }
