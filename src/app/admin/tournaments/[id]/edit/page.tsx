@@ -191,6 +191,7 @@ export default function EditTournamentPage({ params }: Props) {
         banner_url: form.get('banner_url') || null,
         telegram_url: form.get('telegram_url') || null,
         liquipedia_url: form.get('liquipedia_url') || null,
+        meta_description: form.get('meta_description') || null,
         overview: form.get('overview') || null,
         format: form.get('format') || null,
         location_name: form.get('location_name') || null,
@@ -554,6 +555,9 @@ export default function EditTournamentPage({ params }: Props) {
               <input name="end_date" type="date" defaultValue={tournament.end_date ?? ''} className={inputClass} />
             </Field>
           </div>
+          <Field label="Meta description (SEO — overrides overview)">
+            <textarea name="meta_description" rows={2} defaultValue={tournament.meta_description ?? ''} className={inputClass} placeholder="Leave empty to auto-generate from overview" />
+          </Field>
           <Field label="Overview text">
             <textarea name="overview" rows={3} defaultValue={tournament.overview ?? ''} className={inputClass} />
           </Field>

@@ -37,9 +37,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   try {
     const t = await getTournamentBySlug(slug)
     const title = `${t.name} — Predictions & Analysis`
-    const description = t.overview
-      ? t.overview.slice(0, 155)
-      : `Match predictions, analysis, and accuracy tracking for ${t.name} on Dota2ProTips.`
+    const description = t.meta_description
+      ?? (t.overview ? t.overview.slice(0, 155) : `Match predictions, analysis, and accuracy tracking for ${t.name} on Dota2ProTips.`)
     return {
       title,
       description,

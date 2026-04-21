@@ -47,6 +47,7 @@ export interface Tournament {
   opendota_league_id: number | null
   prize_distribution: PrizePlacement[] | null
   participants: Participant[] | null
+  meta_description: string | null
   location_name: string | null
   location_type: 'lan' | 'online' | null
   is_published: boolean
