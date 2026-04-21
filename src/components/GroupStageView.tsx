@@ -127,7 +127,8 @@ function GroupCard({ group }: { group: GroupData }) {
                           alt={s.team.name}
                           width={20}
                           height={20}
-                          className="w-5 h-5 object-contain shrink-0"
+                          className="w-5 h-5 object-contain shrink-0 rounded p-0.5"
+                          style={{ background: 'rgba(255,255,255,0.08)' }}
                         />
                       ) : (
                         <div className="w-5 h-5 rounded shrink-0" style={{ background: 'var(--surface-3)' }} />
@@ -171,7 +172,8 @@ function GroupCard({ group }: { group: GroupData }) {
                         title={t.name}
                         width={24}
                         height={24}
-                        className="w-6 h-6 object-contain mx-auto"
+                        className="w-6 h-6 object-contain mx-auto rounded p-0.5"
+                        style={{ background: 'rgba(255,255,255,0.08)' }}
                       />
                     ) : (
                       <span className="text-[10px] font-bold" style={{ color: 'var(--text-muted)' }}>

@@ -62,6 +62,7 @@ export default function PrizeTable({ placements, teamMap }: Props) {
         style={{
           borderBottom: '1px solid hsl(var(--border) / 0.4)',
           background: rowIndex % 2 !== 0 ? 'hsl(var(--secondary) / 0.15)' : 'transparent',
+          minWidth: 380,
         }}
       >
         {/* Place badge — only shown on first entry of a group */}
@@ -86,7 +87,8 @@ export default function PrizeTable({ placements, teamMap }: Props) {
             <img
               src={team.logo_url}
               alt={entry.team}
-              className="w-6 h-6 object-contain shrink-0"
+              className="w-6 h-6 object-contain shrink-0 rounded p-0.5"
+              style={{ background: 'rgba(255,255,255,0.08)' }}
               loading="lazy"
             />
           ) : (
@@ -161,10 +163,11 @@ export default function PrizeTable({ placements, teamMap }: Props) {
       className="rounded-xl overflow-hidden mb-5"
       style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
     >
+      <div className="overflow-x-auto">
       {/* Header */}
       <div
         className="px-4 py-3 flex items-center gap-3"
-        style={{ borderBottom: '1px solid var(--border)', background: 'hsl(var(--secondary) / 0.3)' }}
+        style={{ borderBottom: '1px solid var(--border)', background: 'hsl(var(--secondary) / 0.3)', minWidth: 380 }}
       >
         <p className="section-label flex-1">Final Standings</p>
         {hasPrize && (
@@ -191,6 +194,7 @@ export default function PrizeTable({ placements, teamMap }: Props) {
           return el
         })
       )}
+      </div>
     </div>
   )
 }

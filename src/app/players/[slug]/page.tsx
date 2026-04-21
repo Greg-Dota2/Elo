@@ -370,7 +370,7 @@ export default async function PlayerPage({ params }: Props) {
                   <div key={p.tournament.slug} className="flex items-center gap-3 py-2.5 border-t border-border/40 first:border-0">
                     {p.tournament.logo_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={p.tournament.logo_url} alt={p.tournament.name} className="w-7 h-7 object-contain shrink-0" loading="lazy" />
+                      <img src={p.tournament.logo_url} alt={p.tournament.name} className="w-7 h-7 object-contain shrink-0 rounded p-0.5" style={{ background: 'rgba(255,255,255,0.08)' }} loading="lazy" />
                     ) : (
                       <div className="w-7 h-7 rounded shrink-0" style={{ background: 'hsl(var(--secondary))' }} />
                     )}

@@ -201,7 +201,7 @@ export default function MatchCard({ match, tournament, h2h }: Props) {
         {/* ── Head to Head ── */}
         {h2h && h2h.total > 0 && (
           <div className="mt-6 rounded-xl px-4 py-3" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-center mb-2" style={{ color: 'var(--text-subtle)' }}>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-center mb-2" style={{ color: 'hsl(var(--primary))' }}>
               Head to Head
             </p>
             <div className="flex items-center justify-center gap-3">

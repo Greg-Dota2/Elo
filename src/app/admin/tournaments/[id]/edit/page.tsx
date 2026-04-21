@@ -28,6 +28,9 @@ export default function EditTournamentPage({ params }: Props) {
   const [prizeJson, setPrizeJson] = useState('')
   const [prizeSaving, setPrizeSaving] = useState(false)
   const [prizeResult, setPrizeResult] = useState('')
+  const [participantsJson, setParticipantsJson] = useState('')
+  const [participantsSaving, setParticipantsSaving] = useState(false)
+  const [participantsResult, setParticipantsResult] = useState('')
 
   async function loadMatches(id: string) {
     const res = await fetch(`/api/admin/data?resource=matches&tournament_id=${id}`)
@@ -50,6 +53,7 @@ export default function EditTournamentPage({ params }: Props) {
         setTournament(t as Tournament)
         setLeagueId(String(t.opendota_league_id ?? ''))
         setPrizeJson(t.prize_distribution ? JSON.stringify(t.prize_distribution, null, 2) : '')
+        setParticipantsJson(t.participants ? JSON.stringify(t.participants, null, 2) : '')
       }
       await Promise.all([loadMatches(id), loadStages(id)])
     })
@@ -201,6 +205,28 @@ export default function EditTournamentPage({ params }: Props) {
       setTournament(data)
       setSaveResult('✓ Saved')
     }
+  }
+
+  async function handleSaveParticipants() {
+    setParticipantsSaving(true)
+    setParticipantsResult('')
+    let parsed: unknown
+    if (participantsJson.trim()) {
+      try { parsed = JSON.parse(participantsJson) } catch {
+        setParticipantsResult('✗ Invalid JSON')
+        setParticipantsSaving(false)
+        return
+      }
+    } else {
+      parsed = null
+    }
+    const res = await fetch('/api/admin/tournaments', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: tournamentId, participants: parsed }),
+    })
+    setParticipantsSaving(false)
+    setParticipantsResult(res.ok ? '✓ Saved' : '✗ Error saving')
   }
 
   async function handleSavePrize() {
@@ -450,6 +476,37 @@ export default function EditTournamentPage({ params }: Props) {
           </div>
         </div>
       )}
+
+      {/* ── Participants ── */}
+      <div className="rounded-lg p-5 mb-6" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+        <h2 className="font-semibold mb-1">Participants</h2>
+        <p className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>
+          JSON array of teams. Add before the tournament starts. <code className="text-xs px-1 py-0.5 rounded" style={{ background: 'var(--surface-2)' }}>type</code> is optional: <code className="text-xs px-1 py-0.5 rounded" style={{ background: 'var(--surface-2)' }}>&quot;invited&quot;</code> or <code className="text-xs px-1 py-0.5 rounded" style={{ background: 'var(--surface-2)' }}>&quot;qualifier&quot;</code>.
+        </p>
+        <textarea
+          value={participantsJson}
+          onChange={e => setParticipantsJson(e.target.value)}
+          rows={10}
+          placeholder={`[\n  { "team": "Team Spirit", "type": "invited" },\n  { "team": "Tundra Esports", "type": "invited" },\n  { "team": "MOUZ", "type": "qualifier" }\n]`}
+          className={inputClass}
+          style={{ fontFamily: 'monospace', fontSize: '12px' }}
+        />
+        <div className="flex items-center gap-3 mt-3">
+          <button
+            onClick={handleSaveParticipants}
+            disabled={participantsSaving}
+            className="px-4 py-2 rounded font-semibold text-sm disabled:opacity-50"
+            style={{ background: 'var(--accent)', color: '#fff' }}
+          >
+            {participantsSaving ? 'Saving...' : 'Save Participants'}
+          </button>
+          {participantsResult && (
+            <span className="text-sm font-medium" style={{ color: participantsResult.startsWith('✓') ? 'var(--correct)' : 'var(--wrong)' }}>
+              {participantsResult}
+            </span>
+          )}
+        </div>
+      </div>
 
       {/* ── Prize Distribution ── */}
       <div className="rounded-lg p-5 mb-6" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>

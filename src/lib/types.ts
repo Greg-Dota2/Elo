@@ -25,6 +25,11 @@ export interface PrizePlacement {
   club_reward?: number
 }
 
+export interface Participant {
+  team: string
+  type?: 'invited' | 'qualifier'
+}
+
 export interface Tournament {
   id: string
   slug: string
@@ -41,6 +46,7 @@ export interface Tournament {
   telegram_url: string | null
   opendota_league_id: number | null
   prize_distribution: PrizePlacement[] | null
+  participants: Participant[] | null
   location_name: string | null
   location_type: 'lan' | 'online' | null
   is_published: boolean

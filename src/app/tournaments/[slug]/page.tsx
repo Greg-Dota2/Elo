@@ -22,6 +22,8 @@ import {
 } from '@/lib/pandascore'
 import GroupStageView, { type GroupData } from '@/components/GroupStageView'
 import PrizeTable from '@/components/PrizeTable'
+import ParticipantsGrid, { type ParticipantWithRoster } from '@/components/ParticipantsGrid'
+import { createAdminClient } from '@/lib/supabase/admin'
 import PSBracketView from '@/components/PSBracketView'
 import SwissStandings from '@/components/SwissStandings'
 import { fetchGroupsFromDB } from '@/lib/groupStageDB'
@@ -98,13 +100,15 @@ export default async function TournamentPage({ params }: Props) {
     | (typeof TIER1_TOURNAMENTS[0] & { ps_group_stage_id?: number; ps_playoff_id?: number })
     | undefined
 
+  const isOver = tournament.end_date ? new Date(tournament.end_date) < new Date() : false
+
   const [predictions, stats, teamAccuracy, upcomingPS, runningPS, swissMatches] = await Promise.all([
     getPredictionsByTournament(tournament.id).catch(() => []),
     getTournamentStats(tournament.id).catch(() => null),
     getTeamAccuracy(tournament.id, 3).catch(() => []),
-    fetchUpcomingTier1Matches(50).catch(() => []),
-    fetchRunningTier1Matches(20).catch(() => []),
-    tier1Entry?.ps_group_stage_id
+    isOver ? Promise.resolve([]) : fetchUpcomingTier1Matches(50).catch(() => []),
+    isOver ? Promise.resolve([]) : fetchRunningTier1Matches(20).catch(() => []),
+    isOver ? Promise.resolve([]) : tier1Entry?.ps_group_stage_id
       ? fetchMatchesForSubTournament(tier1Entry.ps_group_stage_id).catch(() => [])
       : Promise.resolve([]),
   ])
@@ -190,7 +194,7 @@ export default async function TournamentPage({ params }: Props) {
       )
     ).then(groups => groups.filter(g => g.standings.length > 1))
   } else {
-    // PandaScore fallback: tournament is over — find sub-tournament IDs from recent finished matches
+    // PandaScore fallback: no live matches — pull from recent finished
     const recentFinished = await fetchRecentTier1Matches(100).catch(() => [])
     const finishedPsMatches = recentFinished.filter(m => {
       const psSlug = `${m.league.name}-${m.serie.full_name}`
@@ -223,6 +227,52 @@ export default async function TournamentPage({ params }: Props) {
   for (const p of predictions) {
     if (p.team_1) teamNameMap.set(p.team_1.name, { slug: p.team_1.slug, logo_url: p.team_1.logo_url })
     if (p.team_2) teamNameMap.set(p.team_2.name, { slug: p.team_2.slug, logo_url: p.team_2.logo_url })
+  }
+
+  // Build enriched participants list with team info + rosters
+  let participantsWithRosters: ParticipantWithRoster[] = []
+  if (tournament.participants && tournament.participants.length > 0) {
+    const supabase = createAdminClient()
+    const participantNames = tournament.participants.map((p: { team: string }) => p.team)
+    const { data: teamRows } = await supabase
+      .from('teams')
+      .select('id, name, slug, logo_url')
+      .in('name', participantNames)
+    const teamDbMap = new Map((teamRows ?? []).map(t => [t.name, t]))
+
+    const teamIds = (teamRows ?? []).map(t => t.id)
+    const { data: playerRows } = teamIds.length > 0
+      ? await supabase
+          .from('players')
+          .select('ign, slug, photo_url, position, team_id')
+          .in('team_id', teamIds)
+          .eq('is_published', true)
+          .order('position', { ascending: true, nullsFirst: false })
+      : { data: [] }
+
+    const playersByTeam = new Map<string, typeof playerRows>()
+    for (const player of playerRows ?? []) {
+      const list = playersByTeam.get(player.team_id!) ?? []
+      list.push(player)
+      playersByTeam.set(player.team_id!, list)
+    }
+
+    participantsWithRosters = tournament.participants.map((p: { team: string; type?: 'invited' | 'qualifier' }) => {
+      const dbTeam = teamDbMap.get(p.team)
+      const players = dbTeam ? (playersByTeam.get(dbTeam.id) ?? []) : []
+      return {
+        team: p.team,
+        type: p.type,
+        slug: dbTeam?.slug ?? null,
+        logo_url: dbTeam?.logo_url ?? teamNameMap.get(p.team)?.logo_url ?? null,
+        players: players.map(pl => ({
+          ign: pl.ign,
+          slug: pl.slug,
+          photo_url: pl.photo_url,
+          position: pl.position,
+        })),
+      }
+    })
   }
 
   // Map PandaScore match ID → DB match_date so the schedule section uses the correct date
@@ -444,9 +494,23 @@ export default async function TournamentPage({ params }: Props) {
         </div>
       )}
 
+      {/* Participants */}
+      {participantsWithRosters.length > 0 && (
+        <ParticipantsGrid participants={participantsWithRosters} />
+      )}
+
       {/* Final Standings / Prize Distribution */}
       {tournament.prize_distribution && tournament.prize_distribution.length > 0 && (
-        <PrizeTable placements={tournament.prize_distribution} teamMap={teamNameMap} />
+        <>
+          {participantsWithRosters.length > 0 && (
+            <div className="flex items-center gap-4 my-6">
+              <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
+              <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Final Standings</span>
+              <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
+            </div>
+          )}
+          <PrizeTable placements={tournament.prize_distribution} teamMap={teamNameMap} />
+        </>
       )}
 
       {/* ── Swiss Group Stage (Liquipedia-style) ── */}
@@ -550,7 +614,7 @@ export default async function TournamentPage({ params }: Props) {
                 <span className="w-12 text-xs shrink-0 tabular-nums text-muted-foreground">{time}</span>
                 <div className="flex items-center gap-1.5 flex-1 justify-end min-w-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  {teamA?.image_url && <img loading="lazy" src={teamA.image_url} alt={teamA.name} className="w-4 h-4 object-contain shrink-0" />}
+                  {teamA?.image_url && <img loading="lazy" src={teamA.image_url} alt={teamA.name} className="w-4 h-4 object-contain shrink-0 rounded" style={{ background: 'rgba(255,255,255,0.08)' }} />}
                   {teamA ? (
                     <Link href={`/teams/${psTeamSlug(teamA.name)}`} className="font-semibold truncate hover:text-primary transition-colors text-foreground">{teamA.name}</Link>
                   ) : <span className="font-semibold truncate text-foreground">TBD</span>}
@@ -571,7 +635,7 @@ export default async function TournamentPage({ params }: Props) {
                 )}
                 <div className="flex items-center gap-1.5 flex-1 min-w-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  {teamB?.image_url && <img loading="lazy" src={teamB.image_url} alt={teamB.name} className="w-4 h-4 object-contain shrink-0" />}
+                  {teamB?.image_url && <img loading="lazy" src={teamB.image_url} alt={teamB.name} className="w-4 h-4 object-contain shrink-0 rounded" style={{ background: 'rgba(255,255,255,0.08)' }} />}
                   {teamB ? (
                     <Link href={`/teams/${psTeamSlug(teamB.name)}`} className="font-semibold truncate hover:text-primary transition-colors text-foreground">{teamB.name}</Link>
                   ) : <span className="font-semibold truncate text-foreground">TBD</span>}
