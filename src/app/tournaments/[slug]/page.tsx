@@ -21,6 +21,7 @@ import {
   type PSTeam,
 } from '@/lib/pandascore'
 import GroupStageView, { type GroupData } from '@/components/GroupStageView'
+import PrizeTable from '@/components/PrizeTable'
 import PSBracketView from '@/components/PSBracketView'
 import SwissStandings from '@/components/SwissStandings'
 import { fetchGroupsFromDB } from '@/lib/groupStageDB'
@@ -216,6 +217,13 @@ export default async function TournamentPage({ params }: Props) {
   const h2hMap = buildH2HMap(predictions, h2hMatches)
 
   const stages = groupByStage(predictions).map(s => ({ ...s, matches: sortMatchesByStatus(s.matches) }))
+
+  // Build name → {slug, logo_url} map for PrizeTable team lookups
+  const teamNameMap = new Map<string, { slug: string | null; logo_url: string | null }>()
+  for (const p of predictions) {
+    if (p.team_1) teamNameMap.set(p.team_1.name, { slug: p.team_1.slug, logo_url: p.team_1.logo_url })
+    if (p.team_2) teamNameMap.set(p.team_2.name, { slug: p.team_2.slug, logo_url: p.team_2.logo_url })
+  }
 
   // Map PandaScore match ID → DB match_date so the schedule section uses the correct date
   const psIdToDate = new Map<number, string>()
@@ -434,6 +442,11 @@ export default async function TournamentPage({ params }: Props) {
             {tournament.format}
           </p>
         </div>
+      )}
+
+      {/* Final Standings / Prize Distribution */}
+      {tournament.prize_distribution && tournament.prize_distribution.length > 0 && (
+        <PrizeTable placements={tournament.prize_distribution} teamMap={teamNameMap} />
       )}
 
       {/* ── Swiss Group Stage (Liquipedia-style) ── */}

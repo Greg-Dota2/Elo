@@ -25,6 +25,9 @@ export default function EditTournamentPage({ params }: Props) {
   const [newStageName, setNewStageName] = useState('')
   const [newStageOrder, setNewStageOrder] = useState('')
   const [addingStage, setAddingStage] = useState(false)
+  const [prizeJson, setPrizeJson] = useState('')
+  const [prizeSaving, setPrizeSaving] = useState(false)
+  const [prizeResult, setPrizeResult] = useState('')
 
   async function loadMatches(id: string) {
     const res = await fetch(`/api/admin/data?resource=matches&tournament_id=${id}`)
@@ -46,6 +49,7 @@ export default function EditTournamentPage({ params }: Props) {
       if (t) {
         setTournament(t as Tournament)
         setLeagueId(String(t.opendota_league_id ?? ''))
+        setPrizeJson(t.prize_distribution ? JSON.stringify(t.prize_distribution, null, 2) : '')
       }
       await Promise.all([loadMatches(id), loadStages(id)])
     })
@@ -197,6 +201,28 @@ export default function EditTournamentPage({ params }: Props) {
       setTournament(data)
       setSaveResult('✓ Saved')
     }
+  }
+
+  async function handleSavePrize() {
+    setPrizeSaving(true)
+    setPrizeResult('')
+    let parsed: unknown
+    if (prizeJson.trim()) {
+      try { parsed = JSON.parse(prizeJson) } catch {
+        setPrizeResult('✗ Invalid JSON')
+        setPrizeSaving(false)
+        return
+      }
+    } else {
+      parsed = null
+    }
+    const res = await fetch('/api/admin/tournaments', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: tournamentId, prize_distribution: parsed }),
+    })
+    setPrizeSaving(false)
+    setPrizeResult(res.ok ? '✓ Saved' : '✗ Error saving')
   }
 
   if (!tournament) return <p style={{ color: 'var(--text-muted)' }}>Loading...</p>
@@ -424,6 +450,37 @@ export default function EditTournamentPage({ params }: Props) {
           </div>
         </div>
       )}
+
+      {/* ── Prize Distribution ── */}
+      <div className="rounded-lg p-5 mb-6" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+        <h2 className="font-semibold mb-1">Prize Distribution / Final Standings</h2>
+        <p className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>
+          JSON array of placements. Leave empty to hide the section on the tournament page.
+        </p>
+        <textarea
+          value={prizeJson}
+          onChange={e => setPrizeJson(e.target.value)}
+          rows={12}
+          placeholder={`[\n  { "place": "1st", "team": "Team Spirit", "prize_usd": 500000, "ept_points": 5500 },\n  { "place": "2nd", "team": "GG", "prize_usd": 200000, "ept_points": 3500 },\n  { "place": "3rd-4th", "team": "OG", "prize_usd": 100000, "ept_points": 2500 },\n  { "place": "3rd-4th", "team": "Nigma", "prize_usd": 100000, "ept_points": 2500 },\n  { "place": "5th-6th", "team": "VP", "prize_usd": 50000 },\n  { "place": "5th-6th", "team": "Secret", "prize_usd": 50000 }\n]`}
+          className={inputClass}
+          style={{ fontFamily: 'monospace', fontSize: '12px' }}
+        />
+        <div className="flex items-center gap-3 mt-3">
+          <button
+            onClick={handleSavePrize}
+            disabled={prizeSaving}
+            className="px-4 py-2 rounded font-semibold text-sm disabled:opacity-50"
+            style={{ background: 'var(--accent)', color: '#fff' }}
+          >
+            {prizeSaving ? 'Saving...' : 'Save Prize Distribution'}
+          </button>
+          {prizeResult && (
+            <span className="text-sm font-medium" style={{ color: prizeResult.startsWith('✓') ? 'var(--correct)' : 'var(--wrong)' }}>
+              {prizeResult}
+            </span>
+          )}
+        </div>
+      </div>
 
       {/* ── Tournament Settings ── */}
       <div className="rounded-lg p-5" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>

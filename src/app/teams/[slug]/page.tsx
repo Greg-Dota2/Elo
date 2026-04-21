@@ -114,6 +114,37 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ slu
   const total = wins + draws + losses
   const winRate = total > 0 ? Math.round(((wins + draws * 0.5) / total) * 100) : null
 
+  // Tournament placements from prize_distribution JSONB
+  const { data: tournamentsWithPrize } = await supabase
+    .from('tournaments')
+    .select('id, name, slug, logo_url, prize_distribution, end_date')
+    .eq('is_published', true)
+    .not('prize_distribution', 'is', null)
+    .order('end_date', { ascending: false })
+
+  type TournamentPlacement = {
+    tournament: { name: string; slug: string; logo_url: string | null }
+    place: string
+    prize_usd?: number
+    ept_points?: number
+    club_reward?: number
+  }
+
+  const tournamentPlacements: TournamentPlacement[] = []
+  for (const t of tournamentsWithPrize ?? []) {
+    const dist = t.prize_distribution as { place: string; team: string; prize_usd?: number; ept_points?: number; club_reward?: number }[]
+    const entry = dist?.find(p => p.team === team.name)
+    if (entry) {
+      tournamentPlacements.push({
+        tournament: { name: t.name, slug: t.slug, logo_url: t.logo_url },
+        place: entry.place,
+        prize_usd: entry.prize_usd,
+        ept_points: entry.ept_points,
+        club_reward: entry.club_reward,
+      })
+    }
+  }
+
   // Matches involving this team
   const { data: teamMatches } = await supabase
     .from('match_predictions')
@@ -259,6 +290,73 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ slu
             <div className="rounded-2xl border border-border/60 p-5" style={{ background: 'hsl(var(--card) / 0.6)' }}>
               <p className="section-label mb-3">Achievements</p>
               <BioRenderer text={team.achievements} />
+            </div>
+          )}
+
+          {/* Tournament Results */}
+          {tournamentPlacements.length > 0 && (
+            <div className="rounded-2xl border border-border/60 p-5" style={{ background: 'hsl(var(--card) / 0.6)' }}>
+              <p className="section-label mb-3">Tournament Results</p>
+              <div className="grid gap-2">
+                {tournamentPlacements.map(p => {
+                  const medal = p.place === '1st' ? '🥇' : p.place === '2nd' ? '🥈' : p.place === '3rd' || p.place === '3rd-4th' ? '🥉' : null
+                  const placeColor =
+                    p.place === '1st' ? '#f59e0b'
+                    : p.place === '2nd' ? '#94a3b8'
+                    : p.place === '3rd' || p.place === '3rd-4th' ? '#c47a3a'
+                    : 'var(--text-muted)'
+                  const formatUSD = (n: number) => {
+                    if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(n % 1_000_000 === 0 ? 0 : 1)}M`
+                    if (n >= 1_000) return `$${(n / 1_000).toFixed(n % 1_000 === 0 ? 0 : 1)}K`
+                    return `$${n.toLocaleString()}`
+                  }
+                  return (
+                    <div key={p.tournament.slug} className="flex items-center gap-3 py-2.5 border-t border-border/40 first:border-0">
+                      {/* Tournament logo */}
+                      {p.tournament.logo_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={p.tournament.logo_url} alt={p.tournament.name} className="w-7 h-7 object-contain shrink-0" loading="lazy" />
+                      ) : (
+                        <div className="w-7 h-7 rounded shrink-0" style={{ background: 'hsl(var(--secondary))' }} />
+                      )}
+
+                      {/* Tournament name */}
+                      <div className="flex-1 min-w-0">
+                        <Link href={`/tournaments/${p.tournament.slug}`} className="text-sm font-semibold hover:text-primary transition-colors truncate block" style={{ color: 'var(--text)' }}>
+                          {p.tournament.name}
+                        </Link>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          {p.ept_points != null && (
+                            <span className="text-xs tabular-nums" style={{ color: 'hsl(var(--primary))' }}>
+                              {p.ept_points.toLocaleString()} EPT
+                            </span>
+                          )}
+                          {p.club_reward != null && (
+                            <span className="text-xs tabular-nums" style={{ color: '#a78bfa' }}>
+                              +{formatUSD(p.club_reward)} club
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Prize */}
+                      {p.prize_usd != null && (
+                        <span className="text-sm font-bold tabular-nums shrink-0" style={{ color: '#4ade80' }}>
+                          {formatUSD(p.prize_usd)}
+                        </span>
+                      )}
+
+                      {/* Place badge */}
+                      <div className="flex items-center gap-1 shrink-0">
+                        {medal && <span className="text-base leading-none">{medal}</span>}
+                        <span className="text-xs font-black tabular-nums" style={{ color: placeColor }}>
+                          {p.place}
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           )}
 

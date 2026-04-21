@@ -17,6 +17,14 @@ export interface Team {
   created_at: string
 }
 
+export interface PrizePlacement {
+  place: string        // "1st", "2nd", "3rd-4th", "5th-6th", etc.
+  team: string         // team name — matched to DB for logo/slug
+  prize_usd?: number
+  ept_points?: number
+  club_reward?: number
+}
+
 export interface Tournament {
   id: string
   slug: string
@@ -32,6 +40,7 @@ export interface Tournament {
   liquipedia_url: string | null
   telegram_url: string | null
   opendota_league_id: number | null
+  prize_distribution: PrizePlacement[] | null
   location_name: string | null
   location_type: 'lan' | 'online' | null
   is_published: boolean
