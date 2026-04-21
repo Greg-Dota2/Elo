@@ -62,7 +62,7 @@ export default function PrizeTable({ placements, teamMap }: Props) {
         style={{
           borderBottom: '1px solid hsl(var(--border) / 0.4)',
           background: rowIndex % 2 !== 0 ? 'hsl(var(--secondary) / 0.15)' : 'transparent',
-          minWidth: 380,
+          minWidth: 480,
         }}
       >
         {/* Place badge — only shown on first entry of a group */}
@@ -81,7 +81,7 @@ export default function PrizeTable({ placements, teamMap }: Props) {
         </div>
 
         {/* Team logo + name */}
-        <div className="flex items-center gap-2 flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-1" style={{ minWidth: 140 }}>
           {team?.logo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
