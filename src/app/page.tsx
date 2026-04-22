@@ -7,6 +7,7 @@ import PSBracketView from '@/components/PSBracketView'
 import Link from 'next/link'
 import Image from 'next/image'
 import { fetchUpcomingTier1Matches, fetchRunningTier1Matches, fetchMatchesForSubTournament } from '@/lib/pandascore'
+import { TIER1_TOURNAMENTS } from '@/lib/tier1tournaments'
 
 export const revalidate = 300
 
@@ -31,12 +32,49 @@ export default async function HomePage() {
   const latest = tournaments[0] ?? null
   const rest = tournaments.slice(1)
 
-  const [latestMatches, latestStats] = latest
+  const tier1Entry = latest
+    ? TIER1_TOURNAMENTS.find(t => t.slug === latest.slug) as
+        | (typeof TIER1_TOURNAMENTS[0] & { ps_group_stage_id?: number })
+        | undefined
+    : undefined
+
+  const isLatestOver = latest?.end_date ? new Date(latest.end_date) < new Date() : false
+
+  const [latestMatches, latestStats, runningPS, swissMatches] = latest
     ? await Promise.all([
         getPredictionsByTournament(latest.id).catch(() => []),
         getTournamentStats(latest.id).catch(() => null),
+        isLatestOver ? Promise.resolve([]) : fetchRunningTier1Matches(20).catch(() => []),
+        isLatestOver ? Promise.resolve([]) : tier1Entry?.ps_group_stage_id
+          ? fetchMatchesForSubTournament(tier1Entry.ps_group_stage_id).catch(() => [])
+          : Promise.resolve([]),
       ])
-    : [[], null]
+    : [[], null, [], []]
+
+  // Build live score map from running PS sources
+  interface LiveScoreEntry { nameA: string; nameB: string; scoreA: number; scoreB: number }
+  const liveScoreMap = new Map<string, LiveScoreEntry>()
+  for (const m of [...swissMatches, ...runningPS]) {
+    if (m.status !== 'running') continue
+    const oppA = m.opponents[0]?.opponent
+    const oppB = m.opponents[1]?.opponent
+    if (!oppA || !oppB) continue
+    const scoreA = m.results.find(r => r.team_id === oppA.id)?.score ?? 0
+    const scoreB = m.results.find(r => r.team_id === oppB.id)?.score ?? 0
+    const entry: LiveScoreEntry = { nameA: oppA.name, nameB: oppB.name, scoreA, scoreB }
+    liveScoreMap.set(String(m.id), entry)
+    liveScoreMap.set([oppA.name.toLowerCase(), oppB.name.toLowerCase()].sort().join('|'), entry)
+  }
+
+  function resolveLiveScore(match: { pandascore_match_id: number | null; team_1?: { name: string } | null; team_2?: { name: string } | null }) {
+    const t1 = match.team_1?.name ?? ''
+    const t2 = match.team_2?.name ?? ''
+    let entry = match.pandascore_match_id ? liveScoreMap.get(String(match.pandascore_match_id)) : undefined
+    if (!entry) entry = liveScoreMap.get([t1.toLowerCase(), t2.toLowerCase()].sort().join('|'))
+    if (!entry) return undefined
+    const t1IsA = entry.nameA.toLowerCase() === t1.toLowerCase()
+    return { score1: t1IsA ? entry.scoreA : entry.scoreB, score2: t1IsA ? entry.scoreB : entry.scoreA }
+  }
 
   const featuredMatches = sortMatchesByStatus(latestMatches)
 
@@ -286,7 +324,7 @@ export default async function HomePage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     {activeMatches.map((match, i) => (
                       <div key={match.id} className="fade-in-up" style={{ animationDelay: `${i * 0.06}s` }}>
-                        <MatchCard match={match} showTournament tournament={latest ?? undefined} />
+                        <MatchCard match={match} showTournament tournament={latest ?? undefined} liveScore={resolveLiveScore(match)} />
                       </div>
                     ))}
                   </div>
@@ -331,7 +369,7 @@ export default async function HomePage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {finishedMatches.map((match, i) => (
                         <div key={match.id} className="fade-in-up" style={{ animationDelay: `${i * 0.06}s` }}>
-                          <MatchCard match={match} showTournament tournament={latest ?? undefined} />
+                          <MatchCard match={match} showTournament tournament={latest ?? undefined} liveScore={resolveLiveScore(match)} />
                         </div>
                       ))}
                     </div>

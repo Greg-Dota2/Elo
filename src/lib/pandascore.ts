@@ -104,6 +104,16 @@ export async function fetchTournamentStandings(tournamentId: number): Promise<PS
   return res.json()
 }
 
+export async function fetchSubTournamentsForSerie(serieId: number): Promise<Array<{ id: number; name: string }>> {
+  const url = new URL(`${BASE}/dota2/tournaments`)
+  url.searchParams.set('token', TOKEN)
+  url.searchParams.set('filter[serie_id]', String(serieId))
+  url.searchParams.set('per_page', '20')
+  const res = await fetch(url.toString(), { cache: 'no-store' })
+  if (!res.ok) return []
+  return res.json()
+}
+
 export async function fetchMatchesForSubTournament(tournamentId: number): Promise<PSMatch[]> {
   const url = new URL(`${BASE}/dota2/matches`)
   url.searchParams.set('token', TOKEN)

@@ -31,6 +31,9 @@ export default function EditTournamentPage({ params }: Props) {
   const [participantsJson, setParticipantsJson] = useState('')
   const [participantsSaving, setParticipantsSaving] = useState(false)
   const [participantsResult, setParticipantsResult] = useState('')
+  const [archiving, setArchiving] = useState(false)
+  const [archiveResult, setArchiveResult] = useState('')
+  const [clearingArchive, setClearingArchive] = useState(false)
 
   async function loadMatches(id: string) {
     const res = await fetch(`/api/admin/data?resource=matches&tournament_id=${id}`)
@@ -250,6 +253,40 @@ export default function EditTournamentPage({ params }: Props) {
     })
     setPrizeSaving(false)
     setPrizeResult(res.ok ? '✓ Saved' : '✗ Error saving')
+  }
+
+  async function handleArchiveGroupStage() {
+    setArchiving(true)
+    setArchiveResult('')
+    const res = await fetch('/api/admin/archive-group-stage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tournament_id: tournamentId }),
+    })
+    const data = await res.json()
+    setArchiving(false)
+    if (res.ok) {
+      setArchiveResult(`✓ Archived ${data.groups_count} group(s): ${data.group_names.join(', ')}`)
+    } else {
+      setArchiveResult(`✗ ${data.error}`)
+    }
+  }
+
+  async function handleClearArchive() {
+    if (!confirm('Remove the archived group stage data? The page will fall back to PandaScore.')) return
+    setClearingArchive(true)
+    const res = await fetch('/api/admin/archive-group-stage', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tournament_id: tournamentId }),
+    })
+    setClearingArchive(false)
+    if (res.ok) {
+      setArchiveResult('Archive cleared.')
+    } else {
+      const data = await res.json()
+      setArchiveResult(`✗ ${data.error}`)
+    }
   }
 
   if (!tournament) return <p style={{ color: 'var(--text-muted)' }}>Loading...</p>
@@ -535,6 +572,38 @@ export default function EditTournamentPage({ params }: Props) {
           {prizeResult && (
             <span className="text-sm font-medium" style={{ color: prizeResult.startsWith('✓') ? 'var(--correct)' : 'var(--wrong)' }}>
               {prizeResult}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* ── Archive Group Stage ── */}
+      <div className="rounded-lg p-5 mb-6" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+        <h2 className="font-semibold mb-1">Archive Group Stage</h2>
+        <p className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>
+          Fetches group stage data from PandaScore and stores it permanently in the DB. Use this after a tournament is over so the page never calls PandaScore for this data again.
+          Requires the tournament to be in <code className="text-xs px-1 py-0.5 rounded" style={{ background: 'var(--surface-2)' }}>tier1tournaments.ts</code> or have matches on PandaScore.
+        </p>
+        <div className="flex items-center gap-3 flex-wrap">
+          <button
+            onClick={handleArchiveGroupStage}
+            disabled={archiving}
+            className="px-4 py-2 rounded font-semibold text-sm disabled:opacity-50"
+            style={{ background: 'rgba(99,102,241,0.15)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.3)' }}
+          >
+            {archiving ? 'Fetching from PandaScore…' : '📦 Archive Group Stage from PandaScore'}
+          </button>
+          <button
+            onClick={handleClearArchive}
+            disabled={clearingArchive}
+            className="px-4 py-2 rounded font-semibold text-sm disabled:opacity-50"
+            style={{ background: 'rgba(239,68,68,0.08)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}
+          >
+            {clearingArchive ? 'Clearing…' : 'Clear archive'}
+          </button>
+          {archiveResult && (
+            <span className="text-sm font-medium" style={{ color: archiveResult.startsWith('✓') ? 'var(--correct)' : archiveResult.startsWith('Archive') ? 'var(--text-muted)' : 'var(--wrong)' }}>
+              {archiveResult}
             </span>
           )}
         </div>

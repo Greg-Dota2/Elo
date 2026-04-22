@@ -52,6 +52,7 @@ export interface Tournament {
   location_type: 'lan' | 'online' | null
   is_published: boolean
   created_at: string
+  group_stage_data: unknown
 }
 
 export interface Stage {

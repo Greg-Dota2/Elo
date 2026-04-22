@@ -41,6 +41,7 @@ interface Props {
   showTournament?: boolean
   tournament?: { name: string; slug?: string | null; logo_url: string | null; telegram_url?: string | null }
   h2h?: H2HData
+  liveScore?: { score1: number; score2: number }
 }
 
 function TeamLogo({ logo_url, name, dim }: { logo_url: string | null; name: string; dim?: boolean }) {
@@ -60,7 +61,7 @@ function TeamLogo({ logo_url, name, dim }: { logo_url: string | null; name: stri
   )
 }
 
-export default function MatchCard({ match, tournament, h2h }: Props) {
+export default function MatchCard({ match, tournament, h2h, liveScore }: Props) {
   const { team_1, team_2, is_correct } = match
   if (!team_1 || !team_2) return null
 
@@ -186,6 +187,24 @@ export default function MatchCard({ match, tournament, h2h }: Props) {
                   </span>
                 </div>
                 <span className="text-xs uppercase tracking-widest font-semibold text-muted-foreground/50">final</span>
+              </>
+            ) : liveScore ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <span className="font-display text-5xl font-black tabular-nums leading-none" style={{ color: 'hsl(var(--destructive))' }}>
+                    {liveScore.score1}
+                  </span>
+                  <span className="text-lg font-light text-muted-foreground/40">:</span>
+                  <span className="font-display text-5xl font-black tabular-nums leading-none" style={{ color: 'hsl(var(--destructive))' }}>
+                    {liveScore.score2}
+                  </span>
+                </div>
+                <span
+                  className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded"
+                  style={{ background: 'hsl(var(--destructive))', color: '#fff' }}
+                >
+                  LIVE
+                </span>
               </>
             ) : (
               <span className="font-display text-2xl font-black tracking-[0.22em] text-muted-foreground">VS</span>

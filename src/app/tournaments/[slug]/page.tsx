@@ -37,8 +37,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   try {
     const t = await getTournamentBySlug(slug)
     const title = `${t.name} — Predictions & Analysis`
-    const description = t.meta_description
-      ?? (t.overview ? t.overview.slice(0, 155) : `Match predictions, analysis, and accuracy tracking for ${t.name} on Dota2ProTips.`)
+    const description = (t.meta_description || t.overview?.slice(0, 155)) ||
+      `Match predictions, analysis, and accuracy tracking for ${t.name} on Dota2ProTips.`
     return {
       title,
       description,
@@ -176,13 +176,20 @@ export default async function TournamentPage({ params }: Props) {
     return { id: subId, name: subName, standings: derivedStandings, matches: allMatches }
   }
 
-  // If this tournament has manually managed group stages in the DB, use them —
-  // this lets admin-entered scores take effect immediately without waiting for PandaScore.
-  const dbGroups = await fetchGroupsFromDB(tournament.slug)
+  // 1. Archived PandaScore data stored permanently in the DB (highest priority for completed tournaments)
+  const archivedGroups = tournament.group_stage_data
+    ? (tournament.group_stage_data as GroupData[])
+    : null
+
+  // 2. Manually managed group stages via match_predictions + stages
+  const dbGroups = archivedGroups ? [] : await fetchGroupsFromDB(tournament.slug)
 
   let groupsData: GroupData[]
 
-  if (dbGroups.length > 0) {
+  if (archivedGroups && archivedGroups.length > 0) {
+    // Archived PandaScore snapshot — use directly, no API calls needed
+    groupsData = archivedGroups
+  } else if (dbGroups.length > 0) {
     // DB takes priority: admin has set up stages manually
     groupsData = dbGroups
   } else if (Object.keys(scheduleByGroup).length > 0) {
@@ -192,8 +199,8 @@ export default async function TournamentPage({ params }: Props) {
         buildGroupData(Number(subId), upcomingMatches[0].tournament.name, upcomingMatches)
       )
     ).then(groups => groups.filter(g => g.standings.length > 1))
-  } else {
-    // PandaScore fallback: no live matches — pull from recent finished
+  } else if (!isOver) {
+    // PandaScore fallback: no live matches — pull from recent finished (skip for completed tournaments)
     const recentFinished = await fetchRecentTier1Matches(100).catch(() => [])
     const finishedPsMatches = recentFinished.filter(m => {
       const psSlug = `${m.league.name}-${m.serie.full_name}`
@@ -213,6 +220,30 @@ export default async function TournamentPage({ params }: Props) {
         buildGroupData(Number(subId), matches[0].tournament.name, matches)
       )
     ).then(groups => groups.filter(g => g.standings.length > 1))
+  } else {
+    groupsData = []
+  }
+
+  // Build live score map from all PS sources: swissMatches, runningPS, and groupsData matches
+  // swissMatches is the same data the schedule section uses, so it's the most reliable for live scores
+  interface LiveScoreEntry { nameA: string; nameB: string; scoreA: number; scoreB: number }
+  const liveScoreMap = new Map<string, LiveScoreEntry>()
+  const liveMatchSources = [
+    ...swissMatches,
+    ...runningPS,
+    ...groupsData.flatMap(g => g.matches),
+  ]
+  for (const m of liveMatchSources) {
+    if (m.status !== 'running') continue
+    const oppA = m.opponents[0]?.opponent
+    const oppB = m.opponents[1]?.opponent
+    if (!oppA || !oppB) continue
+    const scoreA = m.results.find(r => r.team_id === oppA.id)?.score ?? 0
+    const scoreB = m.results.find(r => r.team_id === oppB.id)?.score ?? 0
+    const entry: LiveScoreEntry = { nameA: oppA.name, nameB: oppB.name, scoreA, scoreB }
+    liveScoreMap.set(String(m.id), entry)
+    const pairKey = [oppA.name.toLowerCase(), oppB.name.toLowerCase()].sort().join('|')
+    liveScoreMap.set(pairKey, entry)
   }
 
   const allTeamIds = [...new Set(predictions.flatMap(p => [p.team_1_id, p.team_2_id]))]
@@ -722,6 +753,7 @@ export default async function TournamentPage({ params }: Props) {
         stats={stats}
         teamAccuracy={teamAccuracy}
         h2hMap={h2hMap}
+        liveScoreMap={liveScoreMap}
       />
     </div>
   )
