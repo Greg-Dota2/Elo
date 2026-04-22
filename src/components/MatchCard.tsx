@@ -256,13 +256,13 @@ export default function MatchCard({ match, tournament, h2h, liveScore }: Props) 
                 href={`https://www.dotabuff.com/matches/${gameId}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold transition-opacity hover:opacity-80"
-                style={{ background: '#c23c2a', color: '#fff' }}
+                title={`Game ${i + 1} on Dotabuff`}
+                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-opacity hover:opacity-80"
+                style={{ background: 'hsl(var(--secondary))', color: '#c23c2a', border: '1px solid rgba(194,60,42,0.3)' }}
               >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/>
-                </svg>
-                Game {i + 1} on Dotabuff
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="https://www.dotabuff.com/favicon.ico" alt="Dotabuff" width={12} height={12} className="rounded-sm" />
+                G{i + 1}
               </a>
             ))}
           </div>

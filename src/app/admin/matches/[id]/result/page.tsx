@@ -39,6 +39,15 @@ export default function RecordResultPage({ params }: Props) {
       ? null
       : score1 > score2 ? match?.team_1_id : match?.team_2_id
 
+    // Collect Dotabuff game IDs — accept full URL or bare ID
+    const gameIds: number[] = []
+    for (let i = 1; i <= (match?.best_of ?? 1); i++) {
+      const raw = (form.get(`dotabuff_${i}`) as string ?? '').trim()
+      if (!raw) continue
+      const match_ = raw.match(/(\d{10,})/)
+      if (match_) gameIds.push(Number(match_[1]))
+    }
+
     const res = await fetch('/api/admin/matches', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -50,6 +59,7 @@ export default function RecordResultPage({ params }: Props) {
         predicted_winner_id: match?.predicted_winner_id,
         predicted_draw: match?.predicted_draw ?? false,
         post_commentary: form.get('post_commentary') || null,
+        dotabuff_game_ids: gameIds.length > 0 ? gameIds : null,
       }),
     })
 
@@ -101,6 +111,33 @@ export default function RecordResultPage({ params }: Props) {
               placeholder="0"
             />
           </Field>
+        </div>
+
+        {/* Dotabuff game IDs */}
+        <div className="grid gap-2">
+          <label className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
+            Dotabuff Game IDs
+            <span className="ml-2 text-xs font-normal" style={{ color: 'var(--text-subtle)' }}>
+              paste URL or bare ID — leave blank to skip
+            </span>
+          </label>
+          {Array.from({ length: match.best_of }, (_, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <span
+                className="shrink-0 w-16 text-center text-[10px] font-black rounded px-2 py-1"
+                style={{ background: '#c23c2a', color: '#fff' }}
+              >
+                Game {i + 1}
+              </span>
+              <input
+                name={`dotabuff_${i + 1}`}
+                type="text"
+                className={inputClass}
+                defaultValue={match.dotabuff_game_ids?.[i] ?? ''}
+                placeholder={`https://www.dotabuff.com/matches/…`}
+              />
+            </div>
+          ))}
         </div>
 
         <Field label="Post-match Commentary">
