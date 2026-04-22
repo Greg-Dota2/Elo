@@ -11,7 +11,12 @@ const ROUND_LABEL_H = 32              // per-round label row height
 const SECTION_LABEL_H = 24            // "Upper Bracket" / "Lower Bracket" label height
 const SECTION_GAP = 56                // vertical gap between UB and LB
 const GF_CONNECTOR_W = 64            // space between LB/UB Final and GF card
-const LINE = 'hsl(var(--border)/0.6)'
+const LINE = 'hsl(var(--border)/0.9)'
+
+const UB_COLOR = 'hsl(var(--primary))'
+const LB_COLOR = 'hsl(38 92% 50%)'   // amber/orange
+const UB_TINT  = 'hsl(var(--primary)/0.03)'
+const LB_TINT  = 'hsl(38 92% 50% / 0.03)'
 
 interface Round {
   name: string
@@ -28,13 +33,10 @@ function detectSection(name: string): 'upper' | 'lower' | 'grand_final' | null {
   return null
 }
 
-// "Upper bracket semifinal 2: AUR vs TUN"    → "Upper Bracket Semifinal"
-// "Lower bracket round 1 match 1: MOUZ vs X" → "Lower Bracket Round 1"
 function extractRoundLabel(matchName: string): string {
-  let label = matchName.replace(/\s*:\s*.+$/, '').trim()  // strip ": X vs Y"
-  label = label.replace(/\s+match\s*\d*$/i, '').trim()    // strip trailing " match 1" / " match"
-  label = label.replace(/(?<!\bround)\s+\d+$/i, '').trim() // strip trailing " 2", " 1" — but keep "Round 1"
-  // Title-case
+  let label = matchName.replace(/\s*:\s*.+$/, '').trim()
+  label = label.replace(/\s+match\s*\d*$/i, '').trim()
+  label = label.replace(/(?<!\bround)\s+\d+$/i, '').trim()
   return label.replace(/\b\w/g, c => c.toUpperCase()) || matchName
 }
 
@@ -46,7 +48,6 @@ function isBracketPhase(name: string): boolean {
   return /upper|lower|bracket|playoff|elimination|grand.?final/i.test(name) && !/group/i.test(name)
 }
 
-// Stable round ordering by name keywords — used when scheduled_at is unknown
 function roundOrderKey(name: string): number {
   const n = name.toLowerCase()
   if (/round.?1\b/.test(n) || /\br1\b/.test(n)) return 1
@@ -70,6 +71,13 @@ function PSBracketCard({ match }: { match: PSMatch }) {
   const hasResult = (isFinished || isLive) && scoreA !== undefined && scoreB !== undefined
   const aWon = isFinished && hasResult && scoreA! > scoreB!
   const bWon = isFinished && hasResult && scoreB! > scoreA!
+  const isTBD = !teamA && !teamB
+
+  const stripColor = isLive
+    ? 'hsl(var(--destructive))'
+    : isFinished
+      ? UB_COLOR
+      : `${UB_COLOR.replace(')', '/0.45)')}`
 
   const row = (
     team: PSMatch['opponents'][0]['opponent'] | undefined,
@@ -80,43 +88,50 @@ function PSBracketCard({ match }: { match: PSMatch }) {
   ) => (
     <div style={{
       height: MATCH_H / 2,
-      display: 'flex', alignItems: 'center', gap: 8,
-      padding: '0 10px',
-      borderBottom: divider ? '1px solid hsl(var(--border)/0.35)' : 'none',
-      background: won ? 'hsl(var(--success)/0.1)' : isLive ? 'hsl(var(--destructive)/0.04)' : 'transparent',
-      opacity: lost ? 0.42 : 1,
-      transition: 'background 0.2s',
+      display: 'flex', alignItems: 'center', gap: 9,
+      paddingLeft: 14, paddingRight: 10,
+      borderBottom: divider ? '1px solid hsl(var(--border)/0.2)' : 'none',
+      background: won
+        ? 'hsl(var(--primary)/0.08)'
+        : isLive
+          ? 'hsl(var(--destructive)/0.05)'
+          : 'transparent',
     }}>
-      {team?.image_url
-        ? <Image src={team.image_url} alt={team.name} width={18} height={18} style={{ objectFit: 'contain', flexShrink: 0 }} />
-        : <div style={{ width: 18, height: 18, borderRadius: 4, background: 'hsl(var(--secondary))', flexShrink: 0 }} />
-      }
+      <div style={{ opacity: lost ? 0.3 : 1, flexShrink: 0, display: 'flex' }}>
+        {team?.image_url
+          ? <Image src={team.image_url} alt={team.name} width={20} height={20} style={{ objectFit: 'contain' }} />
+          : <div style={{ width: 20, height: 20, borderRadius: 4, background: 'hsl(var(--secondary))' }} />
+        }
+      </div>
       {team ? (
         <Link href={`/teams/${toTeamSlug(team.name)}`} style={{
           flex: 1, minWidth: 0,
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          fontSize: 13, fontWeight: won ? 700 : 500,
-          color: won ? 'hsl(var(--foreground))' : 'hsl(var(--foreground)/0.9)',
+          fontSize: 14, fontWeight: 700, letterSpacing: '-0.02em',
+          color: won
+            ? UB_COLOR
+            : lost
+              ? 'hsl(var(--foreground)/0.28)'
+              : 'hsl(var(--foreground)/0.88)',
           textDecoration: 'none',
         }}>
           {team.name}
         </Link>
       ) : (
         <span style={{
-          flex: 1, minWidth: 0,
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          fontSize: 13, fontWeight: 400, color: 'hsl(var(--muted-foreground)/0.9)',
-          fontStyle: 'italic',
+          flex: 1, fontSize: 11, fontWeight: 500, letterSpacing: '0.06em',
+          color: 'hsl(var(--muted-foreground)/0.35)', fontStyle: 'italic',
         }}>
           TBD
         </span>
       )}
       {hasResult && score !== undefined && (
         <span style={{
-          fontSize: 15, fontWeight: 800, flexShrink: 0, minWidth: 14, textAlign: 'right',
+          fontSize: 17, fontWeight: 900, flexShrink: 0, minWidth: 18, textAlign: 'right',
+          fontFamily: 'var(--font-oxanium, monospace)',
           color: isLive
             ? 'hsl(var(--destructive))'
-            : won ? 'hsl(var(--success))' : 'hsl(var(--muted-foreground)/0.5)',
+            : won ? LB_COLOR : 'hsl(var(--foreground)/0.22)',
         }}>
           {score}
         </span>
@@ -128,26 +143,33 @@ function PSBracketCard({ match }: { match: PSMatch }) {
     <div style={{
       width: MATCH_W, height: MATCH_H,
       borderRadius: 10, overflow: 'hidden',
-      border: isLive
-        ? '1.5px solid hsl(var(--destructive)/0.55)'
-        : isFinished
-          ? '1px solid hsl(var(--border)/0.5)'
-          : '1px solid hsl(var(--border)/0.7)',
-      background: 'hsl(var(--card))',
+      border: isTBD
+        ? '1px dashed hsl(var(--border)/0.3)'
+        : isLive
+          ? '1.5px solid hsl(var(--destructive)/0.5)'
+          : '1px solid hsl(var(--border)/0.55)',
+      background: isTBD ? 'transparent' : 'hsl(var(--card))',
+      opacity: isTBD ? 0.38 : 1,
       flexShrink: 0,
       boxShadow: isLive
-        ? '0 0 0 3px hsl(var(--destructive)/0.1), 0 2px 12px hsl(var(--background)/0.5)'
-        : '0 1px 6px hsl(var(--background)/0.4)',
+        ? '0 0 0 3px hsl(var(--destructive)/0.12), 0 4px 20px hsl(var(--background)/0.7)'
+        : isTBD ? 'none'
+          : '0 2px 12px hsl(var(--background)/0.65)',
       position: 'relative',
     }}>
+      {!isTBD && (
+        <div style={{
+          position: 'absolute', left: 0, top: 0, bottom: 0, width: 4,
+          background: stripColor,
+        }} />
+      )}
       {isLive && (
         <div style={{
-          position: 'absolute', top: 4, right: 6,
-          fontSize: 10, fontWeight: 800, letterSpacing: '0.08em',
-          padding: '1px 4px', borderRadius: 3,
+          position: 'absolute', top: 5, right: 7,
+          fontSize: 9, fontWeight: 900, letterSpacing: '0.1em',
+          padding: '2px 5px', borderRadius: 4,
           background: 'hsl(var(--destructive))',
-          color: '#fff',
-          lineHeight: 1.4, zIndex: 1, pointerEvents: 'none',
+          color: '#fff', lineHeight: 1.4, zIndex: 1, pointerEvents: 'none',
         }}>
           LIVE
         </div>
@@ -159,19 +181,23 @@ function PSBracketCard({ match }: { match: PSMatch }) {
 }
 
 // ── Bracket section (upper or lower) ─────────────────────────────────────────
-// firstCount: match count in the first (leftmost) round — used to fix slot heights
-// so every round column has the same total rendered height regardless of match count.
-function PSBracketSection({ rounds, firstCount, connectorW = CONNECTOR_W }: { rounds: Round[]; firstCount: number; connectorW?: number }) {
+function PSBracketSection({
+  rounds, firstCount, connectorW = CONNECTOR_W, labelColor = UB_COLOR,
+}: {
+  rounds: Round[]
+  firstCount: number
+  connectorW?: number
+  labelColor?: string
+}) {
   const sorted = [...rounds].sort((a, b) => a.order - b.order)
   if (!sorted.length) return null
 
-  const totalSectionH = firstCount * SLOT_BASE  // constant across all columns
+  const totalSectionH = firstCount * SLOT_BASE
 
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start' }}>
       {sorted.map((round, ri) => {
         const count = round.matches.length
-        // Slot height scales so total height = firstCount × SLOT_BASE always
         const slotH = Math.round(totalSectionH / count)
         const isLast = ri === sorted.length - 1
         const nextCount = sorted[ri + 1]?.matches.length ?? 0
@@ -184,8 +210,9 @@ function PSBracketSection({ rounds, firstCount, connectorW = CONNECTOR_W }: { ro
               <div style={{
                 width: MATCH_W, height: ROUND_LABEL_H,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
-                letterSpacing: '0.12em', color: 'hsl(var(--primary)/0.8)',
+                fontSize: 9, fontWeight: 900, textTransform: 'uppercase',
+                letterSpacing: '0.18em', color: labelColor,
+                opacity: 0.75,
               }}>
                 {round.name}
               </div>
@@ -200,23 +227,37 @@ function PSBracketSection({ rounds, firstCount, connectorW = CONNECTOR_W }: { ro
             {!isLast && (
               <div style={{ flexShrink: 0, width: connectorW, paddingTop: ROUND_LABEL_H }}>
                 {isHalving
-                  // Fork: pairs of matches feed into one next-round slot
                   ? Array.from({ length: Math.ceil(count / 2) }).map((_, gi) => {
                       const groupH = slotH * 2
                       const topY = slotH / 2
                       const botY = slotH + slotH / 2
+                      const midY = groupH / 2
                       return (
                         <div key={gi} style={{ position: 'relative', height: groupH, width: connectorW }}>
-                          <div style={{ position: 'absolute', top: topY, left: 0, right: 0, height: 2, background: LINE }} />
-                          <div style={{ position: 'absolute', top: topY, bottom: groupH - botY, right: 0, width: 2, background: LINE }} />
-                          <div style={{ position: 'absolute', top: botY, left: 0, right: 0, height: 2, background: LINE }} />
+                          <div style={{ position: 'absolute', top: topY - 1, left: 0, width: connectorW / 2, height: 2, background: LINE }} />
+                          <div style={{ position: 'absolute', top: topY - 1, bottom: groupH - botY - 1, left: connectorW / 2, width: 2, background: LINE }} />
+                          <div style={{ position: 'absolute', top: botY - 1, left: 0, width: connectorW / 2, height: 2, background: LINE }} />
+                          <div style={{ position: 'absolute', top: midY - 1, left: connectorW / 2, right: 6, height: 2, background: LINE }} />
+                          <div style={{
+                            position: 'absolute', right: 0, top: midY - 5,
+                            width: 0, height: 0,
+                            borderTop: '6px solid transparent',
+                            borderBottom: '6px solid transparent',
+                            borderLeft: `8px solid ${LINE}`,
+                          }} />
                         </div>
                       )
                     })
-                  // Straight: one-to-one pass-through (same match count next round)
                   : round.matches.map((_, mi) => (
                       <div key={mi} style={{ position: 'relative', height: slotH, width: connectorW }}>
-                        <div style={{ position: 'absolute', top: slotH / 2, left: 0, right: 0, height: 2, background: LINE }} />
+                        <div style={{ position: 'absolute', top: slotH / 2 - 1, left: 0, right: 6, height: 2, background: LINE }} />
+                        <div style={{
+                          position: 'absolute', right: 0, top: slotH / 2 - 5,
+                          width: 0, height: 0,
+                          borderTop: '6px solid transparent',
+                          borderBottom: '6px solid transparent',
+                          borderLeft: `8px solid ${LINE}`,
+                        }} />
                       </div>
                     ))
                 }
@@ -231,7 +272,6 @@ function PSBracketSection({ rounds, firstCount, connectorW = CONNECTOR_W }: { ro
 
 // ── Main export ───────────────────────────────────────────────────────────────
 export default function PSBracketView({ groups }: { groups: { name: string; matches: PSMatch[] }[] }) {
-  // Deduplicate and tag each match with its group's section
   const seen = new Set<number>()
   const tagged = groups
     .filter(g => isBracketPhase(g.name))
@@ -244,11 +284,9 @@ export default function PSBracketView({ groups }: { groups: { name: string; matc
 
   if (!tagged.length) return null
 
-  // Group by section + round label
   const roundMap = new Map<string, { section: 'upper' | 'lower' | 'grand_final'; matches: PSMatch[] }>()
   for (const { m, groupSection } of tagged) {
     const label = extractRoundLabel(m.name)
-    // Use group name for section when possible; fall back to match name
     const section: 'upper' | 'lower' | 'grand_final' =
       groupSection ?? detectSection(m.name) ?? 'upper'
     const key = `${section}::${label}`
@@ -256,7 +294,6 @@ export default function PSBracketView({ groups }: { groups: { name: string; matc
     roundMap.get(key)!.matches.push(m)
   }
 
-  // Build rounds — sort by round keyword order (primary), then scheduled_at (secondary)
   const rounds: Round[] = Array.from(roundMap.entries()).map(([key, { section, matches }]) => {
     const label = key.split('::')[1]
     const keywordOrder = roundOrderKey(label)
@@ -277,42 +314,36 @@ export default function PSBracketView({ groups }: { groups: { name: string; matc
 
   const hasUL = upper.length > 0 && lower.length > 0
 
-  // First-round match counts (for slot height scaling)
   const ubFirst = Math.max(upper[0]?.matches.length ?? 1, 1)
   const lbFirst = Math.max(lower[0]?.matches.length ?? 1, 1)
 
-  // Section widths — N rounds = N × MATCH_W + (N-1) × CONNECTOR_W
   const ubW = upper.length * MATCH_W + Math.max(0, upper.length - 1) * CONNECTOR_W
   const lbW = lower.length * MATCH_W + Math.max(0, lower.length - 1) * CONNECTOR_W
-  // Shift UB one column left so UB Semis aligns with LB QF (not LB SF)
-  // Then widen the UB connector so UB Final still aligns with LB Final (same right edge)
   const ubOffset = Math.max(0, lbW - ubW - (MATCH_W + CONNECTOR_W))
   const lbOffset = Math.max(0, ubW - lbW)
-  // Custom UB connector width: fills the extra space so both sections end at the same x
   const ubConnW = upper.length > 1
     ? Math.max(CONNECTOR_W, (lbW - ubOffset - MATCH_W * upper.length) / (upper.length - 1))
     : CONNECTOR_W
 
-  // Section content heights (label row + match slots)
   const ubSectionH = ROUND_LABEL_H + ubFirst * SLOT_BASE
   const lbSectionH = ROUND_LABEL_H + lbFirst * SLOT_BASE
 
-  // Y-centers of UB Final and LB Final for the GF connector lines
   const ubLabelH = hasUL ? SECTION_LABEL_H : 0
   const lbLabelH = hasUL ? SECTION_LABEL_H : 0
   const ubFinalCenterY = ubLabelH + ROUND_LABEL_H + (ubFirst * SLOT_BASE) / 2
   const lbTopY = ubLabelH + ubSectionH + SECTION_GAP + lbLabelH
   const lbFinalCenterY = lbTopY + ROUND_LABEL_H + (lbFirst * SLOT_BASE) / 2
-
-  // GF card center = midpoint between UB Final and LB Final centers
   const gfCenterY = (ubFinalCenterY + lbFinalCenterY) / 2
   const gfTopPad = Math.max(0, gfCenterY - ROUND_LABEL_H - MATCH_H / 2)
-
-  // Total height of left column (for the connector div)
   const totalLeftH = ubLabelH + ubSectionH + (lower.length > 0 ? SECTION_GAP + lbLabelH + lbSectionH : 0)
 
-  const sectionLabel = (text: string) => (
-    <div style={{ height: SECTION_LABEL_H, display: 'flex', alignItems: 'center', fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.18em', color: 'hsl(var(--muted-foreground)/0.7)' }}>
+  const sectionLabel = (text: string, color: string) => (
+    <div style={{
+      height: SECTION_LABEL_H, display: 'flex', alignItems: 'center', gap: 8,
+      fontSize: 9, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.22em',
+      color,
+    }}>
+      <div style={{ width: 24, height: 2, background: color, borderRadius: 1, opacity: 0.6 }} />
       {text}
     </div>
   )
@@ -320,36 +351,42 @@ export default function PSBracketView({ groups }: { groups: { name: string; matc
   return (
     <div className="mb-6">
       <p className="section-label mb-4">Playoff Bracket</p>
-      <div className="rounded-2xl p-6 overflow-x-auto" style={{ background: 'hsl(var(--card)/0.5)', border: '1px solid hsl(var(--border)/0.6)' }}>
+      <div className="rounded-2xl p-6 overflow-x-auto" style={{ background: 'hsl(var(--card)/0.4)', border: '1px solid hsl(var(--border)/0.6)' }}>
         <div style={{ display: 'inline-flex', flexDirection: 'row', alignItems: 'flex-start', minWidth: 'max-content' }}>
 
-          {/* Left column: UB on top (offset right), LB below (offset left) — finals align */}
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             {upper.length > 0 && (
               <div style={{ marginLeft: ubOffset }}>
-                {hasUL && sectionLabel('Upper Bracket')}
-                <PSBracketSection rounds={upper} firstCount={ubFirst} connectorW={ubConnW} />
+                {hasUL && sectionLabel('Upper Bracket', UB_COLOR)}
+                <div style={{ background: UB_TINT, borderRadius: 12 }}>
+                  <PSBracketSection rounds={upper} firstCount={ubFirst} connectorW={ubConnW} labelColor={UB_COLOR} />
+                </div>
               </div>
             )}
             {lower.length > 0 && (
               <div style={{ marginTop: SECTION_GAP, marginLeft: lbOffset }}>
-                {hasUL && sectionLabel('Lower Bracket')}
-                <PSBracketSection rounds={lower} firstCount={lbFirst} />
+                {hasUL && sectionLabel('Lower Bracket', LB_COLOR)}
+                <div style={{ background: LB_TINT, borderRadius: 12 }}>
+                  <PSBracketSection rounds={lower} firstCount={lbFirst} labelColor={LB_COLOR} />
+                </div>
               </div>
             )}
           </div>
 
-          {/* GF connector: lines from UB Final + LB Final meeting at GF midpoint */}
+          {/* GF connector */}
           {gfMatch && hasUL && (
             <div style={{ position: 'relative', width: GF_CONNECTOR_W, height: totalLeftH, flexShrink: 0 }}>
-              {/* Horizontal from UB Final → midpoint */}
-              <div style={{ position: 'absolute', top: ubFinalCenterY, left: 0, width: GF_CONNECTOR_W / 2, height: 2, background: LINE }} />
-              {/* Horizontal from LB Final → midpoint */}
-              <div style={{ position: 'absolute', top: lbFinalCenterY, left: 0, width: GF_CONNECTOR_W / 2, height: 2, background: LINE }} />
-              {/* Vertical joining UB Final and LB Final at the midpoint */}
-              <div style={{ position: 'absolute', left: GF_CONNECTOR_W / 2, top: ubFinalCenterY, height: lbFinalCenterY - ubFinalCenterY, width: 2, background: LINE }} />
-              {/* Horizontal from midpoint → GF */}
-              <div style={{ position: 'absolute', top: gfCenterY, left: GF_CONNECTOR_W / 2, right: 0, height: 2, background: LINE }} />
+              <div style={{ position: 'absolute', top: ubFinalCenterY - 1, left: 0, width: GF_CONNECTOR_W / 2, height: 2, background: LINE }} />
+              <div style={{ position: 'absolute', top: lbFinalCenterY - 1, left: 0, width: GF_CONNECTOR_W / 2, height: 2, background: LINE }} />
+              <div style={{ position: 'absolute', left: GF_CONNECTOR_W / 2, top: ubFinalCenterY - 1, height: lbFinalCenterY - ubFinalCenterY, width: 2, background: LINE }} />
+              <div style={{ position: 'absolute', top: gfCenterY - 1, left: GF_CONNECTOR_W / 2, right: 6, height: 2, background: LINE }} />
+              <div style={{
+                position: 'absolute', right: 0, top: gfCenterY - 6,
+                width: 0, height: 0,
+                borderTop: '7px solid transparent',
+                borderBottom: '7px solid transparent',
+                borderLeft: `9px solid ${LINE}`,
+              }} />
             </div>
           )}
 
@@ -359,8 +396,8 @@ export default function PSBracketView({ groups }: { groups: { name: string; matc
               <div style={{
                 width: MATCH_W, height: ROUND_LABEL_H,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
-                letterSpacing: '0.12em', color: 'hsl(var(--primary))',
+                fontSize: 9, fontWeight: 900, textTransform: 'uppercase',
+                letterSpacing: '0.18em', color: 'hsl(var(--primary))',
               }}>
                 Grand Final
               </div>

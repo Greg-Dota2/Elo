@@ -149,12 +149,12 @@ export default function MatchCard({ match, tournament, h2h, liveScore }: Props) 
         {/* ── ELO win probability bar ── */}
         {team_1.current_elo && team_2.current_elo && (
           <div className="mt-6">
-            <div className="flex justify-between text-xs font-semibold mb-1.5" style={{ color: 'hsl(var(--muted-foreground))' }}>
-              <span style={{ color: pctA >= 50 ? 'hsl(var(--success))' : '#f59e0b' }}>{pctA}%</span>
-              <span className="uppercase tracking-widest text-[10px]">ELO Win Probability</span>
-              <span style={{ color: pctB >= 50 ? 'hsl(var(--success))' : '#f59e0b' }}>{pctB}%</span>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm font-black tabular-nums" style={{ color: pctA >= 50 ? 'hsl(var(--success))' : '#f59e0b' }}>{pctA}%</span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: 'hsl(var(--muted-foreground)/0.6)' }}>ELO Win Probability</span>
+              <span className="text-sm font-black tabular-nums" style={{ color: pctB >= 50 ? 'hsl(var(--success))' : '#f59e0b' }}>{pctB}%</span>
             </div>
-            <div className="h-1.5 rounded-full overflow-hidden flex">
+            <div className="h-2.5 rounded-full overflow-hidden flex">
               <div className="h-full" style={{ width: `${pctA}%`, background: pctA >= 50 ? 'hsl(var(--success))' : '#f59e0b' }} />
               <div className="h-full" style={{ width: `${pctB}%`, background: pctB >= 50 ? 'hsl(var(--success))' : '#f59e0b' }} />
             </div>
@@ -258,7 +258,7 @@ export default function MatchCard({ match, tournament, h2h, liveScore }: Props) 
                 rel="noopener noreferrer"
                 title={`Game ${i + 1} on Dotabuff`}
                 className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-opacity hover:opacity-80"
-                style={{ background: 'hsl(var(--secondary))', color: '#c23c2a', border: '1px solid rgba(194,60,42,0.3)' }}
+                style={{ background: 'hsl(var(--secondary))', color: 'hsl(var(--muted-foreground))', border: '1px solid hsl(var(--border)/0.8)' }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="https://www.dotabuff.com/favicon.ico" alt="Dotabuff" width={12} height={12} className="rounded-sm" />
@@ -308,32 +308,23 @@ export default function MatchCard({ match, tournament, h2h, liveScore }: Props) 
 
         {/* ── Prediction section ── */}
         {hasPrediction && (
-          <div className="mt-8 rounded-[1.5rem] border border-border/70 bg-background/45 p-4 md:p-5">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                  Prediction
-                </p>
-                <div className="mt-2 flex items-center gap-2">
-                  {effectiveIsCorrect === false
-                    ? <IconX className="h-4 w-4 flex-shrink-0" style={{ color: 'hsl(var(--destructive))' }} />
-                    : <IconTrendingUp className="h-4 w-4 flex-shrink-0" style={{ color: predictedDraw ? '#f59e0b' : 'hsl(var(--success))' }} />
-                  }
-                  {pick?.logo_url && (
-                    <Image src={pick.logo_url} alt={pick.name} width={24} height={24} className="w-6 h-6 object-contain shrink-0" />
-                  )}
-                  <p
-                    className="font-display text-2xl font-bold"
-                    style={{ color: effectiveIsCorrect === false ? 'hsl(var(--destructive))' : predictedDraw ? '#f59e0b' : 'hsl(var(--success))' }}
-                  >
-                    {pick ? pick.name : 'Draw (1–1)'}
-                  </p>
-                </div>
-              </div>
-
+          <div className="mt-8 rounded-[1.5rem] p-4 md:p-5" style={{
+            background: 'hsl(var(--secondary)/0.6)',
+            border: '1px solid hsl(var(--border)/0.7)',
+            borderTop: '2px solid hsl(var(--border))',
+          }}>
+            {/* Label + outcome badge row */}
+            <div className="flex items-center justify-between mb-4">
+              <span
+                className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.2em]"
+                style={{ color: 'hsl(var(--primary))' }}
+              >
+                <span className="text-base leading-none">◎</span>
+                Prediction
+              </span>
               {hasResult && effectiveIsCorrect !== null ? (
                 <span
-                  className="w-fit rounded-full px-3 py-1.5 text-sm font-semibold border"
+                  className="rounded-full px-3 py-1.5 text-sm font-semibold border"
                   style={
                     effectiveIsCorrect
                       ? { background: 'hsl(var(--success) / 0.09)', color: 'hsl(var(--success))', borderColor: 'hsl(var(--success) / 0.22)' }
@@ -343,8 +334,25 @@ export default function MatchCard({ match, tournament, h2h, liveScore }: Props) 
                   {effectiveIsCorrect ? '✓ Correct' : '✗ Wrong'}
                 </span>
               ) : !hasResult ? (
-                <span className="stat-badge-success w-fit">{confidence}% confidence</span>
+                <span className="stat-badge-success">{confidence}% confidence</span>
               ) : null}
+            </div>
+
+            {/* Pick */}
+            <div className="flex items-center gap-2">
+              {effectiveIsCorrect === false
+                ? <IconX className="h-4 w-4 flex-shrink-0" style={{ color: 'hsl(var(--destructive))' }} />
+                : <IconTrendingUp className="h-4 w-4 flex-shrink-0" style={{ color: predictedDraw ? '#f59e0b' : 'hsl(var(--success))' }} />
+              }
+              {pick?.logo_url && (
+                <Image src={pick.logo_url} alt={pick.name} width={24} height={24} className="w-6 h-6 object-contain shrink-0" />
+              )}
+              <p
+                className="font-display text-2xl font-bold"
+                style={{ color: effectiveIsCorrect === false ? 'hsl(var(--destructive))' : predictedDraw ? '#f59e0b' : 'hsl(var(--success))' }}
+              >
+                {pick ? pick.name : 'Draw (1–1)'}
+              </p>
             </div>
 
             {match.pre_analysis && (
