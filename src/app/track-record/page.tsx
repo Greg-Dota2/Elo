@@ -5,17 +5,17 @@ import { createClient } from '@/lib/supabase/server'
 export const revalidate = 300
 
 export const metadata: Metadata = {
-  title: 'Track Record',
-  description: 'Full prediction history across every Tier 1 Dota 2 tournament — accuracy, correct picks, and results.',
+  title: 'My Dota 2 Prediction Track Record',
+  description: '154 picks across 4 Tier 1 tournaments. 67% accuracy overall. Every correct and every wrong call is here — by tournament, no edits, no hiding. See how the picks hold up.',
   openGraph: {
-    title: 'Track Record | Dota2ProTips',
-    description: 'Full prediction history across every Tier 1 Dota 2 tournament — accuracy, correct picks, and results.',
+    title: 'My Dota 2 Prediction Track Record',
+    description: '154 picks across 4 Tier 1 tournaments. 67% accuracy overall. Every correct and every wrong call is here — no edits, no hiding.',
     url: '/track-record',
   },
   twitter: {
     card: 'summary',
-    title: 'Track Record | Dota2ProTips',
-    description: 'Full prediction history across every Tier 1 Dota 2 tournament — accuracy, correct picks, and results.',
+    title: 'My Dota 2 Prediction Track Record',
+    description: '154 picks across 4 Tier 1 tournaments. 67% accuracy overall. Every correct and every wrong call is here — no edits, no hiding.',
   },
   alternates: { canonical: '/track-record' },
 }

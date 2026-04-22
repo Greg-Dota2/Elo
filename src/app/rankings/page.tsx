@@ -6,12 +6,12 @@ import { createAdminClient } from '@/lib/supabase/admin'
 export const revalidate = 300
 
 export const metadata: Metadata = {
-  title: 'Dota 2 ELO Rankings',
-  description: 'ELO power rankings for Tier 1 Dota 2 teams, updated after every series result. See which teams are climbing and who\'s falling behind.',
+  title: 'Dota 2 ELO Team Rankings 2026',
+  description: 'Dota 2 ELO team rankings updated after every Tier 1 series. Weighted by opponent strength — a live snapshot of which teams are actually performing right now, not six months ago.',
   keywords: ['Dota 2 ELO rankings', 'Dota 2 power rankings', 'best Dota 2 teams', 'Dota 2 team ratings', 'Dota 2 standings'],
   alternates: { canonical: '/rankings' },
-  openGraph: { title: 'Dota 2 ELO Rankings', description: 'ELO power rankings for Tier 1 Dota 2 teams, updated after every series result. See which teams are climbing and who\'s falling behind.', url: '/rankings' },
-  twitter: { card: 'summary', title: 'Dota 2 ELO Rankings', description: 'ELO power rankings for Tier 1 Dota 2 teams, updated after every series result. See which teams are climbing and who\'s falling behind.' },
+  openGraph: { title: 'Dota 2 ELO Team Rankings 2026', description: 'Dota 2 ELO team rankings updated after every Tier 1 series. Weighted by opponent strength — a live snapshot of which teams are actually performing right now.', url: '/rankings' },
+  twitter: { card: 'summary', title: 'Dota 2 ELO Team Rankings 2026', description: 'Dota 2 ELO team rankings updated after every Tier 1 series. Weighted by opponent strength.' },
 }
 
 const MEDAL = ['🥇', '🥈', '🥉']
@@ -40,6 +40,38 @@ export default async function RankingsPage() {
         <h1 className="text-3xl font-black tracking-tight mb-1">ELO Rankings</h1>
         <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
           Updated after every series result
+        </p>
+      </div>
+
+      {/* How the rankings work */}
+      <div
+        className="rounded-2xl p-7 mb-8 text-sm leading-7 space-y-4"
+        style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}
+      >
+        <h2 className="font-display text-base font-black tracking-tight" style={{ color: 'var(--text)' }}>
+          How the rankings work
+        </h2>
+        <p>
+          Every team starts at 1500. That&apos;s it. No reputation bonus, no legacy points, nothing.
+          You earn your rating by winning — and losing it by losing.
+        </p>
+        <p>
+          The only thing that matters is <span className="font-semibold" style={{ color: 'var(--text)' }}>who you beat</span>.
+          Beat a top-ranked team and you gain a lot. Beat a bottom-ranked team and you gain almost nothing.
+          Lose to anyone and the opposite happens. A Bo3 and a Bo5 count the same — a series is a series.
+          And only Tier 1 results count. Qualifiers, lower-tier events, showmatches — none of that is in here.
+          I don&apos;t care how dominant you looked in a closed qualifier.{' '}
+          <span className="font-semibold" style={{ color: 'var(--text)' }}>Show me a Tier 1 result.</span>
+        </p>
+        <p>
+          What this means in practice: if you were the best team six months ago but you&apos;ve been losing lately,
+          you will drop. If you&apos;re a team nobody expected anything from and you&apos;ve been winning, you will
+          climb. The rating doesn&apos;t care about your history. It only cares about what you&apos;ve done recently.
+        </p>
+        <p>
+          The <span className="font-semibold" style={{ color: 'var(--text)' }}>+/− number</span> next to each rating
+          is the movement from that 1500 base. +225 means Tundra has earned 225 points above baseline. −57 means
+          REKONIX has lost 57 from where they started. Simple as that.
         </p>
       </div>
 

@@ -7,13 +7,13 @@ import type { Transfer } from '@/lib/types'
 export const revalidate = 300
 
 export const metadata: Metadata = {
-  title: 'Dota 2 Transfer News — Roster Moves & Signings',
-  description: 'Latest Dota 2 pro player transfers, signings, and roster changes across Tier 1 teams. Updated as moves are announced.',
+  title: 'Dota 2 Roster Moves & Player Transfers',
+  description: 'The latest Dota 2 roster changes and player transfers — tracked as they happen. Who\'s joining, who\'s leaving, and what it means for the teams heading into the next tournament.',
   keywords: ['Dota 2 transfers', 'Dota 2 roster changes', 'Dota 2 signings', 'pro Dota 2 roster', 'Dota 2 free agents'],
   alternates: { canonical: '/transfers' },
   openGraph: {
-    title: 'Dota 2 Transfer News — Roster Moves & Signings',
-    description: 'Latest Dota 2 pro player transfers, signings, and roster changes across Tier 1 teams.',
+    title: 'Dota 2 Roster Moves & Player Transfers',
+    description: 'The latest Dota 2 roster changes and player transfers — tracked as they happen.',
     url: '/transfers',
   },
 }

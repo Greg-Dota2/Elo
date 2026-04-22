@@ -12,8 +12,8 @@ import { TIER1_TOURNAMENTS } from '@/lib/tier1tournaments'
 export const revalidate = 300
 
 export const metadata: Metadata = {
-  title: 'Dota2ProTips — Dota 2 Match Predictions',
-  description: 'Expert Dota 2 match predictions for Tier 1 pro tournaments — pre-match analysis, ELO rankings, and accuracy tracked across every pick. See who wins before they play.',
+  title: 'Dota 2 Pro Match Predictions & Analysis',
+  description: 'Expert Dota 2 match predictions for every Tier 1 tournament — written before the draft, tracked publicly, with honest aftermath on every call. ~70% accuracy across hundreds of picks.',
   keywords: [
     'Dota 2 predictions', 'Dota 2 match predictions', 'Dota 2 match analysis',
     'Dota 2 esports', 'pro Dota 2', 'Dota 2 tips',

@@ -5,17 +5,18 @@ import { createClient } from '@/lib/supabase/server'
 export const revalidate = 300
 
 export const metadata: Metadata = {
-  title: 'Blog',
-  description: 'Dota 2 match analysis, tournament breakdowns, and meta reads by Greg Spencer — a former semi-pro tracking Tier 1 Dota 2.',
+  title: 'Dota 2 Analysis & Tournament Breakdowns',
+  description: 'Match breakdowns, meta analysis, and tournament recaps from someone who watches every single game. No generic takes — just honest Dota 2 writing from Greg at Dota2ProTips.',
+  keywords: ['Dota 2 analysis', 'Dota 2 blog', 'Dota 2 tournament breakdown', 'Dota 2 meta', 'pro Dota 2 predictions'],
   openGraph: {
-    title: 'Blog | Dota2ProTips',
-    description: 'Dota 2 match analysis, tournament breakdowns, and meta reads by Greg Spencer — a former semi-pro tracking Tier 1 Dota 2.',
+    title: 'Dota 2 Analysis & Tournament Breakdowns',
+    description: 'Match breakdowns, meta analysis, and tournament recaps from someone who watches every single game. No generic takes — just honest Dota 2 writing from Greg at Dota2ProTips.',
     url: '/blog',
   },
   twitter: {
     card: 'summary',
-    title: 'Blog | Dota2ProTips',
-    description: 'Dota 2 match analysis, tournament breakdowns, and meta reads by Greg Spencer — a former semi-pro tracking Tier 1 Dota 2.',
+    title: 'Dota 2 Analysis & Tournament Breakdowns',
+    description: 'Match breakdowns, meta analysis, and tournament recaps from someone who watches every single game. No generic takes — just honest Dota 2 writing from Greg.',
   },
   alternates: { canonical: '/blog' },
 }

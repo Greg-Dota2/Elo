@@ -85,10 +85,10 @@ export default function TournamentContent({ tournament, stages, stats, teamAccur
                   <div className="w-1 h-5 rounded-full shrink-0" style={{ background: 'var(--accent)' }} />
                   <h2 className="font-bold text-base">
                     {dateKey !== 'undated'
-                      ? new Date(`${dateKey}T00:00:00Z`).toLocaleDateString('en-US', {
+                      ? `${new Date(`${dateKey}T00:00:00Z`).toLocaleDateString('en-US', {
                           month: 'long', day: 'numeric', year: 'numeric', timeZone: 'Europe/Athens',
-                        })
-                      : 'Matches'}
+                        })} Predictions`
+                      : 'Match Predictions'}
                   </h2>
                 </div>
                 {tournament.liquipedia_url && (

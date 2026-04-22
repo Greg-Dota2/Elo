@@ -17,10 +17,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const item = await fetchItemByKey(key)
   if (!item) return {}
   const title = `${item.dname} — Dota 2 Item Guide`
-  const categoryLabel: Record<string, string> = { consumable: 'consumable', basic: 'basic component', upgrade: 'upgrade item', neutral: 'neutral item' }
-  const costPart = item.cost > 0 ? ` Costs ${item.cost.toLocaleString()} gold.` : ''
-  const lorePart = item.lore ? ` ${item.lore.slice(0, 80)}` : ''
-  const description = `${item.dname} is a Dota 2 ${categoryLabel[item.category] ?? 'item'}.${costPart} Full stats, when to buy, tips and hero synergies on Dota2ProTips.${lorePart}`.slice(0, 160)
+  const statSummary = item.attrib
+    .slice(0, 2)
+    .map(a => a.display ? a.display.replace('{val}', a.value) : '')
+    .filter(Boolean)
+    .join(', ')
+  const costLine = item.cost > 0 ? `${item.dname} costs ${item.cost.toLocaleString()} gold.` : `${item.dname} —`
+  const statPart = statSummary ? ` ${statSummary} —` : ' —'
+  const description = `${costLine}${statPart} when to buy it, how to use it correctly, and the mistakes that are costing you fights. Full guide at Dota2ProTips.`.slice(0, 160)
   return {
     title,
     description,

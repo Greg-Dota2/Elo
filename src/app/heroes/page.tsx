@@ -5,15 +5,15 @@ import { fetchAllHeroes, heroSlug, heroPortraitUrl, ATTR_CONFIG, type HeroData, 
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: 'Dota 2 Heroes — Abilities, Stats & Roles',
-  description: 'All Dota 2 heroes with abilities, base stats, roles, and lore. Browse Strength, Agility, Intelligence, and Universal heroes.',
+  title: 'Dota 2 Heroes — Abilities, Stats & Pro Usage',
+  description: 'Full hero database for Dota 2 — abilities, base stats, talents, and which pro players are known for each one. Browse all heroes by attribute.',
   keywords: ['Dota 2 heroes', 'Dota 2 hero list', 'Dota 2 abilities', 'Dota 2 hero guide', 'Dota 2 hero stats'],
   openGraph: {
-    title: 'Dota 2 Heroes — Abilities, Stats & Roles',
-    description: 'All Dota 2 heroes with abilities, base stats, roles, and lore.',
+    title: 'Dota 2 Heroes — Abilities, Stats & Pro Usage',
+    description: 'Full hero database for Dota 2 — abilities, base stats, talents, and which pro players are known for each one.',
     url: '/heroes',
   },
-  twitter: { card: 'summary', title: 'Dota 2 Heroes — Abilities, Stats & Roles', description: 'All Dota 2 heroes with abilities, base stats, roles, and lore.' },
+  twitter: { card: 'summary', title: 'Dota 2 Heroes — Abilities, Stats & Pro Usage', description: 'Full hero database for Dota 2 — abilities, base stats, talents, and which pro players are known for each one.' },
   alternates: { canonical: '/heroes' },
 }
 

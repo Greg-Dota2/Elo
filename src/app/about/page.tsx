@@ -2,17 +2,17 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 
 export const metadata: Metadata = {
-  title: 'About Me',
-  description: 'Greg Spencer — Dota 2 enthusiast, ex semi-pro, and the sole analyst behind every prediction and breakdown on Dota2ProTips.',
+  title: 'About Greg — The Person Behind the Picks',
+  description: 'Semi-pro player, two-time tournament tracker, full-time Dota 2 watcher. Greg writes every pick, every ranking, every word on this site. Find out why he started Dota2ProTips.',
   openGraph: {
-    title: 'About Me | Dota2ProTips',
-    description: 'Greg Spencer — Dota 2 enthusiast, ex semi-pro, and the sole analyst behind every prediction and breakdown on Dota2ProTips.',
+    title: 'About Greg — The Person Behind the Picks',
+    description: 'Semi-pro player, two-time tournament tracker, full-time Dota 2 watcher. Greg writes every pick, every ranking, every word on this site.',
     url: '/about',
   },
   twitter: {
     card: 'summary',
-    title: 'About Me | Dota2ProTips',
-    description: 'Greg Spencer — Dota 2 enthusiast, ex semi-pro, and the sole analyst behind every prediction and breakdown on Dota2ProTips.',
+    title: 'About Greg — The Person Behind the Picks',
+    description: 'Semi-pro player, two-time tournament tracker, full-time Dota 2 watcher. Greg writes every pick, every ranking, every word on this site.',
   },
   alternates: { canonical: '/about' },
 }

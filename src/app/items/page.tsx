@@ -7,12 +7,12 @@ import ItemsFilter from '@/components/ItemsFilter'
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: 'Dota 2 Items — Complete Item List',
-  description: 'Complete list of all Dota 2 items — consumables, basic items, upgrades, and neutral items. Stats, costs, and abilities.',
+  title: 'Dota 2 Items — Stats, Costs & Pro Usage',
+  description: 'Every Dota 2 item in one place — costs, active/passive abilities, build paths, and when to buy them. Consumables, basic items, upgrades, and neutral items.',
   keywords: ['Dota 2 items', 'Dota 2 item list', 'Dota 2 item guide', 'Dota 2 consumables', 'Dota 2 neutral items'],
   alternates: { canonical: '/items' },
-  openGraph: { title: 'Dota 2 Items — Complete Item List', description: 'Complete list of all Dota 2 items — consumables, basic items, upgrades, and neutral items. Stats, costs, and abilities.', url: '/items' },
-  twitter: { card: 'summary', title: 'Dota 2 Items — Complete Item List', description: 'Complete list of all Dota 2 items — consumables, basic items, upgrades, and neutral items.' },
+  openGraph: { title: 'Dota 2 Items — Stats, Costs & Pro Usage', description: 'Every Dota 2 item in one place — costs, active/passive abilities, build paths, and when to buy them.', url: '/items' },
+  twitter: { card: 'summary', title: 'Dota 2 Items — Stats, Costs & Pro Usage', description: 'Every Dota 2 item in one place — costs, active/passive abilities, build paths, and when to buy them.' },
 }
 
 const CATEGORY_LABELS: Record<string, string> = {

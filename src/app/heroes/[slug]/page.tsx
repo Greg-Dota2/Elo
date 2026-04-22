@@ -49,10 +49,10 @@ export async function generateMetadata({
     const hero = heroes.find(h => heroSlug(h.name) === slug)
     if (!hero) return { title: 'Hero Not Found' }
     const cfg = ATTR_CONFIG[hero.primary_attr]
-    const title = `${hero.localized_name} — Dota 2 Hero Guide`
-    const article = ['Agility', 'Intelligence'].includes(cfg.label) ? 'an' : 'a'
-    const roles = hero.roles.slice(0, 3).join(', ')
-    const description = `${hero.localized_name} is ${article} ${cfg.label} hero in Dota 2. ${hero.attack_type} ${roles}. Full abilities, stats, counters, and item builds on Dota2ProTips.`
+    const title = `${hero.localized_name} — Dota 2 Hero`
+    const article = ['Agility', 'Intelligence'].includes(cfg.label) ? 'An' : 'A'
+    const primaryRole = hero.roles[0] ?? 'various roles'
+    const description = `${hero.localized_name} abilities, stats, and talent tree. ${article} ${cfg.label} ${hero.attack_type} hero played as ${primaryRole} — full guide covering everything you need to know about ${hero.localized_name} in Dota 2.`
     return {
       title,
       description,
