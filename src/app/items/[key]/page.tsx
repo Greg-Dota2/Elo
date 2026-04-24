@@ -66,7 +66,7 @@ export default async function ItemPage({ params }: Props) {
   const SITE_URL = 'https://www.dota2protips.com'
 
   return (
-    <div className="fade-in-up max-w-2xl mx-auto">
+    <div className="fade-in-up">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

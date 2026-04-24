@@ -319,7 +319,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   }
 
   return (
-    <div className="fade-in-up max-w-2xl mx-auto py-8">
+    <div className="fade-in-up max-w-3xl mx-auto py-8">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
