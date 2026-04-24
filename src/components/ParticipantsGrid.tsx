@@ -136,7 +136,7 @@ export default function ParticipantsGrid({ participants }: Props) {
         className="px-4 py-3"
         style={{ borderBottom: '1px solid var(--border)', background: 'hsl(var(--secondary) / 0.3)' }}
       >
-        <p className="section-label">Participants ({participants.length})</p>
+        <h2 className="section-label">Participants ({participants.length})</h2>
       </div>
 
       {groups.map(({ label, items }) => (

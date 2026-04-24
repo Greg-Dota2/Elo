@@ -221,7 +221,7 @@ export default function GroupStageView({ groups }: { groups: GroupData[] }) {
 
   return (
     <div className="mb-8">
-      <p className="section-label mb-4">Group Stage</p>
+      <h2 className="section-label mb-4">Group Stage</h2>
       <div className="grid gap-4">
         {groups.map(group => (
           <GroupCard key={group.id} group={group} />

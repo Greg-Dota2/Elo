@@ -504,7 +504,7 @@ export default async function TournamentPage({ params }: Props) {
           className="rounded-xl p-5 mb-5"
           style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
         >
-          <p className="section-label mb-2">Overview</p>
+          <h2 className="section-label mb-2">Overview</h2>
           <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
             {tournament.overview}
           </p>
@@ -517,7 +517,7 @@ export default async function TournamentPage({ params }: Props) {
           className="rounded-xl p-5 mb-5"
           style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
         >
-          <p className="section-label mb-2">Format</p>
+          <h2 className="section-label mb-2">Format</h2>
           <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
             {tournament.format}
           </p>
@@ -681,7 +681,7 @@ export default async function TournamentPage({ params }: Props) {
           <div className="mb-6">
             <details className="group/schedule">
               <summary className="flex items-center justify-between gap-3 mb-4 cursor-pointer select-none list-none">
-                <p className="section-label">Schedule & Results</p>
+                <h2 className="section-label">Schedule & Results</h2>
                 <span className="text-xs font-semibold px-3 py-1 rounded-full transition-colors"
                   style={{ background: 'hsl(var(--primary) / 0.1)', color: 'hsl(var(--primary))' }}>
                   <span className="group-open/schedule:hidden">{totalMatches} matches · Show ▾</span>

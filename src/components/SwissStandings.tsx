@@ -148,7 +148,7 @@ export default function SwissStandings({ matches, advanceCount = 8, groupStageNa
 
   return (
     <div className="mb-8">
-      <p className="section-label mb-4">{groupStageName}</p>
+      <h2 className="section-label mb-4">{groupStageName}</h2>
       <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid var(--border)' }}>
         {/* Header */}
         <div className="px-5 py-3 flex items-center gap-3" style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>

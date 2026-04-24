@@ -350,7 +350,7 @@ export default function PSBracketView({ groups }: { groups: { name: string; matc
 
   return (
     <div className="mb-6">
-      <p className="section-label mb-4">Playoff Bracket</p>
+      <h2 className="section-label mb-4">Playoff Bracket</h2>
       <div className="rounded-2xl p-6 overflow-x-auto" style={{ background: 'hsl(var(--card)/0.4)', border: '1px solid hsl(var(--border)/0.6)' }}>
         <div style={{ display: 'inline-flex', flexDirection: 'row', alignItems: 'flex-start', minWidth: 'max-content' }}>
 

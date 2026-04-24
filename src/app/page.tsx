@@ -320,6 +320,7 @@ export default async function HomePage() {
             const finishedMatches = featuredMatches.filter(m => m.score_team_1 !== null && m.score_team_2 !== null)
             return (
               <div className="mb-12">
+                <h2 className="section-label mb-4">Predictions</h2>
                 {activeMatches.length > 0 && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     {activeMatches.map((match, i) => (
@@ -393,7 +394,7 @@ export default async function HomePage() {
 
           {rest.length > 0 && (
             <div className="mb-12">
-              <p className="section-label mb-4">Previous Tournaments</p>
+              <h2 className="section-label mb-4">Previous Tournaments</h2>
               <div className="grid gap-0">
                 {rest.map((t, i) => (
                   <div key={t.id} className="fade-in-up" style={{ animationDelay: `${i * 0.05}s` }}>

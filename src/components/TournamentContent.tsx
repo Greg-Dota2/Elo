@@ -126,7 +126,7 @@ export default function TournamentContent({ tournament, stages, stats, teamAccur
       {/* Stats */}
       {stats && stats.total_predictions > 0 && (
         <div className="mb-6">
-          <p className="section-label mb-4">Statistics</p>
+          <h2 className="section-label mb-4">Statistics</h2>
           <StatsTable stats={stats} teamAccuracy={teamAccuracy} />
         </div>
       )}
