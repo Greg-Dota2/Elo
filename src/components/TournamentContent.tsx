@@ -41,7 +41,7 @@ function buildDateGroups(stages: Stage[]) {
   }
   return Array.from(byDate.entries())
     .sort(([a], [b]) => b.localeCompare(a))
-    .map(([dateKey, matches]) => ({ dateKey, matches: [...matches].sort((a, b) => priority(b) - priority(a)) }))
+    .map(([dateKey, matches]) => ({ dateKey, matches: [...matches].sort((a, b) => priority(a) - priority(b)) }))
 }
 
 export default function TournamentContent({ tournament, stages, stats, teamAccuracy, h2hMap, liveScoreMap }: Props) {
@@ -55,7 +55,8 @@ export default function TournamentContent({ tournament, stages, stats, teamAccur
       entry = liveScoreMap.get(pairKey)
     }
     if (!entry) return undefined
-    const t1IsA = entry.nameA.toLowerCase() === t1.toLowerCase()
+    const aL = entry.nameA.toLowerCase(), t1L = t1.toLowerCase()
+    const t1IsA = aL === t1L || t1L.includes(aL) || aL.includes(t1L)
     return { score1: t1IsA ? entry.scoreA : entry.scoreB, score2: t1IsA ? entry.scoreB : entry.scoreA }
   }
   const dateGroups = buildDateGroups(stages)

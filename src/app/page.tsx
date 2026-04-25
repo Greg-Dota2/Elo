@@ -72,7 +72,8 @@ export default async function HomePage() {
     let entry = match.pandascore_match_id ? liveScoreMap.get(String(match.pandascore_match_id)) : undefined
     if (!entry) entry = liveScoreMap.get([t1.toLowerCase(), t2.toLowerCase()].sort().join('|'))
     if (!entry) return undefined
-    const t1IsA = entry.nameA.toLowerCase() === t1.toLowerCase()
+    const aL = entry.nameA.toLowerCase(), t1L = t1.toLowerCase()
+    const t1IsA = aL === t1L || t1L.includes(aL) || aL.includes(t1L)
     return { score1: t1IsA ? entry.scoreA : entry.scoreB, score2: t1IsA ? entry.scoreB : entry.scoreA }
   }
 
