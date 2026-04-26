@@ -29,7 +29,7 @@ export default function TournamentTabsClient({ picks, bracket }: Props) {
     <>
       <div className="flex items-center gap-2 mb-6">
         {tabBtn('picks', '📋 Picks')}
-        {tabBtn('bracket', '🏆 Bracket')}
+        {tabBtn('bracket', '🏆 Group Stage & Playoffs')}
       </div>
       <div style={{ display: tab === 'picks' ? 'block' : 'none' }}>{picks}</div>
       <div style={{ display: tab === 'bracket' ? 'block' : 'none' }}>{bracket}</div>

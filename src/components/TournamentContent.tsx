@@ -1,3 +1,4 @@
+import type React from 'react'
 import MatchCard from '@/components/MatchCard'
 import StatsTable from '@/components/StatsTable'
 import BracketView from '@/components/BracketView'
@@ -21,6 +22,7 @@ interface Props {
   teamAccuracy: TeamAccuracy[]
   h2hMap?: Record<string, H2HData>
   liveScoreMap?: Map<string, LiveScoreEntry>
+  bracketExtra?: React.ReactNode
 }
 
 function buildDateGroups(stages: Stage[]) {
@@ -44,7 +46,7 @@ function buildDateGroups(stages: Stage[]) {
     .map(([dateKey, matches]) => ({ dateKey, matches: [...matches].sort((a, b) => priority(a) - priority(b)) }))
 }
 
-export default function TournamentContent({ tournament, stages, stats, teamAccuracy, h2hMap, liveScoreMap }: Props) {
+export default function TournamentContent({ tournament, stages, stats, teamAccuracy, h2hMap, liveScoreMap, bracketExtra }: Props) {
   function resolveLiveScore(match: MatchPrediction) {
     if (!liveScoreMap) return undefined
     const t1 = match.team_1?.name ?? ''
@@ -120,7 +122,12 @@ export default function TournamentContent({ tournament, stages, stats, teamAccur
     const n = s.stageName.toLowerCase()
     return n.includes('upper') || n.includes('lower') || n.includes('grand final') || /\bub\b/.test(n) || /\blb\b/.test(n)
   })
-  const bracketContent = <BracketView rounds={bracketStages} />
+  const bracketContent = (
+    <>
+      {bracketExtra}
+      <BracketView rounds={bracketStages} />
+    </>
+  )
 
   return (
     <>

@@ -99,9 +99,9 @@ export default async function TournamentPage({ params }: Props) {
     | (typeof TIER1_TOURNAMENTS[0] & { ps_group_stage_id?: number; ps_playoff_id?: number })
     | undefined
 
-  const isOver = tournament.end_date ? new Date(tournament.end_date) < new Date() : false
+  const isOver = tournament.end_date ? new Date(tournament.end_date + 'T23:59:59Z') < new Date() : false
 
-  const [predictions, stats, teamAccuracy, upcomingPS, runningPS, swissMatches] = await Promise.all([
+  const [predictions, stats, teamAccuracy, upcomingPS, runningPS, swissMatches, playoffMatches] = await Promise.all([
     getPredictionsByTournament(tournament.id).catch(() => []),
     getTournamentStats(tournament.id).catch(() => null),
     getTeamAccuracy(tournament.id, 3).catch(() => []),
@@ -109,6 +109,9 @@ export default async function TournamentPage({ params }: Props) {
     isOver ? Promise.resolve([]) : fetchRunningTier1Matches(20).catch(() => []),
     isOver ? Promise.resolve([]) : tier1Entry?.ps_group_stage_id
       ? fetchMatchesForSubTournament(tier1Entry.ps_group_stage_id).catch(() => [])
+      : Promise.resolve([]),
+    isOver ? Promise.resolve([]) : tier1Entry?.ps_playoff_id
+      ? fetchMatchesForSubTournament(tier1Entry.ps_playoff_id).catch(() => [])
       : Promise.resolve([]),
   ])
 
@@ -126,7 +129,9 @@ export default async function TournamentPage({ params }: Props) {
   })
 
   // Group by PandaScore sub-tournament (group)
-  const scheduleByGroup = psMatches.reduce<Record<string, typeof psMatches>>((acc, m) => {
+  // Seed with explicitly-fetched playoff matches so the bracket always shows
+  // even when all playoff matches are finished (not in running/upcoming feeds)
+  const scheduleByGroup = [...psMatches, ...playoffMatches, ...swissMatches].reduce<Record<string, typeof psMatches>>((acc, m) => {
     const key = String(m.tournament.id)
     if (!acc[key]) acc[key] = []
     acc[key].push(m)
@@ -543,19 +548,7 @@ export default async function TournamentPage({ params }: Props) {
         </>
       )}
 
-      {/* ── Swiss Group Stage (Liquipedia-style) ── */}
-      {swissMatches.length > 0 && (
-        <SwissStandings matches={swissMatches} advanceCount={8} groupStageName="Swiss Group Stage" />
-      )}
-
-      {/* ── Group Stage (round-robin only — hidden when Swiss standings are shown) ── */}
-      <GroupStageView groups={groupsData.filter(g => {
-        if (swissMatches.length > 0 && tier1Entry?.ps_group_stage_id && g.id === tier1Entry.ps_group_stage_id) return false
-        return !/upper|lower|bracket|playoff|elimination|grand.?final/i.test(g.name) || /group/i.test(g.name)
-      })} />
-
-      {/* ── Playoff Bracket (PandaScore) ── */}
-      <PSBracketView groups={groupsData} />
+      {/* Swiss + Group Stage + Playoff Bracket moved into the Bracket tab ↓ */}
 
       {/* ── Schedule (PandaScore) ── */}
       {groupsData.length > 0 && (() => {
@@ -623,6 +616,8 @@ export default async function TournamentPage({ params }: Props) {
           if (allFinished && day !== todayLabel) finishedDays.push([day, dayMatches])
           else activeDays.push([day, sortDayMatches(dayMatches)])
         }
+        activeDays.reverse()
+        finishedDays.reverse()
         const totalFinished = finishedDays.reduce((n, [, ms]) => n + ms.length, 0)
 
         const renderDayRows = (dayMatches: typeof allMatches) =>
@@ -754,6 +749,18 @@ export default async function TournamentPage({ params }: Props) {
         teamAccuracy={teamAccuracy}
         h2hMap={h2hMap}
         liveScoreMap={liveScoreMap}
+        bracketExtra={
+          <>
+            {swissMatches.length > 0 && (
+              <SwissStandings matches={swissMatches} advanceCount={8} groupStageName="Swiss Group Stage" />
+            )}
+            <GroupStageView groups={groupsData.filter(g => {
+              if (swissMatches.length > 0 && tier1Entry?.ps_group_stage_id && g.id === tier1Entry.ps_group_stage_id) return false
+              return !/upper|lower|bracket|playoff|elimination|grand.?final/i.test(g.name) || /group/i.test(g.name)
+            })} />
+            <PSBracketView groups={groupsData} />
+          </>
+        }
       />
     </div>
   )

@@ -38,7 +38,7 @@ export default async function HomePage() {
         | undefined
     : undefined
 
-  const isLatestOver = latest?.end_date ? new Date(latest.end_date) < new Date() : false
+  const isLatestOver = latest?.end_date ? new Date(latest.end_date + 'T23:59:59Z') < new Date() : false
 
   const [latestMatches, latestStats, runningPS, swissMatches] = latest
     ? await Promise.all([
