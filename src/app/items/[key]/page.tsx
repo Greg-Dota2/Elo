@@ -5,6 +5,7 @@ import { fetchAllItems, fetchItemByKey, fetchComponentMap, itemIconUrl } from '@
 import { fetchHeroesForItem, fetchNeutralItemHeroes, heroSlug, heroPortraitUrl, ATTR_CONFIG } from '@/lib/heroes'
 import { fetchItemGuide } from '@/lib/guides'
 import { getCachedItems } from '@/lib/game-cache'
+import { renderWithLinks } from '@/lib/renderLinks'
 
 export const revalidate = 86400
 
@@ -245,13 +246,21 @@ export default async function ItemPage({ params }: Props) {
             {guide.why_buy && (
               <div>
                 <p className="text-sm font-bold text-foreground mb-1">Why Buy {item.dname}?</p>
-                <p className="text-sm text-muted-foreground leading-relaxed">{guide.why_buy}</p>
+                <div className="space-y-2">
+                  {guide.why_buy.split('\n\n').map((para: string, i: number) => (
+                    <p key={i} className="text-sm text-muted-foreground leading-relaxed">{renderWithLinks(para)}</p>
+                  ))}
+                </div>
               </div>
             )}
             {guide.when_to_buy && (
               <div>
                 <p className="text-sm font-bold text-foreground mb-1">When to Buy {item.dname}?</p>
-                <p className="text-sm text-muted-foreground leading-relaxed">{guide.when_to_buy}</p>
+                <div className="space-y-2">
+                  {guide.when_to_buy.split('\n\n').map((para: string, i: number) => (
+                    <p key={i} className="text-sm text-muted-foreground leading-relaxed">{renderWithLinks(para)}</p>
+                  ))}
+                </div>
               </div>
             )}
             {guide.tips.length > 0 && (
@@ -270,7 +279,11 @@ export default async function ItemPage({ params }: Props) {
             {guide.summary && (
               <div className="pt-3 border-t border-border/40">
                 <p className="text-xs font-semibold text-primary/80 uppercase tracking-wider mb-1">Summary</p>
-                <p className="text-sm text-muted-foreground leading-relaxed">{guide.summary}</p>
+                <div className="space-y-2">
+                  {guide.summary.split('\n\n').map((para: string, i: number) => (
+                    <p key={i} className="text-sm text-muted-foreground leading-relaxed">{renderWithLinks(para)}</p>
+                  ))}
+                </div>
               </div>
             )}
           </div>

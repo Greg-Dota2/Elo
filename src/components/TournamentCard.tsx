@@ -6,14 +6,23 @@ import { useState, useEffect } from 'react'
 import type { Tournament, TournamentStats, MatchPrediction, TeamAccuracy } from '@/lib/types'
 import MatchCard from './MatchCard'
 
+export type TournamentStatus = 'live' | 'upcoming' | 'finished'
+
 interface Props {
   tournament: Tournament
   stats?: TournamentStats | null
+  status?: TournamentStatus
 }
 
 const MEDAL = ['#1', '#2', '#3']
 
-export default function TournamentCard({ tournament }: Props) {
+const STATUS_BADGE: Record<TournamentStatus, { label: string; style: React.CSSProperties }> = {
+  live:     { label: '● Live',     style: { background: 'hsl(var(--success) / 0.12)', color: 'hsl(var(--success))' } },
+  upcoming: { label: 'Upcoming',   style: { background: 'hsl(var(--primary) / 0.12)', color: 'hsl(var(--primary))' } },
+  finished: { label: 'Completed',  style: { background: 'hsl(var(--border))',          color: 'var(--text-muted)' } },
+}
+
+export default function TournamentCard({ tournament, status }: Props) {
   const [open, setOpen] = useState(false)
   const [matches, setMatches] = useState<MatchPrediction[]>([])
   const [loading, setLoading] = useState(false)
@@ -61,11 +70,18 @@ export default function TournamentCard({ tournament }: Props) {
             >
               {tournament.name}
             </Link>
-            {hasStats && (
-              <span className="text-sm px-2.5 py-1 rounded-lg font-semibold" style={{ background: 'var(--correct-dim)', color: 'var(--correct)', border: '1px solid var(--correct-border)' }}>
-                {accuracyPct}% accuracy
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              {status && (
+                <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={STATUS_BADGE[status].style}>
+                  {STATUS_BADGE[status].label}
+                </span>
+              )}
+              {hasStats && (
+                <span className="text-sm px-2.5 py-1 rounded-lg font-semibold" style={{ background: 'var(--correct-dim)', color: 'var(--correct)', border: '1px solid var(--correct-border)' }}>
+                  {accuracyPct}% accuracy
+                </span>
+              )}
+            </div>
           </div>
         </div>
       ) : (
@@ -76,6 +92,11 @@ export default function TournamentCard({ tournament }: Props) {
                 <NextImage src={tournament.logo_url} alt={tournament.name} width={20} height={20} className="w-5 h-5 object-contain rounded shrink-0" />
               )}
               <span className="badge badge-accent">Tier 1</span>
+              {status && (
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={STATUS_BADGE[status].style}>
+                  {STATUS_BADGE[status].label}
+                </span>
+              )}
               {tournament.start_date && (
                 <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                   {new Date(tournament.start_date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}

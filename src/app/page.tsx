@@ -30,7 +30,22 @@ export default async function HomePage() {
   } catch { /* Supabase not configured */ }
 
   const latest = tournaments[0] ?? null
-  const rest = tournaments.slice(1)
+
+  const now = new Date()
+  function tournamentStatus(t: { start_date?: string | null; end_date?: string | null }): 'live' | 'upcoming' | 'finished' | 'unknown' {
+    if (!t.start_date) return 'unknown'
+    const start = new Date(t.start_date)
+    const end = t.end_date ? new Date(t.end_date + 'T23:59:59Z') : null
+    if (end && end < now) return 'finished'
+    if (start > now) return 'upcoming'
+    return 'live'
+  }
+  // Use all tournaments in the grouped list so completed ones don't float above upcoming ones
+  const restLive     = tournaments.filter(t => tournamentStatus(t) === 'live')
+  const restUpcoming = tournaments.filter(t => tournamentStatus(t) === 'upcoming')
+    .sort((a, b) => (a.start_date ?? '').localeCompare(b.start_date ?? ''))
+  const restFinished = tournaments.filter(t => tournamentStatus(t) === 'finished' || tournamentStatus(t) === 'unknown')
+    .sort((a, b) => (b.start_date ?? '').localeCompare(a.start_date ?? ''))
 
   const tier1Entry = latest
     ? TIER1_TOURNAMENTS.find(t => t.slug === latest.slug) as
@@ -250,13 +265,13 @@ export default async function HomePage() {
       </section>
 
 
-      {/* ── Latest tournament predictions ── */}
-      {tournaments.length > 0 && (
+      {/* ── Latest tournament predictions (only while live/upcoming) ── */}
+      {latest && !isLatestOver && (
         <hr style={{ borderColor: 'hsl(var(--border) / 0.5)', marginBottom: '2.5rem' }} />
       )}
       {tournaments.length > 0 && (
         <>
-          {latest && (
+          {latest && !isLatestOver && (
             <div className="mb-5">
               {/* Banner */}
               {latest.banner_url && (
@@ -312,11 +327,13 @@ export default async function HomePage() {
           )}
 
           {/* ── Playoff Bracket ── */}
-          <Suspense fallback={<div style={{ height: 120 }} />}>
-            <BracketSection latestSlug={latest.slug} />
-          </Suspense>
+          {latest && !isLatestOver && (
+            <Suspense fallback={<div style={{ height: 120 }} />}>
+              <BracketSection latestSlug={latest.slug} />
+            </Suspense>
+          )}
 
-          {featuredMatches.length > 0 ? (() => {
+          {!isLatestOver && featuredMatches.length > 0 ? (() => {
             const activeMatches = featuredMatches.filter(m => m.score_team_1 === null || m.score_team_2 === null)
             const finishedMatches = featuredMatches.filter(m => m.score_team_1 !== null && m.score_team_2 !== null)
             return (
@@ -381,29 +398,71 @@ export default async function HomePage() {
               </div>
             )
           })() : (
-            <div
-              className="rounded-2xl p-10 text-center mb-12"
-              style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
-            >
-              <p className="text-4xl mb-3">✍️</p>
-              <p className="font-semibold mb-1">No predictions written yet</p>
-              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                <Link href="/admin" style={{ color: 'var(--accent)' }}>Write the first one →</Link>
-              </p>
-            </div>
+            !isLatestOver ? (
+              <div
+                className="rounded-2xl p-10 text-center mb-12"
+                style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+              >
+                <p className="text-4xl mb-3">✍️</p>
+                <p className="font-semibold mb-1">No predictions written yet</p>
+                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                  <Link href="/admin" style={{ color: 'var(--accent)' }}>Write the first one →</Link>
+                </p>
+              </div>
+            ) : null
           )}
 
-          {rest.length > 0 && (
+          {tournaments.length > 0 && (
             <div className="mb-12">
-              <h2 className="section-label mb-4">Previous Tournaments</h2>
-              <div className="grid gap-0">
-                {rest.map((t, i) => (
-                  <div key={t.id} className="fade-in-up" style={{ animationDelay: `${i * 0.05}s` }}>
-                    {i > 0 && <div style={{ borderTop: '1px solid hsl(var(--border) / 0.5)' }} />}
-                    <TournamentCard tournament={t} />
+              <h2 className="section-label mb-4">Tournaments</h2>
+
+              {restLive.length > 0 && (
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest px-2.5 py-1 rounded-full" style={{ background: 'hsl(var(--success) / 0.12)', color: 'hsl(var(--success))' }}>
+                      ● Live
+                    </span>
                   </div>
-                ))}
-              </div>
+                  {restLive.map((t, i) => (
+                    <div key={t.id} className="fade-in-up" style={{ animationDelay: `${i * 0.05}s` }}>
+                      {i > 0 && <div style={{ borderTop: '1px solid hsl(var(--border) / 0.5)' }} />}
+                      <TournamentCard tournament={t} status="live" />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {restUpcoming.length > 0 && (
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest px-2.5 py-1 rounded-full" style={{ background: 'hsl(var(--primary) / 0.12)', color: 'hsl(var(--primary))' }}>
+                      Upcoming
+                    </span>
+                  </div>
+                  {restUpcoming.map((t, i) => (
+                    <div key={t.id} className="fade-in-up" style={{ animationDelay: `${i * 0.05}s` }}>
+                      {i > 0 && <div style={{ borderTop: '1px solid hsl(var(--border) / 0.5)' }} />}
+                      <TournamentCard tournament={t} status="upcoming" />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {restFinished.length > 0 && (
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest px-2.5 py-1 rounded-full" style={{ background: 'hsl(var(--border))', color: 'var(--text-muted)' }}>
+                      Completed
+                    </span>
+                  </div>
+                  {restFinished.map((t, i) => (
+                    <div key={t.id} className="fade-in-up" style={{ animationDelay: `${i * 0.05}s` }}>
+                      {i > 0 && <div style={{ borderTop: '1px solid hsl(var(--border) / 0.5)' }} />}
+                      <TournamentCard tournament={t} status="finished" />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </>

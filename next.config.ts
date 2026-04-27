@@ -116,6 +116,7 @@ const nextConfig: NextConfig = {
 
       // ── Dead tournament slugs ─────────────────────────────────────────────
       { source: '/tournaments/dl-s25',           destination: '/tournaments/dreamleague-season-25', permanent: true },
+      { source: '/tournaments/blast-slam-vii',   destination: '/tournaments/blast-slam-7',          permanent: true },
 
       // ── Blog/news articles with no equivalent → home ──────────────────────
       { source: '/mirana-lore',                                   destination: '/', permanent: true },

@@ -26,6 +26,7 @@ import type { Player } from '@/lib/types'
 import AbilityIcon from '@/components/AbilityIcon'
 import HeroRadar from '@/components/HeroRadar'
 import { getCachedHeroes } from '@/lib/game-cache'
+import { renderWithLinks } from '@/lib/renderLinks'
 
 export const revalidate = 86400
 
@@ -562,7 +563,11 @@ export default async function HeroPage({
             {heroGuide.when_to_pick && (
               <div>
                 <p className="text-sm font-bold text-foreground mb-1">When to Pick {hero.localized_name}?</p>
-                <p className="text-sm text-muted-foreground leading-relaxed">{heroGuide.when_to_pick}</p>
+                <div className="space-y-2">
+                  {heroGuide.when_to_pick.split('\n\n').map((para: string, i: number) => (
+                    <p key={i} className="text-sm text-muted-foreground leading-relaxed">{renderWithLinks(para)}</p>
+                  ))}
+                </div>
               </div>
             )}
             {heroGuide.tips.length > 0 && (
@@ -581,7 +586,11 @@ export default async function HeroPage({
             {heroGuide.summary && (
               <div className="pt-3 border-t border-border/40">
                 <p className="text-xs font-semibold text-primary/80 uppercase tracking-wider mb-1">Summary</p>
-                <p className="text-sm text-muted-foreground leading-relaxed">{heroGuide.summary}</p>
+                <div className="space-y-2">
+                  {heroGuide.summary.split('\n\n').map((para: string, i: number) => (
+                    <p key={i} className="text-sm text-muted-foreground leading-relaxed">{renderWithLinks(para)}</p>
+                  ))}
+                </div>
               </div>
             )}
           </div>

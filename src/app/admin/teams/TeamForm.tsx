@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Team } from '@/lib/types'
 import ImageUpload from '@/components/ImageUpload'
+import RichTextarea from '@/components/admin/RichTextarea'
 
 const REGIONS = ['Western Europe', 'Eastern Europe', 'China', 'Southeast Asia', 'North America', 'South America', 'CIS', 'Other']
 
@@ -29,6 +30,8 @@ export default function TeamForm({ team }: Props) {
   const [error, setError] = useState('')
   const [logoUrl, setLogoUrl] = useState(team?.logo_url ?? '')
   const [bannerUrl, setBannerUrl] = useState(team?.banner_url ?? '')
+  const [bio, setBio] = useState(team?.bio ?? '')
+  const [achievements, setAchievements] = useState(team?.achievements ?? '')
   const isEdit = !!team
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -44,8 +47,8 @@ export default function TeamForm({ team }: Props) {
       logo_url: logoUrl || null,
       banner_url: bannerUrl || null,
       slug: form.get('slug') || undefined,
-      bio: form.get('bio') || null,
-      achievements: form.get('achievements') || null,
+      bio: bio || null,
+      achievements: achievements || null,
       founded_year: form.get('founded_year') || null,
       website_url: form.get('website_url') || null,
       liquipedia_url: form.get('liquipedia_url') || null,
@@ -126,12 +129,12 @@ export default function TeamForm({ team }: Props) {
         folder="teams"
       />
 
-      <Field label="Bio" hint="Use ## Heading for section titles, # Heading for large titles">
-        <textarea name="bio" rows={6} defaultValue={team?.bio ?? ''} className={inputClass} placeholder={"## Early Days\nFounded in 2022...\n\n## Competitive Rise\nIn 2023..."} />
+      <Field label="Bio" hint="Use ## Heading for section titles, # Heading for large titles. Use [text](url) to insert links.">
+        <RichTextarea rows={6} className={inputClass} placeholder={"## Early Days\nFounded in 2022...\n\n## Competitive Rise\nIn 2023..."} value={bio} onChange={setBio} />
       </Field>
 
-      <Field label="Notable Achievements" hint="Use ## Heading for section titles">
-        <textarea name="achievements" rows={4} defaultValue={team?.achievements ?? ''} className={inputClass} placeholder="TI Champion 2021, DreamLeague S21 Winner..." />
+      <Field label="Notable Achievements" hint="Use ## Heading for section titles. Use [text](url) to insert links.">
+        <RichTextarea rows={4} className={inputClass} placeholder="TI Champion 2021, DreamLeague S21 Winner..." value={achievements} onChange={setAchievements} />
       </Field>
 
       <label className="flex items-center gap-2 text-sm cursor-pointer">

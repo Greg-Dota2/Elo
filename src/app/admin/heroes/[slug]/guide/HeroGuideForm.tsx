@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { HeroGuide } from '@/lib/guides'
+import RichTextarea from '@/components/admin/RichTextarea'
 
 const inputClass = 'w-full rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-orange-500 bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] placeholder:text-[var(--text-muted)]'
 
@@ -43,12 +44,12 @@ export default function HeroGuideForm({ heroId, heroName, initial }: Props) {
       <div className="grid gap-1">
         <label className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>When to pick</label>
         <p className="text-xs mb-1" style={{ color: 'var(--text-subtle)' }}>Draft context, matchup conditions, and situations where this hero shines or struggles.</p>
-        <textarea
+        <RichTextarea
           className={inputClass}
           rows={4}
           placeholder="e.g. Pick Invoker when your team already has reliable initiation and you can afford a slow start. Avoid into heavy silences — Skywrath or Orchid lineups make the laning phase miserable."
           value={whenToPick}
-          onChange={e => setWhenToPick(e.target.value)}
+          onChange={setWhenToPick}
         />
       </div>
 
@@ -67,12 +68,12 @@ export default function HeroGuideForm({ heroId, heroName, initial }: Props) {
       <div className="grid gap-1">
         <label className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Strategy summary</label>
         <p className="text-xs mb-1" style={{ color: 'var(--text-subtle)' }}>A 1-3 sentence closing take — the key insight a player should walk away with.</p>
-        <textarea
+        <RichTextarea
           className={inputClass}
           rows={3}
           placeholder="e.g. Invoker rewards preparation and game sense above mechanics. If you know your spells cold and draft him into the right game, he can single-handedly control the pace of teamfights."
           value={summary}
-          onChange={e => setSummary(e.target.value)}
+          onChange={setSummary}
         />
       </div>
 

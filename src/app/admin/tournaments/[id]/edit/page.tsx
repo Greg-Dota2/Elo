@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Tournament, MatchPrediction, Team, Stage } from '@/lib/types'
 import Link from 'next/link'
+import RichTextarea from '@/components/admin/RichTextarea'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -34,6 +35,8 @@ export default function EditTournamentPage({ params }: Props) {
   const [archiving, setArchiving] = useState(false)
   const [archiveResult, setArchiveResult] = useState('')
   const [clearingArchive, setClearingArchive] = useState(false)
+  const [overviewText, setOverviewText] = useState('')
+  const [formatText, setFormatText] = useState('')
 
   async function loadMatches(id: string) {
     const res = await fetch(`/api/admin/data?resource=matches&tournament_id=${id}`)
@@ -57,6 +60,8 @@ export default function EditTournamentPage({ params }: Props) {
         setLeagueId(String(t.opendota_league_id ?? ''))
         setPrizeJson(t.prize_distribution ? JSON.stringify(t.prize_distribution, null, 2) : '')
         setParticipantsJson(t.participants ? JSON.stringify(t.participants, null, 2) : '')
+        setOverviewText(t.overview ?? '')
+        setFormatText(t.format ?? '')
       }
       await Promise.all([loadMatches(id), loadStages(id)])
     })
@@ -195,8 +200,8 @@ export default function EditTournamentPage({ params }: Props) {
         telegram_url: form.get('telegram_url') || null,
         liquipedia_url: form.get('liquipedia_url') || null,
         meta_description: form.get('meta_description') || null,
-        overview: form.get('overview') || null,
-        format: form.get('format') || null,
+        overview: overviewText || null,
+        format: formatText || null,
         location_name: form.get('location_name') || null,
         location_type: form.get('location_type') || null,
       }),
@@ -628,10 +633,10 @@ export default function EditTournamentPage({ params }: Props) {
             <textarea name="meta_description" rows={2} defaultValue={tournament.meta_description ?? ''} className={inputClass} placeholder="Leave empty to auto-generate from overview" />
           </Field>
           <Field label="Overview text">
-            <textarea name="overview" rows={3} defaultValue={tournament.overview ?? ''} className={inputClass} />
+            <RichTextarea rows={3} className={inputClass} value={overviewText} onChange={setOverviewText} />
           </Field>
           <Field label="Format text">
-            <textarea name="format" rows={3} defaultValue={tournament.format ?? ''} className={inputClass} />
+            <RichTextarea rows={3} className={inputClass} value={formatText} onChange={setFormatText} />
           </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Location name">

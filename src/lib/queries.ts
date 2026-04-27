@@ -33,7 +33,8 @@ export async function getTournaments() {
     .select('*, match_predictions(id)')
     .eq('is_published', true)
   if (error) throw error
-  // Tournaments with predictions come before those without, then sort by start_date desc
+  // Featured slot (index 0) must be the most recently active tournament with predictions.
+  // Sort: has predictions → by start_date desc (upcoming are pushed to the end of that group).
   return (data ?? []).sort((a, b) => {
     const aHas = (a.match_predictions?.length ?? 0) > 0 ? 0 : 1
     const bHas = (b.match_predictions?.length ?? 0) > 0 ? 0 : 1

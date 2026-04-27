@@ -29,6 +29,7 @@ import SwissStandings from '@/components/SwissStandings'
 import { fetchGroupsFromDB } from '@/lib/groupStageDB'
 import { TIER1_TOURNAMENTS } from '@/lib/tier1tournaments'
 import { format } from 'date-fns'
+import { renderWithLinks } from '@/lib/renderLinks'
 
 export const revalidate = 300
 
@@ -510,9 +511,11 @@ export default async function TournamentPage({ params }: Props) {
           style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
         >
           <h2 className="section-label mb-2">Overview</h2>
-          <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-            {tournament.overview}
-          </p>
+          <div className="space-y-2">
+            {tournament.overview.split('\n\n').map((para: string, i: number) => (
+              <p key={i} className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>{renderWithLinks(para)}</p>
+            ))}
+          </div>
         </div>
       )}
 
@@ -523,9 +526,11 @@ export default async function TournamentPage({ params }: Props) {
           style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
         >
           <h2 className="section-label mb-2">Format</h2>
-          <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-            {tournament.format}
-          </p>
+          <div className="space-y-2">
+            {tournament.format.split('\n\n').map((para: string, i: number) => (
+              <p key={i} className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>{renderWithLinks(para)}</p>
+            ))}
+          </div>
         </div>
       )}
 
