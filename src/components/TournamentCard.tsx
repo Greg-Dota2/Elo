@@ -44,10 +44,15 @@ export default function TournamentCard({ tournament, status }: Props) {
   async function handleToggle() {
     if (!open && matches.length === 0) {
       setLoading(true)
-      const res = await fetch(`/api/predictions?tournament_id=${tournament.id}`)
-      const data = await res.json()
-      setMatches(Array.isArray(data) ? data : [])
-      setLoading(false)
+      try {
+        const res = await fetch(`/api/predictions?tournament_id=${tournament.id}`)
+        const data = await res.json()
+        setMatches(Array.isArray(data) ? data : [])
+      } catch {
+        setMatches([])
+      } finally {
+        setLoading(false)
+      }
     }
     setOpen(o => !o)
   }

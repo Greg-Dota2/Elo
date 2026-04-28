@@ -1,18 +1,26 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { renderWithLinks } from '@/lib/renderLinks'
-
-// ~280 chars fills roughly 3 lines at body font size — avoids DOM geometry queries
-const OVERFLOW_THRESHOLD = 280
 
 export default function ExpandableText({ text }: { text: string }) {
   const [expanded, setExpanded] = useState(false)
-  const overflows = text.length > OVERFLOW_THRESHOLD
+  const [overflows, setOverflows] = useState(false)
+  const pRef = useRef<HTMLParagraphElement>(null)
+
+  useEffect(() => {
+    const el = pRef.current
+    if (!el) return
+    // Measure with clamp active to detect real visual overflow
+    setOverflows(el.scrollHeight > el.clientHeight + 2)
+  }, [text])
 
   return (
     <>
-      <p className={`text-base leading-7 font-medium text-foreground ${expanded ? '' : 'line-clamp-3'}`}>
+      <p
+        ref={pRef}
+        className={`text-base leading-7 font-medium text-foreground ${expanded ? '' : 'line-clamp-3'}`}
+      >
         {renderWithLinks(text)}
       </p>
       {overflows && (
