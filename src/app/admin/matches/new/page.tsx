@@ -4,6 +4,19 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import type { Team, Tournament, Stage } from '@/lib/types'
 
+// Athens time → UTC HH:MM (uses Intl to get correct EEST/EET offset for the date)
+function athensToUTC(dateStr: string, athensTime: string): string {
+  const probe = new Date(`${dateStr}T12:00:00Z`)
+  const parts = new Intl.DateTimeFormat('en', {
+    timeZone: 'Europe/Athens', hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(probe)
+  const athensHour = parseInt(parts.find(p => p.type === 'hour')!.value)
+  const offset = athensHour - 12 // e.g. 15 - 12 = 3 for EEST
+  const [h, m] = athensTime.split(':').map(Number)
+  let utcH = ((h - offset) % 24 + 24) % 24
+  return `${String(utcH).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+}
+
 function NewMatchForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -35,6 +48,9 @@ function NewMatchForm() {
     setError('')
 
     const form = new FormData(e.currentTarget)
+    const matchDate = (form.get('match_date') as string) || null
+    const athensTime = (form.get('match_time') as string) || null
+    const matchTime = matchDate && athensTime ? athensToUTC(matchDate, athensTime) : null
 
     const res = await fetch('/api/admin/matches', {
       method: 'POST',
@@ -49,7 +65,8 @@ function NewMatchForm() {
         team_2_id: form.get('team_2_id'),
         predicted_winner_id: form.get('predicted_winner_id') || null,
         best_of: Number(form.get('best_of')),
-        match_date: form.get('match_date') || null,
+        match_date: matchDate,
+        match_time: matchTime,
         pre_analysis: form.get('pre_analysis') || null,
         twitch_url: form.get('twitch_url') || null,
         match_order: Number(form.get('match_order')) || null,
@@ -174,9 +191,12 @@ function NewMatchForm() {
           </Field>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <Field label="Match Date">
             <input name="match_date" type="date" className={inputClass} />
+          </Field>
+          <Field label="Match Time (Athens)">
+            <input name="match_time" type="time" className={inputClass} />
           </Field>
           <Field label="Display Order">
             <input name="match_order" type="number" className={inputClass} placeholder="1" defaultValue="1" />

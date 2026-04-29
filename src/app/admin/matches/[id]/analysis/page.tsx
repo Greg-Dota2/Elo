@@ -5,6 +5,28 @@ import { useRouter } from 'next/navigation'
 import type { MatchPrediction, Team } from '@/lib/types'
 import MentionTextarea from '@/components/MentionTextarea'
 
+function athensToUTC(dateStr: string, athensTime: string): string {
+  const probe = new Date(`${dateStr}T12:00:00Z`)
+  const parts = new Intl.DateTimeFormat('en', {
+    timeZone: 'Europe/Athens', hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(probe)
+  const athensHour = parseInt(parts.find(p => p.type === 'hour')!.value)
+  const offset = athensHour - 12
+  const [h, m] = athensTime.split(':').map(Number)
+  const utcH = ((h - offset) % 24 + 24) % 24
+  return `${String(utcH).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+}
+
+function utcToAthens(dateStr: string, utcTime: string): string {
+  const probe = new Date(`${dateStr}T${utcTime}:00Z`)
+  const parts = new Intl.DateTimeFormat('en', {
+    timeZone: 'Europe/Athens', hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(probe)
+  const h = parts.find(p => p.type === 'hour')?.value ?? '00'
+  const min = parts.find(p => p.type === 'minute')?.value ?? '00'
+  return `${h}:${min}`
+}
+
 interface Props {
   params: Promise<{ id: string }>
 }
@@ -41,11 +63,17 @@ export default function WriteAnalysisPage({ params }: Props) {
     const predictedWinnerId = pickValue === 'draw' ? null : (pickValue || null)
     const predictedDraw = pickValue === 'draw'
 
+    const matchDate = (form.get('match_date') as string) || null
+    const athensTime = (form.get('match_time') as string) || null
+    const matchTime = matchDate && athensTime ? athensToUTC(matchDate, athensTime) : null
+
     const res = await fetch('/api/admin/matches', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         id: matchId,
+        match_date: matchDate,
+        match_time: matchTime,
         pre_analysis: form.get('pre_analysis') || null,
         twitch_url: form.get('twitch_url') || null,
         predicted_winner_id: predictedWinnerId,
@@ -83,6 +111,20 @@ export default function WriteAnalysisPage({ params }: Props) {
       </p>
 
       <form onSubmit={handleSubmit} className="grid gap-4">
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Match Date">
+            <input name="match_date" type="date" className={inputClass} defaultValue={match.match_date ?? ''} />
+          </Field>
+          <Field label="Match Time (Athens)">
+            <input
+              name="match_time"
+              type="time"
+              className={inputClass}
+              defaultValue={match.match_date && match.match_time ? utcToAthens(match.match_date, match.match_time) : ''}
+            />
+          </Field>
+        </div>
+
         <Field label="My Pick">
           <select
             name="predicted_winner_id"

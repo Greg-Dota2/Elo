@@ -57,7 +57,18 @@ export default function MatchTimer({ matchDate, matchTime, hasResult }: Props) {
       </span>
     )
   }
-  if (isFuture) return <span className="font-mono font-bold">in {formatCountdown(msLeft)}</span>
+  if (isFuture) {
+    if (matchDate && matchTime) {
+      return (
+        <span className="inline-flex items-center gap-1.5">
+          {staticTime(matchDate, matchTime)}
+          <span className="text-muted-foreground/40">·</span>
+          <span className="font-mono font-bold">in {formatCountdown(msLeft)}</span>
+        </span>
+      )
+    }
+    return <span className="font-mono font-bold">in {formatCountdown(msLeft)}</span>
+  }
   if (matchDate && matchTime) return staticTime(matchDate, matchTime)
   return null
 }
