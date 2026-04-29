@@ -69,9 +69,25 @@ export default async function HeroesPage({
       {/* Header */}
       <div className="mb-6">
         <p className="section-label mb-2">Game Knowledge</p>
-        <h1 className="text-3xl font-black tracking-tight mb-1">Dota 2 Heroes</h1>
-        <p className="text-sm text-muted-foreground">
-          {filtered.length}{filtered.length !== heroes.length ? ` of ${heroes.length}` : ''} heroes · click any hero for abilities &amp; stats
+        <div className="flex items-start justify-between gap-4 flex-wrap mb-3">
+          <div>
+            <h1 className="text-3xl font-black tracking-tight mb-1">Dota 2 Heroes</h1>
+            <p className="text-sm text-muted-foreground">
+              {filtered.length}{filtered.length !== heroes.length ? ` of ${heroes.length}` : ''} heroes · click any hero for abilities &amp; stats
+            </p>
+          </div>
+          <Link
+            href="/heroes/meta"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-primary/40 bg-primary/10 text-primary text-sm font-semibold hover:bg-primary/20 transition-colors shrink-0"
+          >
+            Win Rates &amp; Meta →
+          </Link>
+        </div>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Every hero has a dedicated page with full abilities, talent tree, Aghanim&apos;s upgrades, best and worst matchups,
+          popular items by game phase, and which pro players are known for it. Use the attribute filter below to narrow
+          it down, or jump straight to the <Link href="/heroes/meta" className="text-primary hover:underline">Win Rates &amp; Meta</Link> page
+          if you want to see who&apos;s strong in the current patch.
         </p>
       </div>
 

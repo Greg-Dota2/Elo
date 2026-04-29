@@ -482,8 +482,11 @@ export default function EditTournamentPage({ params }: Props) {
                     </div>
 
                     <div className="flex gap-1 shrink-0">
+                      <Link href={`/admin/matches/${m.id}/edit`} className="text-xs px-2 py-1 rounded" style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}>
+                        Edit
+                      </Link>
                       <Link href={`/admin/matches/${m.id}/analysis`} className="text-xs px-2 py-1 rounded" style={{ background: 'rgba(232,77,28,0.15)', color: 'var(--accent)' }}>
-                        {hasAnalysis ? 'Edit' : 'Write'}
+                        {hasAnalysis ? 'Pick' : 'Write'}
                       </Link>
                       <Link href={`/admin/matches/${m.id}/result`} className="text-xs px-2 py-1 rounded" style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}>
                         Result

@@ -13,6 +13,7 @@ export interface ItemData {
   cd: number | false
   mc: number | false
   category: ItemCategory
+  tier?: number
   abilities: { type: string; title: string; description: string }[]
   attrib: { key: string; display?: string; value: string }[]
   components: string[] | null
@@ -33,6 +34,7 @@ export async function fetchAllItems(opts?: { revalidate?: number }): Promise<Ite
   const raw: Record<string, {
     id: number; dname?: string; qual?: string; cost?: number | null
     img?: string; lore?: string; cd?: number | false; mc?: number | false
+    tier?: number
     abilities?: { type: string; title: string; description: string }[]
     attrib?: { key: string; display?: string; value: string }[]
     components?: string[] | null
@@ -77,6 +79,7 @@ export async function fetchAllItems(opts?: { revalidate?: number }): Promise<Ite
       cd: v.cd ?? false,
       mc: v.mc ?? false,
       category,
+      tier: v.tier,
       abilities: v.abilities ?? [],
       attrib: v.attrib ?? [],
       components: v.components ?? null,

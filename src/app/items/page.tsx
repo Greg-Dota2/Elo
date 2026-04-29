@@ -31,9 +31,11 @@ export default async function ItemsPage({ searchParams }: Props) {
   const { cat } = await searchParams
   const activeCategory = cat || 'all'
 
+  const CATEGORY_ORDER: Record<string, number> = { upgrade: 0, basic: 1, neutral: 2, consumable: 3 }
+
   const allItems = await fetchAllItems()
   const items = activeCategory === 'all'
-    ? allItems
+    ? [...allItems].sort((a, b) => (CATEGORY_ORDER[a.category] ?? 99) - (CATEGORY_ORDER[b.category] ?? 99))
     : allItems.filter(i => i.category === activeCategory)
 
   const counts = {
@@ -70,7 +72,15 @@ export default async function ItemsPage({ searchParams }: Props) {
       />
       <div className="mb-8">
         <p className="section-label mb-2">Dota 2</p>
-        <h1 className="text-3xl font-black tracking-tight mb-1">Items</h1>
+        <div className="flex items-start justify-between gap-4 flex-wrap mb-1">
+          <h1 className="text-3xl font-black tracking-tight">Items</h1>
+          <Link
+            href="/items/meta"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-primary/40 bg-primary/10 text-primary text-sm font-semibold hover:bg-primary/20 transition-colors shrink-0"
+          >
+            Win Rates &amp; Meta →
+          </Link>
+        </div>
         <p className="text-sm text-muted-foreground">{counts.all} items total</p>
       </div>
 

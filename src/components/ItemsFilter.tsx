@@ -4,10 +4,10 @@ import { useRouter, useSearchParams } from 'next/navigation'
 
 const CATEGORIES = [
   { key: 'all',        label: 'All' },
-  { key: 'consumable', label: 'Consumables' },
-  { key: 'basic',      label: 'Basic' },
   { key: 'upgrade',    label: 'Upgrades' },
+  { key: 'basic',      label: 'Basic' },
   { key: 'neutral',    label: 'Neutral' },
+  { key: 'consumable', label: 'Consumables' },
 ]
 
 interface Props {
