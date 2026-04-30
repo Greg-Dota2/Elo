@@ -99,7 +99,7 @@ const nextConfig: NextConfig = {
 
       // ── Dead team slugs ───────────────────────────────────────────────────
       { source: '/teams/aurora',          destination: '/teams/aurora-gaming', permanent: true },
-      { source: '/teams/Rekonix',         destination: '/teams/rekonix',       permanent: true },
+
       { source: '/teams/per-rejects',     destination: '/teams',               permanent: true },
       { source: '/teams/inner-circle',    destination: '/teams',               permanent: true },
       { source: '/teams/x5-gaming',       destination: '/teams',               permanent: true },

@@ -82,6 +82,12 @@ export default async function ItemsPage({ searchParams }: Props) {
           </Link>
         </div>
         <p className="text-sm text-muted-foreground">{counts.all} items total</p>
+        <p className="text-sm text-muted-foreground leading-relaxed mt-3">
+          Every item has a dedicated page with stats, active and passive abilities, build components, and cost.
+          Use the category filter below to browse by type, or head to the{' '}
+          <Link href="/items/meta" className="text-primary hover:underline">Win Rates &amp; Meta</Link>{' '}
+          page if you want to see which upgrades are performing well and how neutral items are distributed across tiers.
+        </p>
       </div>
 
       {/* Filter */}
