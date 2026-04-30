@@ -191,7 +191,7 @@ export async function getTeamBySlug(slug: string) {
   const { data, error } = await supabase
     .from('teams')
     .select('*')
-    .eq('slug', slug)
+    .ilike('slug', slug)
     .single()
   if (error) throw error
   return data
