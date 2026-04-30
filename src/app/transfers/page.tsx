@@ -73,7 +73,7 @@ function TeamChip({ name, logo, slug, fallback }: {
   return content
 }
 
-function TransferRow({ t, teamMap }: { t: Transfer; teamMap: TeamMap }) {
+function TransferRow({ t, teamMap, hideNotes = false }: { t: Transfer; teamMap: TeamMap; hideNotes?: boolean }) {
   const { bg, color } = TYPE_COLORS[t.type]
   const date = new Date(t.transfer_date + 'T00:00:00').toLocaleDateString('en-GB', {
     day: 'numeric', month: 'short',
@@ -121,12 +121,38 @@ function TransferRow({ t, teamMap }: { t: Transfer; teamMap: TeamMap }) {
         <TeamChip name={t.to_team} logo={t.to_team_logo_url} slug={toSlug} fallback={FALLBACK_DESTINATION[t.type]} />
       </div>
 
-      {/* Notes */}
-      {t.notes && (
+      {!hideNotes && t.notes && (
         <p className="mt-2 text-sm leading-6" style={{ color: 'var(--text-muted)' }}>{t.notes}</p>
       )}
     </div>
   )
+}
+
+type TransferBatch = { transfers: Transfer[]; sharedNote: string | null }
+
+function groupIntoBatches(items: Transfer[]): TransferBatch[] {
+  const batches: TransferBatch[] = []
+  for (const t of items) {
+    const last = batches[batches.length - 1]
+    const first = last?.transfers[0]
+    if (
+      last && t.notes &&
+      first?.from_team === t.from_team &&
+      first?.to_team === t.to_team &&
+      first?.type === t.type &&
+      first?.notes === t.notes
+    ) {
+      last.transfers.push(t)
+    } else {
+      batches.push({ transfers: [t], sharedNote: null })
+    }
+  }
+  for (const b of batches) {
+    if (b.transfers.length > 1 && b.transfers[0].notes) {
+      b.sharedNote = b.transfers[0].notes
+    }
+  }
+  return batches
 }
 
 export default async function TransfersPage() {
@@ -175,11 +201,30 @@ export default async function TransfersPage() {
                 {label}
               </p>
               <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-                {items.map((t, i) => (
-                  <div key={t.id} style={i === items.length - 1 ? { borderBottom: 'none' } : {}}>
-                    <TransferRow t={t} teamMap={teamMap} />
-                  </div>
-                ))}
+                {groupIntoBatches(items).map((batch, bi, arr) => {
+                  const isLast = bi === arr.length - 1
+                  const borderStyle = !isLast ? { borderBottom: '1px solid hsl(var(--border) / 0.5)' } : {}
+                  if (batch.transfers.length === 1) {
+                    return (
+                      <div key={batch.transfers[0].id} style={isLast ? { borderBottom: 'none' } : {}}>
+                        <TransferRow t={batch.transfers[0]} teamMap={teamMap} />
+                      </div>
+                    )
+                  }
+                  // Bulk batch — each player as a normal row, shared note once at bottom
+                  return (
+                    <div key={`batch-${bi}`} style={borderStyle}>
+                      {batch.transfers.map(t => (
+                        <TransferRow key={t.id} t={t} teamMap={teamMap} hideNotes />
+                      ))}
+                      {batch.sharedNote && (
+                        <div className="px-5 pb-4">
+                          <p className="text-sm leading-6" style={{ color: 'var(--text-muted)' }}>{batch.sharedNote}</p>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           ))}
