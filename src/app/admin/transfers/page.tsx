@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { getAllTransfersAdmin, getAllPlayersAdmin, getAllTeams } from '@/lib/queries'
-import TransferForm from './TransferForm'
+import TransferTabs from './TransferTabs'
 
 const TYPE_LABELS: Record<string, string> = {
   permanent: 'Signed',
@@ -37,11 +37,7 @@ export default async function AdminTransfersPage() {
         </Link>
       </div>
 
-      {/* Add new transfer form */}
-      <div className="rounded-xl p-5 mb-8" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-        <p className="text-sm font-semibold uppercase tracking-widest mb-4" style={{ color: 'var(--text-muted)' }}>Add Transfer</p>
-        <TransferForm playerOptions={playerOptions} teamOptions={teamOptions} />
-      </div>
+      <TransferTabs playerOptions={playerOptions} teamOptions={teamOptions} />
 
       {/* Existing transfers */}
       <h2 className="text-sm font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-muted)' }}>

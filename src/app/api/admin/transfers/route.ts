@@ -8,6 +8,35 @@ export async function POST(req: Request) {
     const body = await req.json()
     const supabase = createAdminClient()
 
+    // Bulk insert: body.players is an array of { player_ign, player_slug, player_photo_url }
+    if (Array.isArray(body.players)) {
+      const rows = body.players
+        .filter((p: { player_ign?: string }) => p.player_ign?.trim())
+        .map((p: { player_ign: string; player_slug?: string; player_photo_url?: string }) => ({
+          player_ign:         p.player_ign.trim(),
+          player_slug:        p.player_slug || null,
+          player_photo_url:   p.player_photo_url || null,
+          from_team:          body.from_team || null,
+          from_team_logo_url: body.from_team_logo_url || null,
+          to_team:            body.to_team || null,
+          to_team_logo_url:   body.to_team_logo_url || null,
+          transfer_date:      body.transfer_date,
+          type:               body.type || 'permanent',
+          notes:              body.notes || null,
+          is_published:       body.is_published ?? false,
+        }))
+
+      if (rows.length === 0) return NextResponse.json({ error: 'No valid players' }, { status: 400 })
+
+      const { data, error } = await supabase.from('transfers').insert(rows).select()
+      if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+
+      revalidatePath('/transfers', 'layout')
+      if (body.is_published) submitToIndexNow(['https://www.dota2protips.com/transfers'])
+      return NextResponse.json(data, { status: 201 })
+    }
+
+    // Single insert
     const { data, error } = await supabase
       .from('transfers')
       .insert({
