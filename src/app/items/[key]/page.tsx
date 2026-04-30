@@ -4,7 +4,6 @@ import { notFound } from 'next/navigation'
 import { fetchAllItems, fetchItemByKey, fetchComponentMap, itemIconUrl } from '@/lib/items'
 import { fetchHeroesForItem, fetchNeutralItemHeroes, heroSlug, heroPortraitUrl, ATTR_CONFIG } from '@/lib/heroes'
 import { fetchItemGuide } from '@/lib/guides'
-import { getCachedItems } from '@/lib/game-cache'
 import { renderWithLinks } from '@/lib/renderLinks'
 
 export const revalidate = 86400
@@ -35,14 +34,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export async function generateStaticParams() {
-  try {
-    const items = await getCachedItems() ?? await fetchAllItems()
-    return items.map(i => ({ key: i.key }))
-  } catch {
-    return []
-  }
-}
+// No generateStaticParams — items render on-demand via ISR (revalidate=86400).
+// Pre-building all ~300 items at deploy time fires 124 OpenDota requests per item
+// in parallel, which saturates the 60 req/min rate limit and causes build timeouts.
 
 const CATEGORY_LABEL: Record<string, string> = {
   consumable: 'Consumable',
