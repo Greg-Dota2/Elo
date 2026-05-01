@@ -110,8 +110,10 @@ export default async function HomePage() {
 
           {/* Left */}
           <div>
-            <span className="section-kicker mb-5 inline-flex items-center gap-1.5">
-              ✦ Where the real Dota happens.
+            <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/60 px-3 py-1.5 text-xs font-black uppercase tracking-widest backdrop-blur-sm text-muted-foreground">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/global/dota2_logo_symbol.png" alt="Dota 2" className="w-4 h-4 object-contain" />
+              Where the real Dota happens.
             </span>
 
             <h1 className="font-display text-5xl font-bold leading-[0.95] md:text-7xl lg:text-[5.2rem] mb-6">
@@ -133,9 +135,12 @@ export default async function HomePage() {
               </Link>
               <Link
                 href="/track-record"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full font-bold text-base border transition-colors hover:border-primary/50 text-muted-foreground"
-                style={{ borderColor: 'hsl(var(--border))' }}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full font-bold text-base text-white transition-all hover:opacity-90"
+                style={{ background: 'linear-gradient(135deg, hsl(var(--primary) / 0.25), hsl(var(--accent) / 0.20))', border: '1px solid hsl(var(--primary) / 0.45)' }}
               >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+                </svg>
                 Track record
               </Link>
             </div>
