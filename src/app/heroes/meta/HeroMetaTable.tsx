@@ -71,27 +71,33 @@ function Sparkline({ points }: { points: number[] }) {
   )
 }
 
-function SpotlightCard({ hero, label, stat, statColor }: {
+function SpotlightCard({ hero, label, stat, statColor, accent }: {
   hero: HeroMetaEntry
   label: string
   stat: string
   statColor: string
+  accent: string
 }) {
   return (
-    <Link href={`/heroes/${hero.slug}`} className="group relative rounded-xl border border-border/50 bg-card overflow-hidden hover:border-primary/50 transition-all duration-200">
-      <div className="relative h-20 overflow-hidden">
+    <Link href={`/heroes/${hero.slug}`} className="group relative rounded-xl border border-border/50 bg-card overflow-hidden hover:border-primary/40 transition-all duration-200 flex flex-col">
+      {/* Colored top accent */}
+      <div className={`h-[3px] w-full ${accent}`} />
+      <div className="relative h-28 overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={heroPortraitUrl(hero.slug)}
           alt={hero.localized_name}
-          className="w-full h-full object-cover object-center scale-110 opacity-50 group-hover:opacity-65 transition-opacity duration-300"
+          className="w-full h-full object-cover object-top scale-105 opacity-75 group-hover:opacity-90 group-hover:scale-110 transition-all duration-300"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-card via-card/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
+        {/* Label badge overlaid on image */}
+        <span className="absolute top-2 left-2 text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-black/50 text-white/70 backdrop-blur-sm">
+          {label}
+        </span>
       </div>
-      <div className="px-3 pb-3 -mt-1">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-0.5">{label}</p>
-        <p className="font-bold text-sm leading-tight line-clamp-1">{hero.localized_name}</p>
-        <p className={`font-mono font-bold text-base mt-0.5 ${statColor}`}>{stat}</p>
+      <div className="px-3 py-2.5">
+        <p className="font-bold text-sm leading-tight line-clamp-1 group-hover:text-primary transition-colors">{hero.localized_name}</p>
+        <p className={`font-mono font-black text-xl mt-0.5 ${statColor}`}>{stat}</p>
       </div>
     </Link>
   )
@@ -153,21 +159,33 @@ export default function HeroMetaTable({
     <div className="fade-in-up">
 
       {/* Page header */}
-      <div className="mb-8">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
+      <div className="relative rounded-2xl overflow-hidden mb-8 px-6 py-7 border border-border/40 bg-card/60">
+        <div className="pointer-events-none absolute -top-10 -right-10 w-56 h-56 rounded-full blur-3xl opacity-20" style={{ background: 'hsl(var(--primary))' }} />
+
+        <div className="flex items-start justify-between gap-4 flex-wrap mb-4">
           <div>
             <p className="section-label mb-2">Game Knowledge</p>
-            <h1 className="text-3xl font-black tracking-tight mb-1">Hero Meta</h1>
-            <p className="text-sm text-muted-foreground">
-              Public match win &amp; pick rates across all brackets · {heroes.length} heroes
-            </p>
+            <h1 className="text-4xl font-black tracking-tight mb-1">Hero Meta</h1>
+            <p className="text-sm text-muted-foreground">Public match win &amp; pick rates across all brackets · {heroes.length} heroes</p>
           </div>
-          <div className="text-right shrink-0">
-            <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Updated</p>
-            <p className="text-sm font-mono font-semibold">{updatedAt} EET</p>
+          <div className="flex items-center gap-2 shrink-0 px-3 py-2 rounded-xl border border-border/40 bg-[var(--surface)]">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <div>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider leading-none mb-0.5">Live data</p>
+              <p className="text-xs font-mono font-semibold">{updatedAt} EET</p>
+            </div>
           </div>
         </div>
-        <Link href="/heroes" className="inline-block mt-3 text-xs text-primary hover:underline">← All Heroes</Link>
+
+        <Link
+          href="/heroes"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border/50 bg-[var(--surface)] text-sm font-semibold text-muted-foreground hover:text-foreground hover:border-border transition-all"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 5l-7 7 7 7"/>
+          </svg>
+          All Heroes
+        </Link>
       </div>
 
       {/* Explanation */}
@@ -182,39 +200,57 @@ export default function HeroMetaTable({
       {/* Spotlight cards */}
       {(topWR || topPick || topRiser || topFaller) && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-          {topWR    && <SpotlightCard hero={topWR}    label="Highest Win Rate" stat={`${topWR.winRate.toFixed(1)}%`}            statColor="text-emerald-400" />}
-          {topPick  && <SpotlightCard hero={topPick}  label="Most Picked"      stat={`${topPick.pickRate.toFixed(2)}% picks`}   statColor="text-sky-400" />}
-          {topRiser && <SpotlightCard hero={topRiser} label="Biggest Riser"    stat={`+${topRiser.winRateDelta.toFixed(2)}%`}   statColor="text-emerald-400" />}
-          {topFaller && <SpotlightCard hero={topFaller} label="Biggest Faller" stat={`${topFaller.winRateDelta.toFixed(2)}%`}  statColor="text-red-400" />}
+          {topWR    && <SpotlightCard hero={topWR}    label="Highest Win Rate" stat={`${topWR.winRate.toFixed(1)}%`}           statColor="text-emerald-400" accent="bg-emerald-400" />}
+          {topPick  && <SpotlightCard hero={topPick}  label="Most Picked"      stat={`${topPick.pickRate.toFixed(2)}%`}         statColor="text-sky-400"     accent="bg-sky-400" />}
+          {topRiser && <SpotlightCard hero={topRiser} label="Biggest Riser"    stat={`+${topRiser.winRateDelta.toFixed(2)}%`}  statColor="text-emerald-400" accent="bg-emerald-400" />}
+          {topFaller && <SpotlightCard hero={topFaller} label="Biggest Faller" stat={`${topFaller.winRateDelta.toFixed(2)}%`} statColor="text-red-400"     accent="bg-red-400" />}
         </div>
       )}
 
       {/* Filters */}
-      <div className="flex gap-3 mb-4 flex-wrap items-center">
-        <input
-          type="search"
-          placeholder="Search hero..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="rounded-lg px-3 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] outline-none focus:ring-1 focus:ring-orange-500 w-44 placeholder:text-[var(--text-muted)]"
-        />
+      <div className="flex gap-3 mb-4 flex-wrap items-center rounded-xl px-4 py-3 border border-border/40 bg-card/40">
+        <div className="relative">
+          <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/50" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input
+            type="search"
+            placeholder="Search hero..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="rounded-lg pl-7 pr-3 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] outline-none focus:ring-1 focus:ring-orange-500 w-44 placeholder:text-[var(--text-muted)]"
+          />
+        </div>
+
+        <div className="w-px h-5 bg-border/40 hidden sm:block" />
+
         <div className="flex gap-1.5">
-          {(['', 'str', 'agi', 'int', 'all'] as const).map(a => (
+          {([
+            { val: '',    label: 'All',  dot: '' },
+            { val: 'str', label: 'STR',  dot: 'bg-red-400' },
+            { val: 'agi', label: 'AGI',  dot: 'bg-green-400' },
+            { val: 'int', label: 'INT',  dot: 'bg-blue-400' },
+            { val: 'all', label: 'UNI',  dot: 'bg-purple-400' },
+          ] as const).map(({ val, label, dot }) => (
             <button
-              key={a}
-              onClick={() => setAttrFilter(a)}
+              key={val}
+              onClick={() => setAttrFilter(val)}
               className={[
-                'px-3 py-1 rounded-full text-xs font-semibold border transition-all',
-                attrFilter === a
+                'flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all',
+                attrFilter === val
                   ? 'border-primary/60 bg-primary/15 text-primary'
                   : 'border-border/50 text-muted-foreground hover:border-border hover:text-foreground',
               ].join(' ')}
             >
-              {a === '' ? 'All' : a === 'str' ? 'STR' : a === 'agi' ? 'AGI' : a === 'int' ? 'INT' : 'UNI'}
+              {dot && <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />}
+              {label}
             </button>
           ))}
         </div>
-        <span className="ml-auto text-xs text-muted-foreground">{filtered.length} heroes</span>
+
+        <span className="ml-auto text-xs font-semibold tabular-nums px-2.5 py-1 rounded-full bg-[var(--surface)] border border-[var(--border)] text-muted-foreground">
+          {filtered.length} heroes
+        </span>
       </div>
 
       {/* Table */}
@@ -242,7 +278,7 @@ export default function HeroMetaTable({
                   <td className="px-4 py-2.5 text-muted-foreground/40 font-mono text-xs tabular-nums">{i + 1}</td>
                   <td className="px-4 py-2.5">
                     <Link href={`/heroes/${hero.slug}`} className="flex items-center gap-2.5 group">
-                      <div className="relative w-16 h-9 rounded-md overflow-hidden border border-border/30 flex-shrink-0 group-hover:border-primary/40 transition-colors">
+                      <div className="relative w-16 h-10 rounded-md overflow-hidden border border-border/30 flex-shrink-0 group-hover:border-primary/40 transition-colors">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={heroPortraitUrl(hero.slug)} alt={hero.localized_name} className="w-full h-full object-cover" />
                       </div>

@@ -50,36 +50,30 @@ function formatTiming(seconds: number) {
   return `~${Math.round(seconds / 60)}m`
 }
 
-function SpotlightCard({ item, label, stat, statColor, href }: {
+function SpotlightCard({ item, label, stat, statColor, accent, href }: {
   item: { key: string; dname: string }
   label: string
   stat: string
   statColor: string
+  accent: string
   href: string
 }) {
   return (
-    <Link href={href} className="group relative rounded-xl border border-border/50 bg-card overflow-hidden hover:border-primary/50 transition-all duration-200">
-      {/* Large blurred icon background */}
-      <div className="relative h-20 overflow-hidden flex items-center justify-center bg-secondary/20">
+    <Link href={href} className="group relative rounded-xl border border-border/50 bg-card overflow-hidden hover:border-primary/40 transition-all duration-200 flex flex-col">
+      <div className={`h-[3px] w-full ${accent}`} />
+      <div className="relative h-28 overflow-hidden flex items-center justify-center bg-secondary/20">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={itemIconUrl(item.key)}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover scale-150 blur-md opacity-30"
-        />
-        {/* Foreground icon */}
+        <img src={itemIconUrl(item.key)} alt="" className="absolute inset-0 w-full h-full object-cover scale-150 blur-md opacity-30" />
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={itemIconUrl(item.key)}
-          alt={item.dname}
-          className="relative w-20 h-14 object-contain drop-shadow-lg group-hover:scale-105 transition-transform duration-300"
-        />
+        <img src={itemIconUrl(item.key)} alt={item.dname} className="relative w-24 h-16 object-contain drop-shadow-lg group-hover:scale-105 transition-transform duration-300" />
         <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
+        <span className="absolute top-2 left-2 text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-black/50 text-white/70 backdrop-blur-sm">
+          {label}
+        </span>
       </div>
-      <div className="px-3 pb-3 pt-1">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-0.5">{label}</p>
-        <p className="font-bold text-sm leading-tight line-clamp-1">{item.dname}</p>
-        <p className={`font-mono font-bold text-base mt-0.5 ${statColor}`}>{stat}</p>
+      <div className="px-3 py-2.5">
+        <p className="font-bold text-sm leading-tight line-clamp-1 group-hover:text-primary transition-colors">{item.dname}</p>
+        <p className={`font-mono font-black text-xl mt-0.5 ${statColor}`}>{stat}</p>
       </div>
     </Link>
   )
@@ -167,21 +161,33 @@ export default function ItemMetaClient({
   return (
     <div className="fade-in-up">
       {/* Header */}
-      <div className="mb-6">
-        <p className="section-label mb-2">Dota 2</p>
-        <div className="flex items-start justify-between gap-4 flex-wrap">
+      <div className="relative rounded-2xl overflow-hidden mb-8 px-6 py-7 border border-border/40 bg-card/60">
+        <div className="pointer-events-none absolute -top-10 -right-10 w-56 h-56 rounded-full blur-3xl opacity-20" style={{ background: 'hsl(var(--primary))' }} />
+
+        <div className="flex items-start justify-between gap-4 flex-wrap mb-4">
           <div>
-            <h1 className="text-3xl font-black tracking-tight mb-1">Item Meta</h1>
-            <p className="text-sm text-muted-foreground">
-              Upgrade win rates from public matches · neutral items by win rate
-            </p>
+            <p className="section-label mb-2">Dota 2</p>
+            <h1 className="text-4xl font-black tracking-tight mb-1">Item Meta</h1>
+            <p className="text-sm text-muted-foreground">Upgrade win rates from public matches · neutral items by win rate</p>
           </div>
-          <div className="text-right shrink-0">
-            <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Updated</p>
-            <p className="text-sm font-mono font-semibold">{updatedAt} EET</p>
+          <div className="flex items-center gap-2 shrink-0 px-3 py-2 rounded-xl border border-border/40 bg-[var(--surface)]">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <div>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider leading-none mb-0.5">Live data</p>
+              <p className="text-xs font-mono font-semibold">{updatedAt} EET</p>
+            </div>
           </div>
         </div>
-        <Link href="/items" className="inline-block mt-3 text-xs text-primary hover:underline">← All Items</Link>
+
+        <Link
+          href="/items"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border/50 bg-[var(--surface)] text-sm font-semibold text-muted-foreground hover:text-foreground hover:border-border transition-all"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 5l-7 7 7 7"/>
+          </svg>
+          All Items
+        </Link>
       </div>
 
       {/* Explanation */}
@@ -210,23 +216,29 @@ export default function ItemMetaClient({
         <>
           {/* Spotlight cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            {topWR     && <SpotlightCard item={topWR}     label="Highest Win Rate" stat={`${topWR.winRate.toFixed(1)}%`}              statColor="text-emerald-400" href={`/items/${topWR.key}`} />}
-            {mostBought && <SpotlightCard item={mostBought} label="Most Bought"     stat={`${(mostBought.games/1000).toFixed(1)}k games`} statColor="text-sky-400"     href={`/items/${mostBought.key}`} />}
-            {bestBudget && <SpotlightCard item={bestBudget} label="Best Budget"     stat={`${bestBudget.winRate.toFixed(1)}% · ${bestBudget.cost.toLocaleString()}g`} statColor="text-emerald-400" href={`/items/${bestBudget.key}`} />}
-            {bestLate   && <SpotlightCard item={bestLate}   label="Best Late Game"  stat={`${bestLate.winRate.toFixed(1)}% · ${bestLate.cost.toLocaleString()}g`}   statColor="text-emerald-400" href={`/items/${bestLate.key}`} />}
+            {topWR     && <SpotlightCard item={topWR}      label="Highest Win Rate" stat={`${topWR.winRate.toFixed(1)}%`}                                            statColor="text-emerald-400" accent="bg-emerald-400" href={`/items/${topWR.key}`} />}
+            {mostBought && <SpotlightCard item={mostBought} label="Most Bought"      stat={`${(mostBought.games/1000).toFixed(1)}k games`}                            statColor="text-sky-400"     accent="bg-sky-400"     href={`/items/${mostBought.key}`} />}
+            {bestBudget && <SpotlightCard item={bestBudget} label="Best Budget"      stat={`${bestBudget.winRate.toFixed(1)}% · ${bestBudget.cost.toLocaleString()}g`} statColor="text-emerald-400" accent="bg-violet-400"  href={`/items/${bestBudget.key}`} />}
+            {bestLate   && <SpotlightCard item={bestLate}   label="Best Late Game"   stat={`${bestLate.winRate.toFixed(1)}% · ${bestLate.cost.toLocaleString()}g`}    statColor="text-amber-400"   accent="bg-amber-400"   href={`/items/${bestLate.key}`} />}
           </div>
 
           {/* Controls */}
-          <div className="flex gap-3 mb-4 flex-wrap items-center">
-            <input
-              type="search"
-              placeholder="Search item..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="rounded-lg px-3 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] outline-none focus:ring-1 focus:ring-orange-500 w-44 placeholder:text-[var(--text-muted)]"
-            />
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span>Min games:</span>
+          <div className="flex gap-3 mb-4 flex-wrap items-center rounded-xl px-4 py-3 border border-border/40 bg-card/40">
+            <div className="relative">
+              <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/50" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              </svg>
+              <input
+                type="search"
+                placeholder="Search item..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="rounded-lg pl-7 pr-3 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] outline-none focus:ring-1 focus:ring-orange-500 w-44 placeholder:text-[var(--text-muted)]"
+              />
+            </div>
+            <div className="w-px h-5 bg-border/40 hidden sm:block" />
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Min games:</span>
               {[100, 500, 1000, 5000].map(n => (
                 <button
                   key={n}
@@ -237,7 +249,7 @@ export default function ItemMetaClient({
                 </button>
               ))}
             </div>
-            <span className="ml-auto text-xs text-muted-foreground">{filtered.length} items</span>
+            <span className="ml-auto text-xs font-semibold tabular-nums px-2.5 py-1 rounded-full bg-[var(--surface)] border border-[var(--border)] text-muted-foreground">{filtered.length} items</span>
           </div>
 
           <div className="rounded-xl border border-border/40 overflow-hidden bg-card/30">
@@ -298,10 +310,10 @@ export default function ItemMetaClient({
         <>
           {/* Spotlight cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            {topNeutralWR   && <SpotlightCard item={topNeutralWR}   label="Highest Win Rate" stat={`${topNeutralWR.winRate!.toFixed(1)}%`}                         statColor="text-emerald-400" href={`/items/${topNeutralWR.key}`} />}
-            {mostUsedNeutral && <SpotlightCard item={mostUsedNeutral} label="Most Equipped"   stat={`${((mostUsedNeutral.games ?? 0)/1000).toFixed(1)}k games`}       statColor="text-sky-400"     href={`/items/${mostUsedNeutral.key}`} />}
-            {topNeutralT1   && <SpotlightCard item={topNeutralT1}   label="Best Tier 1"      stat={`${topNeutralT1.winRate!.toFixed(1)}% · ${TIER_DROP[1]}`}         statColor="text-slate-300"   href={`/items/${topNeutralT1.key}`} />}
-            {topNeutralT5   && <SpotlightCard item={topNeutralT5}   label="Best Tier 5"      stat={`${topNeutralT5.winRate!.toFixed(1)}% · ${TIER_DROP[5]}`}         statColor="text-amber-400"   href={`/items/${topNeutralT5.key}`} />}
+            {topNeutralWR    && <SpotlightCard item={topNeutralWR}    label="Highest Win Rate" stat={`${topNeutralWR.winRate!.toFixed(1)}%`}                          statColor="text-emerald-400" accent="bg-emerald-400" href={`/items/${topNeutralWR.key}`} />}
+            {mostUsedNeutral && <SpotlightCard item={mostUsedNeutral} label="Most Equipped"    stat={`${((mostUsedNeutral.games ?? 0)/1000).toFixed(1)}k games`}       statColor="text-sky-400"     accent="bg-sky-400"     href={`/items/${mostUsedNeutral.key}`} />}
+            {topNeutralT1    && <SpotlightCard item={topNeutralT1}    label="Best Tier 1"      stat={`${topNeutralT1.winRate!.toFixed(1)}% · ${TIER_DROP[1]}`}         statColor="text-slate-300"   accent="bg-slate-400"   href={`/items/${topNeutralT1.key}`} />}
+            {topNeutralT5    && <SpotlightCard item={topNeutralT5}    label="Best Tier 5"      stat={`${topNeutralT5.winRate!.toFixed(1)}% · ${TIER_DROP[5]}`}         statColor="text-amber-400"   accent="bg-amber-400"   href={`/items/${topNeutralT5.key}`} />}
           </div>
 
           <div className="rounded-xl border border-border/40 overflow-hidden bg-card/30">

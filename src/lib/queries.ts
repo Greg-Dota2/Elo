@@ -15,14 +15,20 @@ export function sortMatchesByStatus(matches: MatchPrediction[]): MatchPrediction
     const pa = priority(a)
     const pb = priority(b)
     if (pa !== pb) return pa - pb
-    // Within finished matches: newest date first, then reverse match_order
+    // Within finished: newest date first, then reverse match_order
     if (pa === 2) {
       const da = a.match_date ?? ''
       const db = b.match_date ?? ''
       if (db !== da) return db.localeCompare(da)
       return (b.match_order ?? 0) - (a.match_order ?? 0)
     }
-    return 0
+    // Within upcoming/live: sort by date then time ascending
+    const da = a.match_date ?? ''
+    const db = b.match_date ?? ''
+    if (da !== db) return da.localeCompare(db)
+    const ta = a.match_time ?? ''
+    const tb = b.match_time ?? ''
+    return ta.localeCompare(tb)
   })
 }
 
@@ -85,6 +91,7 @@ export async function getPredictionsByTournament(
     .eq('tournament_id', tournamentId)
     .eq('is_published', true)
     .order('match_date', { ascending: true })
+    .order('match_time', { ascending: true, nullsFirst: false })
     .order('match_order', { ascending: true, nullsFirst: false })
     .order('pandascore_match_id', { ascending: true, nullsFirst: false })
   if (error) throw error

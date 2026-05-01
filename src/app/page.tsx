@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import type React from 'react'
 import { Suspense } from 'react'
 import { getTournaments, getTournamentStats, getPredictionsByTournament, sortMatchesByStatus } from '@/lib/queries'
 import MatchCard from '@/components/MatchCard'
@@ -141,14 +142,41 @@ export default async function HomePage() {
 
             {/* 3 principle cards */}
             <div className="grid gap-3 sm:grid-cols-3">
-              {[
-                { icon: '🛡', title: 'Always free', text: 'No paywalls, no accounts, nothing to unlock. Just open the site and read.' },
-                { icon: '✍️', title: 'Before the draft', text: 'I commit before the heroes are even picked. No backdating, no excuses.' },
-                { icon: '📊', title: 'Tracked publicly', text: 'Every correct and every wrong call is on display. I have nowhere to hide.' },
-              ].map(p => (
+              {([
+                {
+                  icon: (
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                      <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
+                    </svg>
+                  ),
+                  title: 'Always free',
+                  text: 'No paywalls, no accounts, nothing to unlock. Just open the site and read.',
+                },
+                {
+                  icon: (
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                  ),
+                  title: 'Before the draft',
+                  text: 'I commit before the heroes are even picked. No backdating, no excuses.',
+                },
+                {
+                  icon: (
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  ),
+                  title: 'Tracked publicly',
+                  text: 'Every correct and every wrong call is on display. I have nowhere to hide.',
+                },
+              ] as { icon: React.ReactNode; title: string; text: string }[]).map(p => (
                 <div key={p.title} className="panel-shell p-4">
-                  <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl" style={{ background: 'hsl(var(--secondary))' }}>
-                    <span className="text-xl">{p.icon}</span>
+                  <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl" style={{ background: 'hsl(var(--primary) / 0.12)', color: 'hsl(var(--primary))' }}>
+                    {p.icon}
                   </div>
                   <p className="font-display text-base font-semibold text-foreground">{p.title}</p>
                   <p className="mt-1 text-sm leading-6 text-muted-foreground">{p.text}</p>
