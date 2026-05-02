@@ -46,6 +46,31 @@ const CATEGORY_LABEL: Record<string, string> = {
   neutral: 'Neutral',
 }
 
+const ABILITY_TYPE_STYLES: Record<string, string> = {
+  'PASSIVE': 'text-slate-300 bg-slate-400/10 border-slate-400/25',
+  'ACTIVE':  'text-sky-400 bg-sky-400/10 border-sky-400/25',
+  'TOGGLE':  'text-amber-400 bg-amber-400/10 border-amber-400/25',
+  'AURA':    'text-purple-400 bg-purple-400/10 border-purple-400/25',
+  'INNATE':  'text-emerald-400 bg-emerald-400/10 border-emerald-400/25',
+}
+
+function statColor(display: string): string {
+  const d = display.toLowerCase()
+  if (/health/.test(d)) return 'text-red-400'
+  if (/mana/.test(d)) return 'text-blue-400'
+  if (/damage/.test(d)) return 'text-orange-400'
+  if (/armor/.test(d)) return 'text-yellow-400'
+  if (/attack speed/.test(d)) return 'text-green-400'
+  if (/cooldown/.test(d)) return 'text-cyan-400'
+  if (/strength/.test(d)) return 'text-red-300'
+  if (/agility/.test(d)) return 'text-green-300'
+  if (/intelligence/.test(d)) return 'text-blue-300'
+  if (/move\s*speed/.test(d)) return 'text-emerald-400'
+  if (/magic resist/.test(d)) return 'text-purple-400'
+  if (/spell amp/.test(d)) return 'text-violet-400'
+  return 'text-foreground'
+}
+
 export default async function ItemPage({ params }: Props) {
   const { key } = await params
   const [item, allItems, compMap] = await Promise.all([fetchItemByKey(key), fetchAllItems(), fetchComponentMap()])
@@ -187,13 +212,14 @@ export default async function ItemPage({ params }: Props) {
         <div className="rounded-2xl border border-border/60 bg-card/60 p-5 mb-4">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Stats</p>
           <div className="grid grid-cols-2 gap-x-8 gap-y-2">
-            {item.attrib.filter(a => a.display).map((a, i) => (
-              <div key={i} className="flex items-center justify-between gap-2">
-                <span className="text-sm font-semibold text-foreground tabular-nums">
-                  {a.display!.replace('{value}', a.value)}
-                </span>
-              </div>
-            ))}
+            {item.attrib.filter(a => a.display).map((a, i) => {
+              const text = a.display!.replace('{value}', a.value)
+              return (
+                <div key={i} className="flex items-center gap-2">
+                  <span className={`text-sm font-bold tabular-nums ${statColor(text)}`}>{text}</span>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
@@ -205,14 +231,13 @@ export default async function ItemPage({ params }: Props) {
           <div className="space-y-4">
             {item.abilities.map((ab, i) => (
               <div key={i}>
-                {ab.title && (
-                  <p className="text-sm font-semibold text-foreground mb-1">
-                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground mr-2">{ab.type}</span>
-                    {ab.title}
-                  </p>
+                {ab.type && (
+                  <span className={`inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border mb-2 ${ABILITY_TYPE_STYLES[ab.type.toUpperCase()] ?? 'text-muted-foreground bg-secondary/60 border-border/40'}`}>
+                    {ab.type}
+                  </span>
                 )}
-                {!ab.title && ab.type && (
-                  <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">{ab.type}</p>
+                {ab.title && (
+                  <p className="text-sm font-bold text-foreground mb-1.5">{ab.title}</p>
                 )}
                 {ab.description && (
                   <p className="text-sm text-muted-foreground leading-relaxed">{ab.description}</p>
@@ -381,8 +406,11 @@ export default async function ItemPage({ params }: Props) {
       {/* Lore */}
       {item.lore && (
         <div className="rounded-2xl border border-border/60 bg-card/40 p-5">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Lore</p>
-          <p className="text-sm text-muted-foreground italic leading-relaxed">{item.lore}</p>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Lore</p>
+          <div className="flex gap-2">
+            <span className="text-2xl leading-none shrink-0 mt-0.5 select-none" style={{ color: 'rgba(200, 170, 100, 0.35)', fontFamily: 'Georgia, serif' }}>&ldquo;</span>
+            <p className="text-sm italic leading-relaxed" style={{ color: 'rgba(200, 170, 100, 0.65)' }}>{item.lore}</p>
+          </div>
         </div>
       )}
     </div>

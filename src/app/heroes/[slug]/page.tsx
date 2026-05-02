@@ -71,6 +71,37 @@ export async function generateMetadata({
   }
 }
 
+const ROLE_STYLES: Record<string, string> = {
+  'Carry':     'bg-amber-400/10 text-amber-400 border-amber-400/30 hover:bg-amber-400/20',
+  'Support':   'bg-sky-400/10 text-sky-400 border-sky-400/30 hover:bg-sky-400/20',
+  'Nuker':     'bg-red-400/10 text-red-400 border-red-400/30 hover:bg-red-400/20',
+  'Disabler':  'bg-violet-400/10 text-violet-400 border-violet-400/30 hover:bg-violet-400/20',
+  'Initiator': 'bg-orange-400/10 text-orange-400 border-orange-400/30 hover:bg-orange-400/20',
+  'Escape':    'bg-emerald-400/10 text-emerald-400 border-emerald-400/30 hover:bg-emerald-400/20',
+  'Durable':   'bg-slate-400/10 text-slate-300 border-slate-400/30 hover:bg-slate-400/20',
+  'Pusher':    'bg-lime-400/10 text-lime-400 border-lime-400/30 hover:bg-lime-400/20',
+  'Jungler':   'bg-green-400/10 text-green-400 border-green-400/30 hover:bg-green-400/20',
+}
+
+function specialValueColor(heading: string): string {
+  const h = heading.toLowerCase()
+  if (/damage/.test(h)) return 'text-orange-400'
+  if (/heal|health|barrier/.test(h)) return 'text-red-400'
+  if (/mana/.test(h)) return 'text-blue-400'
+  if (/cooldown/.test(h)) return 'text-cyan-400'
+  if (/duration|lifetime/.test(h)) return 'text-teal-400'
+  if (/range|radius|area|aoe/.test(h)) return 'text-yellow-400'
+  if (/move\s*speed|movement/.test(h)) return 'text-emerald-400'
+  if (/attack speed/.test(h)) return 'text-lime-400'
+  if (/armor/.test(h)) return 'text-yellow-300'
+  if (/slow|stun|silence|disable/.test(h)) return 'text-violet-400'
+  if (/magic resist/.test(h)) return 'text-purple-400'
+  if (/str|strength/.test(h)) return 'text-red-300'
+  if (/agi|agility/.test(h)) return 'text-green-300'
+  if (/int|intelligence/.test(h)) return 'text-blue-300'
+  return 'text-foreground'
+}
+
 function AbilityCard({ ability }: { ability: ValveAbility }) {
   const behaviors = decodeBehavior(ability.behavior)
   const cd = formatLevelValues(ability.cooldowns.filter(v => v > 0))
@@ -113,13 +144,13 @@ function AbilityCard({ ability }: { ability: ValveAbility }) {
         <div className="flex gap-4 shrink-0 text-right">
           {cd && (
             <div>
-              <p className="text-[10px] text-muted-foreground/60 mb-0.5">Cooldown</p>
+              <p className="text-[10px] text-muted-foreground/75 mb-0.5">Cooldown</p>
               <p className="font-display font-bold text-sm text-foreground tabular-nums">{cd}s</p>
             </div>
           )}
           {mc && (
             <div>
-              <p className="text-[10px] text-muted-foreground/60 mb-0.5">Mana</p>
+              <p className="text-[10px] text-muted-foreground/75 mb-0.5">Mana</p>
               <p className="font-display font-bold text-sm text-blue-400 tabular-nums">{mc}</p>
             </div>
           )}
@@ -137,25 +168,27 @@ function AbilityCard({ ability }: { ability: ValveAbility }) {
       {/* Scaling stats */}
       {specialValues.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-3">
-          {specialValues.map((sv, i) => (
-            <div key={i} className="rounded-lg bg-secondary/40 px-3 py-2">
-              <p className="text-[10px] text-muted-foreground/60 mb-0.5 leading-tight">{sv.heading_loc}</p>
-              <p className="font-display font-bold text-xs text-foreground">
-                {sv.is_percentage
-                  ? formatLevelValues(sv.values_float.map(v => Math.round(v * 10) / 10)) + '%'
-                  : formatLevelValues(sv.values_float.map(v => Math.round(v * 100) / 100))}
-              </p>
-            </div>
-          ))}
+          {specialValues.map((sv, i) => {
+            const color = specialValueColor(sv.heading_loc)
+            return (
+              <div key={i} className="rounded-lg bg-secondary/40 px-3 py-2">
+                <p className="text-[10px] text-muted-foreground/75 mb-0.5 leading-tight uppercase tracking-wide">{sv.heading_loc}</p>
+                <p className={`font-display font-bold text-xs tabular-nums ${color}`}>
+                  {sv.is_percentage
+                    ? formatLevelValues(sv.values_float.map(v => Math.round(v * 10) / 10)) + '%'
+                    : formatLevelValues(sv.values_float.map(v => Math.round(v * 100) / 100))}
+                </p>
+              </div>
+            )
+          })}
         </div>
       )}
 
       {/* Notes */}
       {ability.notes_loc && ability.notes_loc.length > 0 && (
-        <ul className="space-y-0.5 mb-3">
+        <ul className="space-y-1.5 mb-3">
           {ability.notes_loc.map((note, i) => (
-            <li key={i} className="text-xs text-muted-foreground/60 flex gap-1.5">
-              <span className="shrink-0 mt-0.5">·</span>
+            <li key={i} className="text-xs text-muted-foreground/75 leading-5 pl-3 border-l-2 border-border/50">
               <span dangerouslySetInnerHTML={{ __html: interpolateAbilityDesc(note.replace(/%(\w+)%%%/g, '$1'), ability.special_values) }} />
             </li>
           ))}
@@ -164,10 +197,14 @@ function AbilityCard({ ability }: { ability: ValveAbility }) {
 
       {/* Lore */}
       {ability.lore_loc && (
-        <p
-          className="text-xs text-muted-foreground/50 italic pt-3 border-t border-border/40 leading-relaxed"
-          dangerouslySetInnerHTML={{ __html: ability.lore_loc }}
-        />
+        <div className="flex gap-2 pt-3 border-t border-border/40">
+          <span className="text-2xl leading-none shrink-0 mt-0.5 select-none" style={{ color: 'rgba(200, 170, 100, 0.35)', fontFamily: 'Georgia, serif' }}>&ldquo;</span>
+          <p
+            className="text-xs italic leading-relaxed"
+            style={{ color: 'rgba(200, 170, 100, 0.65)' }}
+            dangerouslySetInnerHTML={{ __html: ability.lore_loc }}
+          />
+        </div>
       )}
     </div>
   )
@@ -440,7 +477,11 @@ export default async function HeroPage({
           {/* Roles */}
           <div className="flex flex-wrap gap-1.5 mb-5">
             {hero.roles.map(role => (
-              <Link key={role} href={`/heroes?role=${encodeURIComponent(role)}`} className="text-xs text-muted-foreground border border-border/50 px-2.5 py-0.5 rounded-full hover:border-primary/40 hover:text-primary transition-colors">
+              <Link
+                key={role}
+                href={`/heroes?role=${encodeURIComponent(role)}`}
+                className={`text-xs font-semibold px-3 py-1 rounded-full border transition-colors ${ROLE_STYLES[role] ?? 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20'}`}
+              >
                 {role}
               </Link>
             ))}

@@ -62,10 +62,11 @@ const ITEM_KEY_FALLBACK = [
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = createAdminClient()
 
-  const [{ data: tournaments }, { data: teams }, { data: players }] = await Promise.all([
+  const [{ data: tournaments }, { data: teams }, { data: players }, { data: gameCacheRows }] = await Promise.all([
     supabase.from('tournaments').select('slug').eq('is_published', true),
     supabase.from('teams').select('slug, created_at').not('slug', 'is', null),
     supabase.from('players').select('slug, created_at').eq('is_published', true).not('slug', 'is', null),
+    supabase.from('game_cache').select('key, refreshed_at').in('key', ['heroes', 'items']),
   ])
 
   const { data: posts } = await supabase
@@ -103,18 +104,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/terms-of-use`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
   ]
 
-  const GAME_DATA_DATE = new Date('2025-01-01') // site launch / initial game data date
+  const cacheMap = new Map((gameCacheRows ?? []).map(r => [r.key, r.refreshed_at]))
+  const heroLastMod = cacheMap.get('heroes') ? new Date(cacheMap.get('heroes')!) : new Date()
+  const itemLastMod = cacheMap.get('items') ? new Date(cacheMap.get('items')!) : new Date()
 
   const heroRoutes: MetadataRoute.Sitemap = heroSlugs.map(slug => ({
     url: `${SITE_URL}/heroes/${slug}`,
-    lastModified: GAME_DATA_DATE,
+    lastModified: heroLastMod,
     changeFrequency: 'weekly',
     priority: 0.75,
   }))
 
   const itemRoutes: MetadataRoute.Sitemap = itemKeys.map(key => ({
     url: `${SITE_URL}/items/${key}`,
-    lastModified: GAME_DATA_DATE,
+    lastModified: itemLastMod,
     changeFrequency: 'weekly' as const,
     priority: 0.6,
   }))
