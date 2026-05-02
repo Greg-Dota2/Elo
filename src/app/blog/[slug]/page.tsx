@@ -250,13 +250,13 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         firstChild?.type === 'element' && firstChild.tagName === 'a'
           ? firstChild.properties?.href as string
           : undefined
-      // Fallback: match raw heading text to DB team, then PandaScore team
+      // Fallback: match raw heading text to DB teams only (not PandaScore — those may have no page)
       if (!href) {
         const text = extractNodeText(node).trim().toLowerCase()
-        href = teamUrlByName.get(text) ?? psTeamMap.get(text)?.url
+        href = teamUrlByName.get(text)
       }
       const text = extractNodeText(node).trim().toLowerCase()
-      const logo = (href ? teamLogoMap.get(href) : undefined) ?? psTeamMap.get(text)?.imageUrl ?? undefined
+      const logo = (href ? teamLogoMap.get(href) : undefined) ?? undefined
       const needsWrapLink = href && !(firstChild?.type === 'element' && firstChild.tagName === 'a')
       return (
         <h2 className="font-display text-2xl font-bold mt-8 mb-3 flex items-center gap-2.5" style={{ color: 'var(--text)' }}>
@@ -379,6 +379,15 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       )}
 
       {/* Header */}
+      {post.tags && post.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-4">
+          {(post.tags as string[]).map((tag: string) => (
+            <span key={tag} className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border" style={{ background: 'hsl(var(--primary) / 0.08)', color: 'hsl(var(--primary))', borderColor: 'hsl(var(--primary) / 0.2)' }}>
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
       <h1 className="font-display text-4xl font-black tracking-tight leading-tight mb-6">{post.title}</h1>
 
       {post.excerpt && (

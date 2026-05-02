@@ -8,6 +8,24 @@ import MatchCard from './MatchCard'
 
 export type TournamentStatus = 'live' | 'upcoming' | 'finished'
 
+function formatDateRange(start?: string | null, end?: string | null): string | null {
+  if (!start) return null
+  const s = new Date(start)
+  const e = end ? new Date(end) : null
+  const fmt = (d: Date, opts: Intl.DateTimeFormatOptions) =>
+    d.toLocaleDateString('en-GB', { timeZone: 'UTC', ...opts })
+  if (!e) return fmt(s, { day: 'numeric', month: 'short', year: 'numeric' })
+  const sameYear = s.getUTCFullYear() === e.getUTCFullYear()
+  const sameMonth = sameYear && s.getUTCMonth() === e.getUTCMonth()
+  if (sameMonth) {
+    return `${fmt(s, { day: 'numeric', month: 'short' })}–${fmt(e, { day: 'numeric', month: 'short', year: 'numeric' })}`
+  }
+  if (sameYear) {
+    return `${fmt(s, { day: 'numeric', month: 'short' })} – ${fmt(e, { day: 'numeric', month: 'short', year: 'numeric' })}`
+  }
+  return `${fmt(s, { day: 'numeric', month: 'short', year: 'numeric' })} – ${fmt(e, { day: 'numeric', month: 'short', year: 'numeric' })}`
+}
+
 interface Props {
   tournament: Tournament
   stats?: TournamentStats | null
@@ -87,6 +105,14 @@ export default function TournamentCard({ tournament, status }: Props) {
                 </span>
               )}
             </div>
+            {formatDateRange(tournament.start_date, tournament.end_date) && (
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium" style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', color: 'rgba(255,255,255,0.9)', border: '1px solid rgba(255,255,255,0.22)' }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+                </svg>
+                {formatDateRange(tournament.start_date, tournament.end_date)}
+              </div>
+            )}
           </div>
         </div>
       ) : (
@@ -102,12 +128,17 @@ export default function TournamentCard({ tournament, status }: Props) {
                   {STATUS_BADGE[status].label}
                 </span>
               )}
-              {tournament.start_date && (
-                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                  {new Date(tournament.start_date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
-                </span>
-              )}
             </div>
+            {formatDateRange(tournament.start_date, tournament.end_date) && (
+              <div className="flex items-center gap-1.5 mb-2">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+                  <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+                </svg>
+                <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
+                  {formatDateRange(tournament.start_date, tournament.end_date)}
+                </span>
+              </div>
+            )}
             <Link href={`/tournaments/${tournament.slug}`} className="font-display font-bold text-2xl hover:opacity-80 transition-opacity" style={{ color: 'var(--text)' }}>
               {tournament.name}
             </Link>

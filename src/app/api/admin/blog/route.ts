@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
       cover_image_url: body.cover_image_url ?? null,
       is_published: body.is_published ?? false,
       published_at: body.is_published ? new Date().toISOString() : null,
+      tags: body.tags ?? [],
     })
     .select('id')
     .single()

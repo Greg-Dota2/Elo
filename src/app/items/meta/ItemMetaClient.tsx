@@ -224,8 +224,9 @@ export default function ItemMetaClient({
 
           {/* Controls */}
           <div className="flex gap-3 mb-4 flex-wrap items-center rounded-xl px-4 py-3 border border-border/40 bg-card/40">
-            <div className="relative">
-              <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/50" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            {/* Search */}
+            <div className="relative flex-1 min-w-[150px]">
+              <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'hsl(var(--muted-foreground) / 0.5)' }}>
                 <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
               </svg>
               <input
@@ -233,23 +234,43 @@ export default function ItemMetaClient({
                 placeholder="Search item..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="rounded-lg pl-7 pr-3 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] outline-none focus:ring-1 focus:ring-orange-500 w-44 placeholder:text-[var(--text-muted)]"
+                className="w-full rounded-lg pl-7 pr-3 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] outline-none focus:ring-1 focus:ring-primary/50 placeholder:text-[var(--text-muted)]"
               />
             </div>
+
             <div className="w-px h-5 bg-border/40 hidden sm:block" />
+
+            {/* Min games — segmented control */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Min games:</span>
-              {[100, 500, 1000, 5000].map(n => (
-                <button
-                  key={n}
-                  onClick={() => setMinGames(n)}
-                  className={['px-2.5 py-1 rounded-full border text-xs font-semibold transition-all', minGames === n ? 'border-primary/60 bg-primary/15 text-primary' : 'border-border/50 text-muted-foreground hover:border-border hover:text-foreground'].join(' ')}
-                >
-                  {n >= 1000 ? `${n/1000}k+` : `${n}+`}
-                </button>
-              ))}
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'hsl(var(--muted-foreground) / 0.6)', flexShrink: 0 }}>
+                <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+              </svg>
+              <div className="flex rounded-lg border border-border/50 overflow-hidden">
+                {([100, 500, 1000, 5000] as const).map((n, idx) => (
+                  <button
+                    key={n}
+                    onClick={() => setMinGames(n)}
+                    className={[
+                      'px-2.5 py-1 text-xs font-semibold transition-all',
+                      idx > 0 ? 'border-l border-border/50' : '',
+                      minGames === n
+                        ? 'bg-primary/90 text-background'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50',
+                    ].join(' ')}
+                  >
+                    {n >= 1000 ? `${n / 1000}k+` : `${n}+`}
+                  </button>
+                ))}
+              </div>
             </div>
-            <span className="ml-auto text-xs font-semibold tabular-nums px-2.5 py-1 rounded-full bg-[var(--surface)] border border-[var(--border)] text-muted-foreground">{filtered.length} items</span>
+
+            {/* Item count badge */}
+            <div className="ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-border/50 bg-[var(--surface)]">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'hsl(var(--muted-foreground) / 0.6)' }}>
+                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+              </svg>
+              <span className="text-xs font-semibold tabular-nums text-muted-foreground">{filtered.length} items</span>
+            </div>
           </div>
 
           <div className="rounded-xl border border-border/40 overflow-hidden bg-card/30">

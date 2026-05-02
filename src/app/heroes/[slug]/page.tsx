@@ -19,7 +19,7 @@ import {
   type HeroData,
 } from '@/lib/heroes'
 import { fetchItemIdMap, fetchAllItems, itemIconUrl } from '@/lib/items'
-import { getPlayersBySignatureHero } from '@/lib/queries'
+import { getPlayersBySignatureHero, getPlayers } from '@/lib/queries'
 import { fetchHeroRadarStats } from '@/lib/opendota'
 import { fetchHeroGuide } from '@/lib/guides'
 import type { Player } from '@/lib/types'
@@ -226,7 +226,7 @@ export default async function HeroPage({
     allItems.filter(i => i.components?.length).map(i => [i.key, i.components!])
   )
 
-  const [detailResult, matchupsResult, signaturePlayersResult, itemsResult, neutralItemsResult, heroRadarResult, heroGuideResult] = await Promise.allSettled([
+  const [detailResult, matchupsResult, signaturePlayersResult, itemsResult, neutralItemsResult, heroRadarResult, heroGuideResult, allPlayersResult] = await Promise.allSettled([
     fetchHeroDetail(hero.id),
     fetchHeroMatchups(hero.id),
     getPlayersBySignatureHero(hero.localized_name),
@@ -234,6 +234,7 @@ export default async function HeroPage({
     fetchHeroNeutralItems(hero.id),
     fetchHeroRadarStats(hero.id),
     fetchHeroGuide(hero.id),
+    getPlayers(),
   ])
 
   const detail = detailResult.status === 'fulfilled' ? detailResult.value : null
@@ -243,6 +244,7 @@ export default async function HeroPage({
   const neutralItemIds = neutralItemsResult.status === 'fulfilled' ? neutralItemsResult.value : []
   const heroRadarStats = heroRadarResult.status === 'fulfilled' ? heroRadarResult.value : null
   const heroGuide = heroGuideResult.status === 'fulfilled' ? heroGuideResult.value : null
+  const allPlayers = allPlayersResult.status === 'fulfilled' ? allPlayersResult.value : []
 
   const rawTalents = detail?.talents ?? []
   const talentValueMap = buildTalentValueMap(detail?.abilities ?? [])
@@ -303,6 +305,73 @@ export default async function HeroPage({
   ]
 
   const SITE_URL = 'https://www.dota2protips.com'
+
+  // Unified entity map: display name (lowercase) → href
+  // Order: items first so "Eul's Scepter" beats any hero/player with a similar name;
+  // heroes next; players last (short IGNs like "Miracle" shouldn't override hero names).
+  const entityMap = new Map<string, string>()
+  for (const item of allItems) {
+    if (item.dname) entityMap.set(item.dname.toLowerCase(), `/items/${item.key}`)
+  }
+  for (const h of heroes) {
+    const s = heroSlug(h.name)
+    if (s !== slug) entityMap.set(h.localized_name.toLowerCase(), `/heroes/${s}`)
+  }
+  for (const p of allPlayers) {
+    if (p.ign && p.slug) entityMap.set(p.ign.toLowerCase(), `/players/${p.slug}`)
+  }
+
+  const entityPattern = new RegExp(
+    `\\b(${[...entityMap.keys()].sort((a, b) => b.length - a.length).map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`,
+    'gi'
+  )
+
+  // Link entity names in a text string, up to the shared budget (max 12 across the whole guide).
+  // Each unique name is linked only on its first occurrence.
+  function linkEntities(text: string, budget: { left: number }, seen: Set<string>): React.ReactNode {
+    if (budget.left <= 0) return text
+    const parts: React.ReactNode[] = []
+    let last = 0
+    let m: RegExpExecArray | null
+    entityPattern.lastIndex = 0
+    while ((m = entityPattern.exec(text)) !== null) {
+      const key = m[0].toLowerCase()
+      const href = entityMap.get(key)
+      if (!href || seen.has(key) || budget.left <= 0) continue
+      if (m.index > last) parts.push(text.slice(last, m.index))
+      parts.push(
+        <Link key={m.index} href={href} className="font-medium underline underline-offset-2 decoration-primary/40 hover:decoration-primary transition-colors" style={{ color: 'inherit' }}>
+          {m[0]}
+        </Link>
+      )
+      seen.add(key)
+      budget.left--
+      last = m.index + m[0].length
+    }
+    if (last < text.length) parts.push(text.slice(last))
+    return parts.length ? <>{parts}</> : text
+  }
+
+  // Split guide prose into readable paragraphs. Respects existing \n\n breaks;
+  // otherwise groups sentences so each paragraph is ~400–600 chars.
+  function splitGuideText(text: string): string[] {
+    if (text.includes('\n\n')) return text.split('\n\n').filter(Boolean)
+    const sentences = text.split(/(?<=[.!?])\s+(?=[A-Z"'«])/)
+    if (sentences.length <= 2) return [text]
+    const paras: string[] = []
+    let current = ''
+    for (const s of sentences) {
+      const joined = current ? `${current} ${s}` : s
+      if (current && joined.length > 480) {
+        paras.push(current.trim())
+        current = s
+      } else {
+        current = joined
+      }
+    }
+    if (current) paras.push(current.trim())
+    return paras
+  }
 
   return (
     <div className="fade-in-up">
@@ -556,46 +625,49 @@ export default async function HeroPage({
       {heroRadarStats && <HeroRadar stats={heroRadarStats} />}
 
       {/* Guide */}
-      {heroGuide && (heroGuide.when_to_pick || heroGuide.tips.length > 0 || heroGuide.summary) && (
-        <div className="rounded-2xl border border-border/60 bg-card/60 p-5 mb-6">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Strategy</p>
-          <div className="space-y-4">
-            {heroGuide.when_to_pick && (
-              <div>
-                <p className="text-sm font-bold text-foreground mb-1">When to Pick {hero.localized_name}?</p>
-                <div className="space-y-2">
-                  {heroGuide.when_to_pick.split('\n\n').map((para: string, i: number) => (
-                    <p key={i} className="text-sm text-muted-foreground leading-relaxed">{renderWithLinks(para)}</p>
-                  ))}
+      {heroGuide && (heroGuide.when_to_pick || heroGuide.tips.length > 0 || heroGuide.summary) && (() => {
+        const linkBudget = { left: 12 }
+        const linkedEntities = new Set<string>()
+        return (
+          <div className="rounded-2xl border border-border/60 bg-card/60 p-5 mb-6">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-5">Strategy</p>
+            <div className="space-y-6">
+              {heroGuide.when_to_pick && (
+                <div>
+                  <p className="text-sm font-bold text-foreground mb-3">When to Pick {hero.localized_name}?</p>
+                  <div className="space-y-3">
+                    {splitGuideText(heroGuide.when_to_pick).map((para: string, i: number) => (
+                      <p key={i} className="text-sm text-muted-foreground leading-7">{linkEntities(para, linkBudget, linkedEntities)}</p>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-            {heroGuide.tips.length > 0 && (
-              <div>
-                <p className="text-xs font-semibold text-primary/80 uppercase tracking-wider mb-2">Tips & common mistakes</p>
-                <ul className="space-y-1.5">
-                  {heroGuide.tips.map((tip, i) => (
-                    <li key={i} className="flex gap-2 text-sm text-muted-foreground leading-relaxed">
-                      <span className="text-primary/60 shrink-0 mt-0.5">·</span>
-                      <span>{tip}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {heroGuide.summary && (
-              <div className="pt-3 border-t border-border/40">
-                <p className="text-xs font-semibold text-primary/80 uppercase tracking-wider mb-1">Summary</p>
-                <div className="space-y-2">
-                  {heroGuide.summary.split('\n\n').map((para: string, i: number) => (
-                    <p key={i} className="text-sm text-muted-foreground leading-relaxed">{renderWithLinks(para)}</p>
-                  ))}
+              )}
+              {heroGuide.tips.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-primary/80 uppercase tracking-wider mb-3">Tips & common mistakes</p>
+                  <ul className="space-y-3">
+                    {heroGuide.tips.map((tip, i) => (
+                      <li key={i} className="flex gap-3 text-sm text-muted-foreground leading-7 pl-3 border-l-2 border-primary/25">
+                        <span>{linkEntities(tip, linkBudget, linkedEntities)}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              </div>
-            )}
+              )}
+              {heroGuide.summary && (
+                <div className="pt-4 border-t border-border/40">
+                  <p className="text-xs font-semibold text-primary/80 uppercase tracking-wider mb-3">Summary</p>
+                  <div className="space-y-3">
+                    {splitGuideText(heroGuide.summary).map((para: string, i: number) => (
+                      <p key={i} className="text-sm text-muted-foreground leading-7">{linkEntities(para, linkBudget, linkedEntities)}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* Matchups */}
       {(bestAgainst.length > 0 || worstAgainst.length > 0) && (

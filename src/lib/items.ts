@@ -23,7 +23,7 @@ const ROSHAN_DROPS = new Set(['aegis', 'cheese', 'refresher_shard', 'aghanims_bl
 
 // Items removed from the game that still appear in OpenDota's constants
 const REMOVED_ITEMS = new Set([
-  'wraith_pact', 'falcon_blade', 'diffusal_blade_2',
+  'wraith_pact', 'diffusal_blade_2',
   'courier', 'flying_courier', 'mutation_tombstone',
   'pocket_tower', 'pocket_roshan',
 ])

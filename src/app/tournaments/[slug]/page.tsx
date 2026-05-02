@@ -362,7 +362,7 @@ export default async function TournamentPage({ params }: Props) {
                   p.pre_analysis ? p.pre_analysis.slice(0, 150) : null,
                 ].filter(Boolean).join('. ')
                 const eventLocation = tournament.location_type === 'lan' && tournament.location_name
-                  ? { '@type': 'Place', name: tournament.location_name }
+                  ? { '@type': 'Place', name: tournament.location_name, address: tournament.location_name }
                   : { '@type': 'VirtualLocation', url: `https://www.dota2protips.com/tournaments/${slug}` }
                 return {
                   '@context': 'https://schema.org',
@@ -384,18 +384,6 @@ export default async function TournamentPage({ params }: Props) {
                     ...(p.team_2!.logo_url ? { image: p.team_2!.logo_url } : {}),
                   },
                   location: eventLocation,
-                  superEvent: {
-                    '@type': 'Event',
-                    name: tournament.name,
-                    url: `https://www.dota2protips.com/tournaments/${slug}`,
-                    ...(tournament.start_date ? { startDate: tournament.start_date } : {}),
-                    ...(tournament.end_date ? { endDate: tournament.end_date } : {}),
-                    ...(tournament.logo_url ? { image: tournament.logo_url } : {}),
-                    eventAttendanceMode: tournament.location_type === 'lan'
-                      ? 'https://schema.org/OfflineEventAttendanceMode'
-                      : 'https://schema.org/OnlineEventAttendanceMode',
-                    location: eventLocation,
-                  },
                   url: `https://www.dota2protips.com/tournaments/${slug}`,
                   description: descParts,
                 }

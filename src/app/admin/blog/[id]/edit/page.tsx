@@ -23,6 +23,7 @@ export default async function EditBlogPostPage({ params }: { params: Promise<{ i
         content: post.content ?? '',
         cover_image_url: post.cover_image_url ?? '',
         is_published: post.is_published,
+        tags: post.tags ?? [],
       }}
     />
   )

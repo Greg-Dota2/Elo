@@ -10,6 +10,18 @@ interface EntityOption {
   meta?: string    // secondary info line
 }
 
+const BLOG_TAGS = [
+  'Tournament Preview',
+  'Tournament Aftermath',
+  'Team Analysis',
+  'Player Analysis',
+  'Hero Analysis',
+  'Item Guide',
+  'Meta Analysis',
+  'News',
+  'Opinion',
+] as const
+
 interface BlogPost {
   id?: string
   title: string
@@ -18,6 +30,7 @@ interface BlogPost {
   content: string
   cover_image_url: string
   is_published: boolean
+  tags: string[]
 }
 
 interface Props {
@@ -71,6 +84,7 @@ export default function BlogForm({ initial }: Props) {
   const [content, setContent] = useState(initial?.content ?? '')
   const [coverImageUrl, setCoverImageUrl] = useState(initial?.cover_image_url ?? '')
   const [isPublished, setIsPublished] = useState(initial?.is_published ?? false)
+  const [tags, setTags] = useState<string[]>(initial?.tags ?? [])
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [deleting, setDeleting] = useState(false)
 
@@ -164,8 +178,8 @@ export default function BlogForm({ initial }: Props) {
   async function handleSave() {
     setStatus('saving')
     const body = isEdit
-      ? { id: initial!.id, title, slug, excerpt, content, cover_image_url: coverImageUrl, is_published: isPublished }
-      : { title, slug, excerpt, content, cover_image_url: coverImageUrl, is_published: isPublished }
+      ? { id: initial!.id, title, slug, excerpt, content, cover_image_url: coverImageUrl, is_published: isPublished, tags }
+      : { title, slug, excerpt, content, cover_image_url: coverImageUrl, is_published: isPublished, tags }
 
     const res = await fetch('/api/admin/blog', {
       method: isEdit ? 'PATCH' : 'POST',
@@ -498,6 +512,33 @@ export default function BlogForm({ initial }: Props) {
           <p className="text-xs mt-1" style={{ color: 'var(--text-subtle)' }}>
             Supports Markdown. Use the toolbar to insert links, images, tweets, and entity cards.
           </p>
+        </div>
+
+        {/* Tags */}
+        <div
+          className="rounded-xl px-5 py-4"
+          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+        >
+          <p className="font-semibold text-sm mb-3">Tags</p>
+          <div className="flex flex-wrap gap-2">
+            {BLOG_TAGS.map(tag => {
+              const active = tags.includes(tag)
+              return (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => setTags(active ? tags.filter(t => t !== tag) : [...tags, tag])}
+                  className="px-3 py-1 rounded-full text-xs font-semibold border transition-all"
+                  style={active
+                    ? { background: 'hsl(var(--primary) / 0.15)', color: 'hsl(var(--primary))', borderColor: 'hsl(var(--primary) / 0.4)' }
+                    : { background: 'var(--surface-2)', color: 'var(--text-muted)', borderColor: 'var(--border)' }
+                  }
+                >
+                  {active && <span className="mr-1">✓</span>}{tag}
+                </button>
+              )
+            })}
+          </div>
         </div>
 
         {/* Publish toggle */}

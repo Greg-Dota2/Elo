@@ -25,6 +25,14 @@ interface Props {
   bracketExtra?: React.ReactNode
 }
 
+const ANALYSIS_PREVIEW = 800
+
+function truncateAtWord(text: string, max: number): string {
+  if (text.length <= max) return text
+  const cut = text.lastIndexOf(' ', max)
+  return (cut > 0 ? text.slice(0, cut) : text.slice(0, max)) + '…'
+}
+
 function buildDateGroups(stages: Stage[]) {
   const allMatches = stages.flatMap(s => s.matches)
   const byDate = new Map<string, MatchPrediction[]>()
@@ -107,9 +115,14 @@ export default function TournamentContent({ tournament, stages, stats, teamAccur
                 )}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {dateMatches.map((match) => (
-                  <MatchCard key={match.id} match={match} tournament={tournament} h2h={h2hMap?.[match.id]} liveScore={resolveLiveScore(match)} />
-                ))}
+                {dateMatches.map((match) => {
+                  const cardMatch = match.pre_analysis || match.post_commentary ? {
+                    ...match,
+                    pre_analysis: match.pre_analysis ? truncateAtWord(match.pre_analysis, ANALYSIS_PREVIEW) : null,
+                    post_commentary: match.post_commentary ? truncateAtWord(match.post_commentary, ANALYSIS_PREVIEW) : null,
+                  } : match
+                  return <MatchCard key={match.id} match={cardMatch} tournament={tournament} h2h={h2hMap?.[match.id]} liveScore={resolveLiveScore(match)} />
+                })}
               </div>
             </div>
           ))}
@@ -125,7 +138,7 @@ export default function TournamentContent({ tournament, stages, stats, teamAccur
   const bracketContent = (
     <>
       {bracketExtra}
-      <BracketView rounds={bracketStages} />
+      {bracketStages.length > 0 && <BracketView rounds={bracketStages} />}
     </>
   )
 

@@ -2,9 +2,10 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { fetchAllItems, fetchItemByKey, fetchComponentMap, itemIconUrl } from '@/lib/items'
-import { fetchHeroesForItem, fetchNeutralItemHeroes, heroSlug, heroPortraitUrl, ATTR_CONFIG } from '@/lib/heroes'
+import { fetchHeroesForItem, fetchNeutralItemHeroes, fetchAllHeroes, heroSlug, heroPortraitUrl, ATTR_CONFIG } from '@/lib/heroes'
 import { fetchItemGuide } from '@/lib/guides'
-import { renderWithLinks } from '@/lib/renderLinks'
+import { getPlayers } from '@/lib/queries'
+import type React from 'react'
 
 export const revalidate = 86400
 
@@ -51,14 +52,75 @@ export default async function ItemPage({ params }: Props) {
   if (!item) notFound()
 
   const itemMap = new Map(allItems.map(i => [i.key, i]))
-  const [heroUsage, guide] = await Promise.all([
+  const [heroUsage, guide, allHeroes, allPlayers] = await Promise.all([
     item.category === 'neutral'
       ? fetchNeutralItemHeroes(item.id).then(r => r.map(({ hero, count }) => ({ hero, phase: 'Neutral', count })))
       : fetchHeroesForItem(item.id),
     fetchItemGuide(key).catch(() => null),
+    fetchAllHeroes().catch(() => [] as Awaited<ReturnType<typeof fetchAllHeroes>>),
+    getPlayers().catch(() => []),
   ])
 
   const SITE_URL = 'https://www.dota2protips.com'
+
+  // Unified entity map: display name (lowercase) → href. Current item excluded.
+  const entityMap = new Map<string, string>()
+  for (const i of allItems) {
+    if (i.key !== key && i.dname) entityMap.set(i.dname.toLowerCase(), `/items/${i.key}`)
+  }
+  for (const h of allHeroes) {
+    entityMap.set(h.localized_name.toLowerCase(), `/heroes/${heroSlug(h.name)}`)
+  }
+  for (const p of allPlayers) {
+    if (p.ign && p.slug) entityMap.set(p.ign.toLowerCase(), `/players/${p.slug}`)
+  }
+  const entityPattern = new RegExp(
+    `\\b(${[...entityMap.keys()].sort((a, b) => b.length - a.length).map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`,
+    'gi'
+  )
+
+  function linkEntities(text: string, budget: { left: number }, seen: Set<string>): React.ReactNode {
+    if (budget.left <= 0) return text
+    const parts: React.ReactNode[] = []
+    let last = 0
+    let m: RegExpExecArray | null
+    entityPattern.lastIndex = 0
+    while ((m = entityPattern.exec(text)) !== null) {
+      const k = m[0].toLowerCase()
+      const href = entityMap.get(k)
+      if (!href || seen.has(k) || budget.left <= 0) continue
+      if (m.index > last) parts.push(text.slice(last, m.index))
+      parts.push(
+        <Link key={m.index} href={href} className="font-medium underline underline-offset-2 decoration-primary/40 hover:decoration-primary transition-colors" style={{ color: 'inherit' }}>
+          {m[0]}
+        </Link>
+      )
+      seen.add(k)
+      budget.left--
+      last = m.index + m[0].length
+    }
+    if (last < text.length) parts.push(text.slice(last))
+    return parts.length ? <>{parts}</> : text
+  }
+
+  function splitGuideText(text: string): string[] {
+    if (text.includes('\n\n')) return text.split('\n\n').filter(Boolean)
+    const sentences = text.split(/(?<=[.!?])\s+(?=[A-Z"'«])/)
+    if (sentences.length <= 2) return [text]
+    const paras: string[] = []
+    let current = ''
+    for (const s of sentences) {
+      const joined = current ? `${current} ${s}` : s
+      if (current && joined.length > 480) {
+        paras.push(current.trim())
+        current = s
+      } else {
+        current = joined
+      }
+    }
+    if (current) paras.push(current.trim())
+    return paras
+  }
 
   return (
     <div className="fade-in-up">
@@ -233,56 +295,59 @@ export default async function ItemPage({ params }: Props) {
       })()}
 
       {/* Guide */}
-      {guide && (guide.why_buy || guide.when_to_buy || guide.tips.length > 0 || guide.summary) && (
-        <div className="rounded-2xl border border-border/60 bg-card/60 p-5 mb-4">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Strategy</p>
-          <div className="space-y-4">
-            {guide.why_buy && (
-              <div>
-                <p className="text-sm font-bold text-foreground mb-1">Why Buy {item.dname}?</p>
-                <div className="space-y-2">
-                  {guide.why_buy.split('\n\n').map((para: string, i: number) => (
-                    <p key={i} className="text-sm text-muted-foreground leading-relaxed">{renderWithLinks(para)}</p>
-                  ))}
+      {guide && (guide.why_buy || guide.when_to_buy || guide.tips.length > 0 || guide.summary) && (() => {
+        const linkBudget = { left: 12 }
+        const linkedEntities = new Set<string>()
+        return (
+          <div className="rounded-2xl border border-border/60 bg-card/60 p-5 mb-4">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-5">Strategy</p>
+            <div className="space-y-6">
+              {guide.why_buy && (
+                <div>
+                  <p className="text-sm font-bold text-foreground mb-3">Why Buy {item.dname}?</p>
+                  <div className="space-y-3">
+                    {splitGuideText(guide.why_buy).map((para: string, i: number) => (
+                      <p key={i} className="text-sm text-muted-foreground leading-7">{linkEntities(para, linkBudget, linkedEntities)}</p>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-            {guide.when_to_buy && (
-              <div>
-                <p className="text-sm font-bold text-foreground mb-1">When to Buy {item.dname}?</p>
-                <div className="space-y-2">
-                  {guide.when_to_buy.split('\n\n').map((para: string, i: number) => (
-                    <p key={i} className="text-sm text-muted-foreground leading-relaxed">{renderWithLinks(para)}</p>
-                  ))}
+              )}
+              {guide.when_to_buy && (
+                <div>
+                  <p className="text-sm font-bold text-foreground mb-3">When to Buy {item.dname}?</p>
+                  <div className="space-y-3">
+                    {splitGuideText(guide.when_to_buy).map((para: string, i: number) => (
+                      <p key={i} className="text-sm text-muted-foreground leading-7">{linkEntities(para, linkBudget, linkedEntities)}</p>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-            {guide.tips.length > 0 && (
-              <div>
-                <p className="text-xs font-semibold text-primary/80 uppercase tracking-wider mb-2">Tips & common mistakes</p>
-                <ul className="space-y-1.5">
-                  {guide.tips.map((tip, i) => (
-                    <li key={i} className="flex gap-2 text-sm text-muted-foreground leading-relaxed">
-                      <span className="text-primary/60 shrink-0 mt-0.5">·</span>
-                      <span>{tip}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {guide.summary && (
-              <div className="pt-3 border-t border-border/40">
-                <p className="text-xs font-semibold text-primary/80 uppercase tracking-wider mb-1">Summary</p>
-                <div className="space-y-2">
-                  {guide.summary.split('\n\n').map((para: string, i: number) => (
-                    <p key={i} className="text-sm text-muted-foreground leading-relaxed">{renderWithLinks(para)}</p>
-                  ))}
+              )}
+              {guide.tips.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-primary/80 uppercase tracking-wider mb-3">Tips & common mistakes</p>
+                  <ul className="space-y-3">
+                    {guide.tips.map((tip, i) => (
+                      <li key={i} className="flex gap-3 text-sm text-muted-foreground leading-7 pl-3 border-l-2 border-primary/25">
+                        <span>{linkEntities(tip, linkBudget, linkedEntities)}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              </div>
-            )}
+              )}
+              {guide.summary && (
+                <div className="pt-4 border-t border-border/40">
+                  <p className="text-xs font-semibold text-primary/80 uppercase tracking-wider mb-3">Summary</p>
+                  <div className="space-y-3">
+                    {splitGuideText(guide.summary).map((para: string, i: number) => (
+                      <p key={i} className="text-sm text-muted-foreground leading-7">{linkEntities(para, linkBudget, linkedEntities)}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* Heroes */}
       {heroUsage.length > 0 && (
