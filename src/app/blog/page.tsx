@@ -27,7 +27,8 @@ export default async function BlogPage() {
     .from('blog_posts')
     .select('title, slug, excerpt, cover_image_url, published_at, created_at, tags')
     .eq('is_published', true)
-    .order('published_at', { ascending: false })
+    .order('published_at', { ascending: false, nullsFirst: false })
+    .order('created_at', { ascending: false })
 
   return (
     <div className="fade-in-up max-w-3xl mx-auto py-8">

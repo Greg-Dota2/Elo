@@ -13,16 +13,58 @@ interface Post {
   tags: string[] | null
 }
 
-const TAG_COLORS: Record<string, string> = {
-  'Tournament Preview':  'bg-sky-400/10 text-sky-400 border-sky-400/20',
-  'Tournament Aftermath':'bg-violet-400/10 text-violet-400 border-violet-400/20',
-  'Team Analysis':       'bg-blue-400/10 text-blue-400 border-blue-400/20',
-  'Player Analysis':     'bg-cyan-400/10 text-cyan-400 border-cyan-400/20',
-  'Hero Analysis':       'bg-emerald-400/10 text-emerald-400 border-emerald-400/20',
-  'Item Guide':          'bg-amber-400/10 text-amber-400 border-amber-400/20',
-  'Meta Analysis':       'bg-orange-400/10 text-orange-400 border-orange-400/20',
-  'News':                'bg-rose-400/10 text-rose-400 border-rose-400/20',
-  'Opinion':             'bg-slate-400/10 text-slate-400 border-slate-400/20',
+const TAG_STYLES: Record<string, { inactive: string; active: string; pill: string }> = {
+  'Tournament Preview':  {
+    inactive: 'text-sky-400/80 bg-sky-400/10 border-sky-400/30 hover:text-sky-400 hover:bg-sky-400/15 hover:border-sky-400/50',
+    active:   'text-sky-400 bg-sky-400/20 border-sky-400/50',
+    pill:     'bg-sky-400/10 text-sky-400 border-sky-400/20',
+  },
+  'Tournament Aftermath': {
+    inactive: 'text-violet-400/80 bg-violet-400/10 border-violet-400/30 hover:text-violet-400 hover:bg-violet-400/15 hover:border-violet-400/50',
+    active:   'text-violet-400 bg-violet-400/20 border-violet-400/50',
+    pill:     'bg-violet-400/10 text-violet-400 border-violet-400/20',
+  },
+  'Team Analysis': {
+    inactive: 'text-blue-400/80 bg-blue-400/10 border-blue-400/30 hover:text-blue-400 hover:bg-blue-400/15 hover:border-blue-400/50',
+    active:   'text-blue-400 bg-blue-400/20 border-blue-400/50',
+    pill:     'bg-blue-400/10 text-blue-400 border-blue-400/20',
+  },
+  'Player Analysis': {
+    inactive: 'text-cyan-400/80 bg-cyan-400/10 border-cyan-400/30 hover:text-cyan-400 hover:bg-cyan-400/15 hover:border-cyan-400/50',
+    active:   'text-cyan-400 bg-cyan-400/20 border-cyan-400/50',
+    pill:     'bg-cyan-400/10 text-cyan-400 border-cyan-400/20',
+  },
+  'Hero Analysis': {
+    inactive: 'text-emerald-400/80 bg-emerald-400/10 border-emerald-400/30 hover:text-emerald-400 hover:bg-emerald-400/15 hover:border-emerald-400/50',
+    active:   'text-emerald-400 bg-emerald-400/20 border-emerald-400/50',
+    pill:     'bg-emerald-400/10 text-emerald-400 border-emerald-400/20',
+  },
+  'Item Guide': {
+    inactive: 'text-amber-400/80 bg-amber-400/10 border-amber-400/30 hover:text-amber-400 hover:bg-amber-400/15 hover:border-amber-400/50',
+    active:   'text-amber-400 bg-amber-400/20 border-amber-400/50',
+    pill:     'bg-amber-400/10 text-amber-400 border-amber-400/20',
+  },
+  'Meta Analysis': {
+    inactive: 'text-orange-400/80 bg-orange-400/10 border-orange-400/30 hover:text-orange-400 hover:bg-orange-400/15 hover:border-orange-400/50',
+    active:   'text-orange-400 bg-orange-400/20 border-orange-400/50',
+    pill:     'bg-orange-400/10 text-orange-400 border-orange-400/20',
+  },
+  'News': {
+    inactive: 'text-rose-400/80 bg-rose-400/10 border-rose-400/30 hover:text-rose-400 hover:bg-rose-400/15 hover:border-rose-400/50',
+    active:   'text-rose-400 bg-rose-400/20 border-rose-400/50',
+    pill:     'bg-rose-400/10 text-rose-400 border-rose-400/20',
+  },
+  'Opinion': {
+    inactive: 'text-slate-400/80 bg-slate-400/10 border-slate-400/30 hover:text-slate-400 hover:bg-slate-400/15 hover:border-slate-400/50',
+    active:   'text-slate-400 bg-slate-400/20 border-slate-400/50',
+    pill:     'bg-slate-400/10 text-slate-400 border-slate-400/20',
+  },
+}
+
+const DEFAULT_TAG_STYLES = {
+  inactive: 'text-primary/80 bg-primary/10 border-primary/30 hover:text-primary hover:bg-primary/15 hover:border-primary/50',
+  active:   'text-primary bg-primary/20 border-primary/50',
+  pill:     'bg-primary/10 text-primary border-primary/20',
 }
 
 export default function BlogListClient({ posts }: { posts: Post[] }) {
@@ -46,24 +88,23 @@ export default function BlogListClient({ posts }: { posts: Post[] }) {
         <div className="flex flex-wrap gap-2 mb-8">
           <button
             onClick={() => setActiveTag(null)}
-            className="px-3 py-1 rounded-full text-xs font-semibold border transition-all"
-            style={activeTag === null
-              ? { background: 'hsl(var(--primary) / 0.15)', color: 'hsl(var(--primary))', borderColor: 'hsl(var(--primary) / 0.4)' }
-              : { background: 'var(--surface)', color: 'var(--text-muted)', borderColor: 'var(--border)' }
-            }
+            className={`px-4 py-2 rounded-full text-sm font-semibold border transition-all duration-200 ${activeTag === null ? 'text-foreground bg-secondary border-border' : 'text-muted-foreground border-border/60 hover:text-foreground hover:border-border hover:bg-secondary/40'}`}
           >
             All
           </button>
-          {usedTags.map(tag => (
-            <button
-              key={tag}
-              onClick={() => setActiveTag(activeTag === tag ? null : tag)}
-              className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all ${activeTag === tag ? (TAG_COLORS[tag] ?? 'bg-primary/10 text-primary border-primary/20') : 'border-border/50 text-muted-foreground hover:text-foreground'}`}
-              style={activeTag === tag ? {} : { background: 'var(--surface)' }}
-            >
-              {tag}
-            </button>
-          ))}
+          {usedTags.map(tag => {
+            const styles = TAG_STYLES[tag] ?? DEFAULT_TAG_STYLES
+            const isActive = activeTag === tag
+            return (
+              <button
+                key={tag}
+                onClick={() => setActiveTag(isActive ? null : tag)}
+                className={`px-4 py-2 rounded-full text-sm font-semibold border transition-all duration-200 ${isActive ? styles.active : styles.inactive}`}
+              >
+                {tag}
+              </button>
+            )
+          })}
         </div>
       )}
 
@@ -98,7 +139,7 @@ export default function BlogListClient({ posts }: { posts: Post[] }) {
                   {post.tags.map(tag => (
                     <span
                       key={tag}
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${TAG_COLORS[tag] ?? 'bg-primary/10 text-primary border-primary/20'}`}
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${(TAG_STYLES[tag] ?? DEFAULT_TAG_STYLES).pill}`}
                     >
                       {tag}
                     </span>
