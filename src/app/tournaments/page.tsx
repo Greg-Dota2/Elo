@@ -62,36 +62,70 @@ export default async function TournamentsPage() {
     ] as const
   ).filter(s => s.items.length > 0)
 
+  // Aggregate overall stats across all tracked tournaments
+  const totalPredictions = tournamentsWithStats.reduce((s, { stats }) => s + (stats?.total_predictions ?? 0), 0)
+  const totalCorrect     = tournamentsWithStats.reduce((s, { stats }) => s + (stats?.correct ?? 0), 0)
+  const overallAccuracy  = totalPredictions > 0 ? Math.round((totalCorrect / totalPredictions) * 100) : null
+
   return (
     <div className="fade-in-up">
       {/* Page header */}
-      <div className="mb-8">
-        <p className="section-label mb-2">Predictions archive</p>
-        <h1 className="text-3xl font-black tracking-tight">Tournaments</h1>
+      <div className="mb-6">
+        <p className="section-label mb-2">Predictions Archive</p>
+        <h1 className="text-3xl font-black tracking-tight mb-3">Tournaments</h1>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Every Tier 1 tournament I&apos;ve covered — series by series, with my pick, the reasoning behind it,
+          and the result. Every call is logged before the match starts. No backdating, no selective memory.
+        </p>
       </div>
 
+      {/* Stat strip */}
+      {tournamentsWithStats.length > 0 && (
+        <div className="flex items-center gap-3 flex-wrap mb-8">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-primary/25 bg-primary/10">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+            <span className="text-sm font-bold text-primary tabular-nums">{tournamentsWithStats.length}</span>
+            <span className="text-sm text-muted-foreground">tournaments tracked</span>
+          </div>
+          {totalPredictions > 0 && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border/50 bg-secondary/40">
+              <span className="text-sm font-bold text-foreground tabular-nums">{totalPredictions}</span>
+              <span className="text-sm text-muted-foreground">predictions made</span>
+            </div>
+          )}
+          {overallAccuracy !== null && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-success/25 bg-success/10">
+              <span className="text-sm font-bold tabular-nums" style={{ color: 'hsl(var(--success))' }}>{overallAccuracy}%</span>
+              <span className="text-sm text-muted-foreground">overall accuracy</span>
+            </div>
+          )}
+        </div>
+      )}
+
       {tournamentsWithStats.length === 0 ? (
-        <div
-          className="rounded-2xl p-10 text-center"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
-        >
-          <p className="text-4xl mb-3">🏆</p>
-          <p className="font-semibold mb-1" style={{ color: 'var(--text)' }}>No tournaments yet</p>
-          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            Published tournaments will appear here.
-          </p>
+        <div className="rounded-2xl p-10 text-center border border-border/60 bg-card/60">
+          <p className="font-semibold mb-1">No tournaments yet</p>
+          <p className="text-sm text-muted-foreground">Published tournaments will appear here.</p>
         </div>
       ) : (
-        <div className="grid gap-6">
+        <div className="grid gap-8">
           {sections.map(({ status, items }) => (
             <div key={status}>
-              <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-3 mb-4">
                 <span
-                  className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest px-2.5 py-1 rounded-full"
-                  style={SECTION_LABEL[status].style}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border"
+                  style={status === 'live'
+                    ? { background: 'hsl(var(--success) / 0.12)', color: 'hsl(var(--success))', borderColor: 'hsl(var(--success) / 0.25)' }
+                    : status === 'upcoming'
+                    ? { background: 'hsl(var(--primary) / 0.12)', color: 'hsl(var(--primary))', borderColor: 'hsl(var(--primary) / 0.25)' }
+                    : { background: 'hsl(var(--secondary))', color: 'var(--text-muted)', borderColor: 'hsl(var(--border))' }
+                  }
                 >
+                  {status === 'live' && <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />}
                   {SECTION_LABEL[status].text}
                 </span>
+                <span className="text-xs font-bold text-muted-foreground tabular-nums">{items.length}</span>
+                <div className="h-px flex-1 bg-border/40" />
               </div>
               <div className="grid gap-3">
                 {items.map(({ tournament, stats }, i) => (
