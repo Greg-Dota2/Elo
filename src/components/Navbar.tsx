@@ -5,6 +5,20 @@ import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
 
+function getLangUrl(pathname: string, lang: 'en' | 'ru'): string {
+  const isRu = pathname.startsWith('/ru')
+  if (lang === 'ru') {
+    if (isRu) return pathname
+    if (pathname.startsWith('/tournaments') || pathname.startsWith('/blog')) return `/ru${pathname}`
+    return '/ru/tournaments'
+  } else {
+    if (!isRu) return pathname
+    const stripped = pathname.slice(3) || '/'
+    if (stripped.startsWith('/tournaments') || stripped.startsWith('/blog')) return stripped
+    return '/tournaments'
+  }
+}
+
 const links = [
   { href: '/', label: 'Home' },
   { href: '/tournaments', label: 'Tournaments' },
@@ -28,6 +42,8 @@ export default function Navbar({ isAdmin }: { isAdmin?: boolean }) {
     return () => { document.body.style.overflow = '' }
   }, [open])
 
+  const isRu = pathname.startsWith('/ru')
+
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/75 backdrop-blur-2xl">
       <div className="max-w-5xl mx-auto px-4 flex items-center justify-between h-20">
@@ -41,15 +57,15 @@ export default function Navbar({ isAdmin }: { isAdmin?: boolean }) {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-1">
-          {links.map((link) => {
-            const active = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href)
+        <nav className="hidden md:flex items-center gap-0.5">
+          {links.filter(l => l.href !== '/').map((link) => {
+            const active = pathname.startsWith(link.href)
             return (
               <Link
                 key={link.href}
                 href={link.href}
                 className={[
-                  'px-4 py-2 rounded-xl text-base font-semibold transition-all duration-200',
+                  'px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-200',
                   active
                     ? 'text-primary bg-primary/8 border border-primary/20'
                     : 'text-muted-foreground hover:text-foreground border border-transparent',
@@ -59,10 +75,25 @@ export default function Navbar({ isAdmin }: { isAdmin?: boolean }) {
               </Link>
             )
           })}
+          {/* Language switcher */}
+          <div className="ml-2 flex items-center gap-0.5">
+            <Link
+              href={getLangUrl(pathname, 'en')}
+              className={['px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-200 border', !isRu ? 'text-primary bg-primary/8 border-primary/20' : 'text-muted-foreground border-transparent hover:text-foreground'].join(' ')}
+            >
+              EN
+            </Link>
+            <Link
+              href={getLangUrl(pathname, 'ru')}
+              className={['px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-200 border', isRu ? 'text-primary bg-primary/8 border-primary/20' : 'text-muted-foreground border-transparent hover:text-foreground'].join(' ')}
+            >
+              RU
+            </Link>
+          </div>
           {isAdmin && (
             <Link
               href="/admin"
-              className="ml-2 px-4 py-2 rounded-xl text-base font-semibold transition-all duration-200 border"
+              className="ml-1 px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-200 border"
               style={{ borderColor: 'hsl(var(--primary) / 0.4)', color: 'hsl(var(--primary))' }}
             >
               Admin
@@ -107,6 +138,21 @@ export default function Navbar({ isAdmin }: { isAdmin?: boolean }) {
                 </Link>
               )
             })}
+            {/* Language switcher — mobile */}
+            <div className="flex items-center gap-0.5 px-1 mt-1">
+              <Link
+                href={getLangUrl(pathname, 'en')}
+                className={['px-4 py-3 rounded-xl text-base font-semibold transition-all duration-200 border', !isRu ? 'text-primary bg-primary/8 border-primary/20' : 'text-muted-foreground border-transparent'].join(' ')}
+              >
+                EN
+              </Link>
+              <Link
+                href={getLangUrl(pathname, 'ru')}
+                className={['px-4 py-3 rounded-xl text-base font-semibold transition-all duration-200 border', isRu ? 'text-primary bg-primary/8 border-primary/20' : 'text-muted-foreground border-transparent'].join(' ')}
+              >
+                RU
+              </Link>
+            </div>
             {isAdmin && (
               <Link
                 href="/admin"

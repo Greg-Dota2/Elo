@@ -153,7 +153,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description: post.excerpt ?? `Read "${post.title}" on Dota2ProTips — Dota 2 analysis and match predictions by Greg Spencer.`,
       ...(post.cover_image_url ? { images: [post.cover_image_url] } : {}),
     },
-    alternates: { canonical: `/blog/${slug}` },
+    alternates: {
+      canonical: `https://www.dota2protips.com/blog/${slug}`,
+      languages: {
+        'en': `https://www.dota2protips.com/blog/${slug}`,
+        'ru': `https://www.dota2protips.com/ru/blog/${slug}`,
+        'x-default': `https://www.dota2protips.com/blog/${slug}`,
+      },
+    },
   }
 }
 

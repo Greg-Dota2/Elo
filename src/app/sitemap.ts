@@ -91,14 +91,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: SITE_URL, lastModified: new Date(), changeFrequency: 'daily', priority: 1 },
-    { url: `${SITE_URL}/tournaments`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
+    {
+      url: `${SITE_URL}/tournaments`,
+      lastModified: new Date(), changeFrequency: 'daily', priority: 0.9,
+      alternates: { languages: { en: `${SITE_URL}/tournaments`, ru: `${SITE_URL}/ru/tournaments`, 'x-default': `${SITE_URL}/tournaments` } },
+    },
+    {
+      url: `${SITE_URL}/ru/tournaments`,
+      lastModified: new Date(), changeFrequency: 'daily', priority: 0.85,
+      alternates: { languages: { en: `${SITE_URL}/tournaments`, ru: `${SITE_URL}/ru/tournaments`, 'x-default': `${SITE_URL}/tournaments` } },
+    },
+    {
+      url: `${SITE_URL}/blog`,
+      lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8,
+      alternates: { languages: { en: `${SITE_URL}/blog`, ru: `${SITE_URL}/ru/blog`, 'x-default': `${SITE_URL}/blog` } },
+    },
+    {
+      url: `${SITE_URL}/ru/blog`,
+      lastModified: new Date(), changeFrequency: 'weekly', priority: 0.75,
+      alternates: { languages: { en: `${SITE_URL}/blog`, ru: `${SITE_URL}/ru/blog`, 'x-default': `${SITE_URL}/blog` } },
+    },
     { url: `${SITE_URL}/teams`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     { url: `${SITE_URL}/players`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     { url: `${SITE_URL}/rankings`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.7 },
     { url: `${SITE_URL}/track-record`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
     { url: `${SITE_URL}/heroes`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     { url: `${SITE_URL}/items`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${SITE_URL}/blog`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     { url: `${SITE_URL}/transfers`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
     { url: `${SITE_URL}/about`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
     { url: `${SITE_URL}/terms-of-use`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
@@ -122,12 +140,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }))
 
-  const tournamentRoutes: MetadataRoute.Sitemap = (tournaments ?? []).map(t => ({
-    url: `${SITE_URL}/tournaments/${t.slug}`,
-    lastModified: new Date(),
-    changeFrequency: 'daily',
-    priority: 0.85,
-  }))
+  const tournamentRoutes: MetadataRoute.Sitemap = (tournaments ?? []).flatMap(t => ([
+    {
+      url: `${SITE_URL}/tournaments/${t.slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.85,
+      alternates: { languages: { en: `${SITE_URL}/tournaments/${t.slug}`, ru: `${SITE_URL}/ru/tournaments/${t.slug}`, 'x-default': `${SITE_URL}/tournaments/${t.slug}` } },
+    },
+    {
+      url: `${SITE_URL}/ru/tournaments/${t.slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.8,
+      alternates: { languages: { en: `${SITE_URL}/tournaments/${t.slug}`, ru: `${SITE_URL}/ru/tournaments/${t.slug}`, 'x-default': `${SITE_URL}/tournaments/${t.slug}` } },
+    },
+  ]))
 
   const teamRoutes: MetadataRoute.Sitemap = (teams ?? []).map(t => ({
     url: `${SITE_URL}/teams/${t.slug}`,
@@ -143,12 +171,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }))
 
-  const blogRoutes: MetadataRoute.Sitemap = (posts ?? []).map(p => ({
-    url: `${SITE_URL}/blog/${p.slug}`,
-    lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
-    changeFrequency: 'monthly',
-    priority: 0.7,
-  }))
+  const blogRoutes: MetadataRoute.Sitemap = (posts ?? []).flatMap(p => ([
+    {
+      url: `${SITE_URL}/blog/${p.slug}`,
+      lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+      alternates: { languages: { en: `${SITE_URL}/blog/${p.slug}`, ru: `${SITE_URL}/ru/blog/${p.slug}`, 'x-default': `${SITE_URL}/blog/${p.slug}` } },
+    },
+    {
+      url: `${SITE_URL}/ru/blog/${p.slug}`,
+      lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.65,
+      alternates: { languages: { en: `${SITE_URL}/blog/${p.slug}`, ru: `${SITE_URL}/ru/blog/${p.slug}`, 'x-default': `${SITE_URL}/blog/${p.slug}` } },
+    },
+  ]))
 
   return [...staticRoutes, ...heroRoutes, ...itemRoutes, ...tournamentRoutes, ...teamRoutes, ...playerRoutes, ...blogRoutes]
 }

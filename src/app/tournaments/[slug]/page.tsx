@@ -50,7 +50,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         ...(t.logo_url ? { images: [{ url: t.logo_url, alt: t.name }] } : {}),
       },
       twitter: { card: t.logo_url ? 'summary_large_image' : 'summary', title, description, ...(t.logo_url ? { images: [t.logo_url] } : {}) },
-      alternates: { canonical: `/tournaments/${slug}` },
+      alternates: {
+        canonical: `https://www.dota2protips.com/tournaments/${slug}`,
+        languages: {
+          'en': `https://www.dota2protips.com/tournaments/${slug}`,
+          'ru': `https://www.dota2protips.com/ru/tournaments/${slug}`,
+          'x-default': `https://www.dota2protips.com/tournaments/${slug}`,
+        },
+      },
     }
   } catch {
     return { title: 'Tournament Not Found' }
@@ -444,7 +451,7 @@ export default async function TournamentPage({ params }: Props) {
             </div>
             <h1 className="text-2xl font-black tracking-tight mb-1">{tournament.name}</h1>
             {tournament.start_date && tournament.end_date && (
-              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+              <p className="text-sm mb-2" style={{ color: 'var(--text-muted)' }}>
                 {new Date(tournament.start_date).toLocaleDateString('en-GB', {
                   day: 'numeric', month: 'short', year: 'numeric',
                 })}{' '}
@@ -453,6 +460,17 @@ export default async function TournamentPage({ params }: Props) {
                   day: 'numeric', month: 'short', year: 'numeric',
                 })}
               </p>
+            )}
+            {tournament.liquipedia_url && (
+              <a
+                href={tournament.liquipedia_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-opacity hover:opacity-80"
+                style={{ background: 'hsl(45 100% 50% / 0.08)', border: '1px solid hsl(45 100% 50% / 0.25)', color: 'hsl(45 100% 60%)' }}
+              >
+                Liquipedia ↗
+              </a>
             )}
           </div>
 

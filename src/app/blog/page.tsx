@@ -18,7 +18,14 @@ export const metadata: Metadata = {
     title: 'Dota 2 Analysis & Tournament Breakdowns',
     description: 'Match breakdowns, meta analysis, and tournament recaps from someone who watches every single game. No generic takes — just honest Dota 2 writing from Greg.',
   },
-  alternates: { canonical: '/blog' },
+  alternates: {
+    canonical: 'https://www.dota2protips.com/blog',
+    languages: {
+      'en': 'https://www.dota2protips.com/blog',
+      'ru': 'https://www.dota2protips.com/ru/blog',
+      'x-default': 'https://www.dota2protips.com/blog',
+    },
+  },
 }
 
 export default async function BlogPage() {

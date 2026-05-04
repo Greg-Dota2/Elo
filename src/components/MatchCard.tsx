@@ -42,6 +42,7 @@ interface Props {
   tournament?: { name: string; slug?: string | null; logo_url: string | null; telegram_url?: string | null }
   h2h?: H2HData
   liveScore?: { score1: number; score2: number }
+  locale?: 'en' | 'ru'
 }
 
 function TeamLogo({ logo_url, name, dim }: { logo_url: string | null; name: string; dim?: boolean }) {
@@ -61,7 +62,10 @@ function TeamLogo({ logo_url, name, dim }: { logo_url: string | null; name: stri
   )
 }
 
-export default function MatchCard({ match, tournament, h2h, liveScore }: Props) {
+export default function MatchCard({ match, tournament, h2h, liveScore, locale = 'en' }: Props) {
+  const L = locale === 'ru'
+    ? { myTake: 'Мой прогноз', aftermath: 'Итоги', aftermathWin: '✓ Итоги', aftermathLoss: '✗ Итоги' }
+    : { myTake: 'My take', aftermath: 'Aftermath', aftermathWin: '✓ Aftermath', aftermathLoss: '✗ Aftermath' }
   const { team_1, team_2, is_correct } = match
   if (!team_1 || !team_2) return null
 
@@ -367,7 +371,7 @@ export default function MatchCard({ match, tournament, h2h, liveScore }: Props) 
 
             {match.pre_analysis && (
               <div className="mt-5 rounded-xl px-4 py-4" style={{ background: 'hsl(var(--secondary) / 0.5)', border: '1px solid hsl(var(--border) / 0.6)' }}>
-                <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'hsl(var(--muted-foreground) / 0.6)' }}>My take</p>
+                <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'hsl(var(--muted-foreground) / 0.6)' }}>{L.myTake}</p>
                 <ExpandableText text={match.pre_analysis} />
               </div>
             )}
@@ -388,7 +392,7 @@ export default function MatchCard({ match, tournament, h2h, liveScore }: Props) 
                   className="text-xs font-bold uppercase tracking-widest mb-2"
                   style={{ color: effectiveIsCorrect === true ? 'hsl(var(--success))' : effectiveIsCorrect === false ? 'hsl(var(--destructive))' : 'hsl(var(--muted-foreground))' }}
                 >
-                  {effectiveIsCorrect === true ? '✓ Aftermath' : effectiveIsCorrect === false ? '✗ Aftermath' : 'Aftermath'}
+                  {effectiveIsCorrect === true ? L.aftermathWin : effectiveIsCorrect === false ? L.aftermathLoss : L.aftermath}
                 </p>
                 <p className="text-base leading-7 font-medium text-foreground">
                   {renderWithLinks(match.post_commentary)}

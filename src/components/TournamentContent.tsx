@@ -23,6 +23,7 @@ interface Props {
   h2hMap?: Record<string, H2HData>
   liveScoreMap?: Map<string, LiveScoreEntry>
   bracketExtra?: React.ReactNode
+  locale?: 'en' | 'ru'
 }
 
 const ANALYSIS_PREVIEW = 800
@@ -54,7 +55,7 @@ function buildDateGroups(stages: Stage[]) {
     .map(([dateKey, matches]) => ({ dateKey, matches: [...matches].sort((a, b) => priority(a) - priority(b)) }))
 }
 
-export default function TournamentContent({ tournament, stages, stats, teamAccuracy, h2hMap, liveScoreMap, bracketExtra }: Props) {
+export default function TournamentContent({ tournament, stages, stats, teamAccuracy, h2hMap, liveScoreMap, bracketExtra, locale = 'en' }: Props) {
   function resolveLiveScore(match: MatchPrediction) {
     if (!liveScoreMap) return undefined
     const t1 = match.team_1?.name ?? ''
@@ -121,7 +122,7 @@ export default function TournamentContent({ tournament, stages, stats, teamAccur
                     pre_analysis: match.pre_analysis ? truncateAtWord(match.pre_analysis, ANALYSIS_PREVIEW) : null,
                     post_commentary: match.post_commentary ? truncateAtWord(match.post_commentary, ANALYSIS_PREVIEW) : null,
                   } : match
-                  return <MatchCard key={match.id} match={cardMatch} tournament={tournament} h2h={h2hMap?.[match.id]} liveScore={resolveLiveScore(match)} />
+                  return <MatchCard key={match.id} match={cardMatch} tournament={tournament} h2h={h2hMap?.[match.id]} liveScore={resolveLiveScore(match)} locale={locale} />
                 })}
               </div>
             </div>

@@ -38,7 +38,9 @@ export interface Tournament {
   logo_url: string | null
   banner_url: string | null
   overview: string | null
+  overview_ru: string | null
   format: string | null
+  format_ru: string | null
   start_date: string | null
   end_date: string | null
   prize_pool_usd: number | null
@@ -77,7 +79,9 @@ export interface MatchPrediction {
   score_team_2: number | null
   actual_winner_id: string | null
   pre_analysis: string | null
+  pre_analysis_ru: string | null
   post_commentary: string | null
+  post_commentary_ru: string | null
   is_correct: boolean | null
   match_date: string | null
   match_time: string | null

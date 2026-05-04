@@ -30,6 +30,7 @@ interface Props {
   tournament: Tournament
   stats?: TournamentStats | null
   status?: TournamentStatus
+  linkPrefix?: string
 }
 
 const MEDAL = ['#1', '#2', '#3']
@@ -40,7 +41,7 @@ const STATUS_BADGE: Record<TournamentStatus, { label: string; style: React.CSSPr
   finished: { label: 'Completed',  style: { background: 'hsl(var(--border))',          color: 'var(--text-muted)' } },
 }
 
-export default function TournamentCard({ tournament, status }: Props) {
+export default function TournamentCard({ tournament, status, linkPrefix = '/tournaments' }: Props) {
   const [open, setOpen] = useState(false)
   const [matches, setMatches] = useState<MatchPrediction[]>([])
   const [loading, setLoading] = useState(false)
@@ -88,7 +89,7 @@ export default function TournamentCard({ tournament, status }: Props) {
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 20%, hsl(var(--background) / 0.85) 100%)' }} />
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
             <Link
-              href={`/tournaments/${tournament.slug}`}
+              href={`${linkPrefix}/${tournament.slug}`}
               className="font-display font-black text-3xl text-white hover:opacity-80 transition-opacity drop-shadow text-center"
             >
               {tournament.name}
@@ -139,7 +140,7 @@ export default function TournamentCard({ tournament, status }: Props) {
                 </span>
               </div>
             )}
-            <Link href={`/tournaments/${tournament.slug}`} className="font-display font-bold text-2xl hover:opacity-80 transition-opacity" style={{ color: 'var(--text)' }}>
+            <Link href={`${linkPrefix}/${tournament.slug}`} className="font-display font-bold text-2xl hover:opacity-80 transition-opacity" style={{ color: 'var(--text)' }}>
               {tournament.name}
             </Link>
           </div>
@@ -231,7 +232,7 @@ export default function TournamentCard({ tournament, status }: Props) {
               </div>
               <div className="flex justify-center mt-5">
                 <Link
-                  href={`/tournaments/${tournament.slug}`}
+                  href={`${linkPrefix}/${tournament.slug}`}
                   className="px-5 py-2 rounded-full font-semibold text-sm transition-opacity hover:opacity-80"
                   style={{ background: 'hsl(var(--primary))', color: 'hsl(var(--background))' }}
                 >

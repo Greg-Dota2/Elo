@@ -1,24 +1,30 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getTournaments, getTournamentStats } from '@/lib/queries'
 import TournamentCard from '@/components/TournamentCard'
 import type { TournamentStatus } from '@/components/TournamentCard'
 
 export const revalidate = 300
 
+const SITE_URL = 'https://www.dota2protips.com'
+
 export const metadata: Metadata = {
-  title: 'Dota 2 Tournament Predictions & Results',
-  description: 'Every Tier 1 Dota 2 tournament covered — pre-match picks, match-by-match analysis, and full results. No backdating. No excuses. Every call is on the record.',
-  keywords: ['Dota 2 tournaments', 'pro Dota 2 tournaments', 'Dota 2 match predictions', 'ESL One', 'The International', 'Dota 2 Major', 'DPC'],
+  title: 'Прогнозы Dota 2 — Турниры | Dota2ProTips',
+  description: 'Прогнозы и аналитика всех Tier 1 турниров по Dota 2 — матч за матчем, с разбором и результатами. Без задним числом.',
   alternates: {
-    canonical: 'https://www.dota2protips.com/tournaments',
+    canonical: `${SITE_URL}/ru/tournaments`,
     languages: {
-      'en': 'https://www.dota2protips.com/tournaments',
-      'ru': 'https://www.dota2protips.com/ru/tournaments',
-      'x-default': 'https://www.dota2protips.com/tournaments',
+      'en': `${SITE_URL}/tournaments`,
+      'ru': `${SITE_URL}/ru/tournaments`,
+      'x-default': `${SITE_URL}/tournaments`,
     },
   },
-  openGraph: { title: 'Dota 2 Tournament Predictions & Results', description: 'Every Tier 1 Dota 2 tournament covered — pre-match picks, match-by-match analysis, and full results. No backdating. No excuses.', url: '/tournaments' },
-  twitter: { card: 'summary', title: 'Dota 2 Tournament Predictions & Results', description: 'Every Tier 1 Dota 2 tournament covered — pre-match picks, match-by-match analysis, and full results.' },
+  openGraph: {
+    title: 'Прогнозы Dota 2 — Турниры',
+    description: 'Прогнозы и аналитика всех Tier 1 турниров по Dota 2 — матч за матчем, с разбором и результатами.',
+    url: `${SITE_URL}/ru/tournaments`,
+  },
 }
 
 function getTournamentStatus(t: { start_date?: string | null; end_date?: string | null }, now: Date): TournamentStatus {
@@ -30,19 +36,12 @@ function getTournamentStatus(t: { start_date?: string | null; end_date?: string 
   return 'live'
 }
 
-const SECTION_LABEL: Record<TournamentStatus, { text: string; style: React.CSSProperties }> = {
-  live:     { text: '● Live',    style: { background: 'hsl(var(--success) / 0.12)', color: 'hsl(var(--success))' } },
-  upcoming: { text: 'Upcoming',  style: { background: 'hsl(var(--primary) / 0.12)', color: 'hsl(var(--primary))' } },
-  finished: { text: 'Completed', style: { background: 'hsl(var(--border))',          color: 'var(--text-muted)' } },
-}
-
-export default async function TournamentsPage() {
+export default async function RuTournamentsPage() {
   let tournaments: Awaited<ReturnType<typeof getTournaments>> = []
-
   try {
     tournaments = await getTournaments()
   } catch {
-    // Supabase not configured yet
+    // Supabase not configured
   }
 
   const tournamentsWithStats = await Promise.all(
@@ -57,33 +56,39 @@ export default async function TournamentsPage() {
   const upcoming = tournamentsWithStats.filter(({ tournament: t }) => getTournamentStatus(t, now) === 'upcoming')
   const finished = tournamentsWithStats.filter(({ tournament: t }) => getTournamentStatus(t, now) === 'finished')
 
-  // upcoming: nearest first; finished: most recent first
   upcoming.sort((a, b) => (a.tournament.start_date ?? '').localeCompare(b.tournament.start_date ?? ''))
   finished.sort((a, b) => (b.tournament.start_date ?? '').localeCompare(a.tournament.start_date ?? ''))
 
-  const sections: { status: TournamentStatus; items: typeof tournamentsWithStats }[] = (
-    [
-      { status: 'live'     as const, items: live },
-      { status: 'upcoming' as const, items: upcoming },
-      { status: 'finished' as const, items: finished },
-    ] as const
-  ).filter(s => s.items.length > 0)
-
-  // Aggregate overall stats across all tracked tournaments
   const totalPredictions = tournamentsWithStats.reduce((s, { stats }) => s + (stats?.total_predictions ?? 0), 0)
   const totalCorrect     = tournamentsWithStats.reduce((s, { stats }) => s + (stats?.correct ?? 0), 0)
   const overallAccuracy  = totalPredictions > 0 ? Math.round((totalCorrect / totalPredictions) * 100) : null
 
+  const sections: { status: TournamentStatus; label: string; items: typeof tournamentsWithStats }[] = [
+    { status: 'live',     label: '● Live',    items: live },
+    { status: 'upcoming', label: 'Upcoming',  items: upcoming },
+    { status: 'finished', label: 'Завершены', items: finished },
+  ].filter(s => s.items.length > 0)
+
   return (
     <div className="fade-in-up">
-      {/* Page header */}
-      <div className="mb-6">
-        <p className="section-label mb-2">Predictions Archive</p>
-        <h1 className="text-3xl font-black tracking-tight mb-3">Tournaments</h1>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          Every Tier 1 tournament I&apos;ve covered — series by series, with my pick, the reasoning behind it,
-          and the result. Every call is logged before the match starts. No backdating, no selective memory.
-        </p>
+
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4 mb-6">
+        <div>
+          <p className="section-label mb-2">Архив прогнозов</p>
+          <h1 className="text-3xl font-black tracking-tight mb-3">Турниры</h1>
+          <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+            Все Tier 1 турниры — прогнозы серия за серией, с аргументами и результатами. Каждый выбор зафиксирован до начала матча.
+          </p>
+        </div>
+        <Link
+          href="/tournaments"
+          className="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all hover:opacity-90 mt-1"
+          style={{ background: 'hsl(var(--primary) / 0.12)', border: '1px solid hsl(var(--primary) / 0.3)', color: 'hsl(var(--primary))' }}
+        >
+          <span>🇬🇧</span>
+          <span>English</span>
+        </Link>
       </div>
 
       {/* Stat strip */}
@@ -92,18 +97,18 @@ export default async function TournamentsPage() {
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-primary/25 bg-primary/10">
             <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
             <span className="text-sm font-bold text-primary tabular-nums">{tournamentsWithStats.length}</span>
-            <span className="text-sm text-muted-foreground">tournaments tracked</span>
+            <span className="text-sm text-muted-foreground">турниров</span>
           </div>
           {totalPredictions > 0 && (
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border/50 bg-secondary/40">
               <span className="text-sm font-bold text-foreground tabular-nums">{totalPredictions}</span>
-              <span className="text-sm text-muted-foreground">predictions made</span>
+              <span className="text-sm text-muted-foreground">прогнозов</span>
             </div>
           )}
           {overallAccuracy !== null && (
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-success/25 bg-success/10">
               <span className="text-sm font-bold tabular-nums" style={{ color: 'hsl(var(--success))' }}>{overallAccuracy}%</span>
-              <span className="text-sm text-muted-foreground">overall accuracy</span>
+              <span className="text-sm text-muted-foreground">точность</span>
             </div>
           )}
         </div>
@@ -111,25 +116,26 @@ export default async function TournamentsPage() {
 
       {tournamentsWithStats.length === 0 ? (
         <div className="rounded-2xl p-10 text-center border border-border/60 bg-card/60">
-          <p className="font-semibold mb-1">No tournaments yet</p>
-          <p className="text-sm text-muted-foreground">Published tournaments will appear here.</p>
+          <p className="font-semibold mb-1">Турниров пока нет</p>
+          <p className="text-sm text-muted-foreground">Опубликованные турниры появятся здесь.</p>
         </div>
       ) : (
         <div className="grid gap-8">
-          {sections.map(({ status, items }) => (
+          {sections.map(({ status, label, items }) => (
             <div key={status}>
               <div className="flex items-center gap-3 mb-4">
                 <span
                   className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border"
-                  style={status === 'live'
-                    ? { background: 'hsl(var(--success) / 0.12)', color: 'hsl(var(--success))', borderColor: 'hsl(var(--success) / 0.25)' }
-                    : status === 'upcoming'
-                    ? { background: 'hsl(var(--primary) / 0.12)', color: 'hsl(var(--primary))', borderColor: 'hsl(var(--primary) / 0.25)' }
-                    : { background: 'hsl(var(--secondary))', color: 'var(--text-muted)', borderColor: 'hsl(var(--border))' }
+                  style={
+                    status === 'live'
+                      ? { background: 'hsl(var(--success) / 0.12)', color: 'hsl(var(--success))', borderColor: 'hsl(var(--success) / 0.25)' }
+                      : status === 'upcoming'
+                      ? { background: 'hsl(var(--primary) / 0.12)', color: 'hsl(var(--primary))', borderColor: 'hsl(var(--primary) / 0.25)' }
+                      : { background: 'hsl(var(--secondary))', color: 'var(--text-muted)', borderColor: 'hsl(var(--border))' }
                   }
                 >
                   {status === 'live' && <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />}
-                  {SECTION_LABEL[status].text}
+                  {label}
                 </span>
                 <span className="text-xs font-bold text-muted-foreground tabular-nums">{items.length}</span>
                 <div className="h-px flex-1 bg-border/40" />
@@ -137,7 +143,12 @@ export default async function TournamentsPage() {
               <div className="grid gap-3">
                 {items.map(({ tournament, stats }, i) => (
                   <div key={tournament.id} className="fade-in-up" style={{ animationDelay: `${i * 0.05}s` }}>
-                    <TournamentCard tournament={tournament} stats={stats} status={status} />
+                    <TournamentCard
+                      tournament={tournament}
+                      stats={stats}
+                      status={status}
+                      linkPrefix="/ru/tournaments"
+                    />
                   </div>
                 ))}
               </div>
