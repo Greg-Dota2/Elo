@@ -174,6 +174,13 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ slu
   const posLabel: Record<number, string> = {
     1: 'Carry', 2: 'Mid', 3: 'Offlane', 4: 'Soft Support', 5: 'Hard Support',
   }
+  const posColor: Record<number, string> = {
+    1: 'text-yellow-400 bg-yellow-400/10 border border-yellow-400/25',
+    2: 'text-sky-400 bg-sky-400/10 border border-sky-400/25',
+    3: 'text-orange-400 bg-orange-400/10 border border-orange-400/25',
+    4: 'text-emerald-400 bg-emerald-400/10 border border-emerald-400/25',
+    5: 'text-violet-400 bg-violet-400/10 border border-violet-400/25',
+  }
 
   return (
     <div className="fade-in-up">
@@ -491,7 +498,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ slu
                     {p.full_name && <div className="text-xs text-muted-foreground truncate">{p.full_name}</div>}
                   </div>
                   {p.position && (
-                    <span className="text-xs px-2 py-0.5 rounded-full shrink-0" style={{ background: 'hsl(var(--secondary))', color: 'hsl(var(--primary))' }}>
+                    <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full shrink-0 ${posColor[p.position]}`}>
                       {p.position} · {posLabel[p.position]}
                     </span>
                   )}

@@ -20,7 +20,7 @@
     --secondary-foreground: 210 33% 97%;
 
     --muted: 225 18% 15%;
-    --muted-foreground: 216 16% 69%;
+    --muted-foreground: 216 20% 78%;
 
     --accent: 35 94% 64%;
     --accent-foreground: 228 32% 7%;
@@ -54,7 +54,7 @@
     --surface-2:    hsl(226, 20%, 17%);
     --surface-3:    hsl(225, 18%, 15%);
     --text:         hsl(210, 33%, 97%);
-    --text-muted:   hsl(216, 16%, 69%);
+    --text-muted:   hsl(216, 20%, 78%);
     --text-subtle:  hsl(225, 18%, 35%);
     --correct:        hsl(154, 71%, 49%);
     --correct-dim:    hsl(154, 71%, 49%, 0.09);

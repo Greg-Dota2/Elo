@@ -125,6 +125,23 @@ export default async function HomePage() {
               This is a space where I put my predictions on upcoming matches. I predict based on my experience and the performance of Pro Teams — and I comment on every single one, with an aftermath added after each match.
             </p>
 
+            {/* Credibility stats */}
+            <div className="flex items-center gap-6 mb-8 py-4" style={{ borderTop: '1px solid hsl(var(--border) / 0.5)', borderBottom: '1px solid hsl(var(--border) / 0.5)' }}>
+              {[
+                { value: '~70%', label: 'prediction accuracy', color: 'hsl(var(--primary))' },
+                { value: '600+', label: 'picks tracked',       color: 'var(--foreground)' },
+                { value: 'Tier 1', label: 'matches only',      color: 'hsl(45 90% 60%)' },
+              ].map((s, i) => (
+                <div key={s.label} className="flex items-center gap-6">
+                  {i > 0 && <div className="w-px self-stretch" style={{ background: 'hsl(var(--border) / 0.6)' }} />}
+                  <div>
+                    <p className="font-display text-2xl font-black tabular-nums leading-none mb-0.5" style={{ color: s.color }}>{s.value}</p>
+                    <p className="text-xs text-muted-foreground">{s.label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
             <div className="flex flex-col gap-4 sm:flex-row mb-10">
               <Link
                 href={latest ? `/tournaments/${latest.slug}` : '/tournaments'}
@@ -157,6 +174,9 @@ export default async function HomePage() {
                   ),
                   title: 'Always free',
                   text: 'No paywalls, no accounts, nothing to unlock. Just open the site and read.',
+                  iconBg: 'hsl(142 70% 45% / 0.12)',
+                  iconColor: 'hsl(142 70% 55%)',
+                  accent: 'hsl(142 70% 55% / 0.15)',
                 },
                 {
                   icon: (
@@ -167,6 +187,9 @@ export default async function HomePage() {
                   ),
                   title: 'Before the draft',
                   text: 'I commit before the heroes are even picked. No backdating, no excuses.',
+                  iconBg: 'hsl(38 90% 55% / 0.12)',
+                  iconColor: 'hsl(38 90% 60%)',
+                  accent: 'hsl(38 90% 55% / 0.15)',
                 },
                 {
                   icon: (
@@ -177,10 +200,14 @@ export default async function HomePage() {
                   ),
                   title: 'Tracked publicly',
                   text: 'Every correct and every wrong call is on display. I have nowhere to hide.',
+                  iconBg: 'hsl(var(--primary) / 0.12)',
+                  iconColor: 'hsl(var(--primary))',
+                  accent: 'hsl(var(--primary) / 0.15)',
                 },
-              ] as { icon: React.ReactNode; title: string; text: string }[]).map(p => (
-                <div key={p.title} className="panel-shell p-4">
-                  <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl" style={{ background: 'hsl(var(--primary) / 0.12)', color: 'hsl(var(--primary))' }}>
+              ] as { icon: React.ReactNode; title: string; text: string; iconBg: string; iconColor: string; accent: string }[]).map(p => (
+                <div key={p.title} className="panel-shell p-4 relative overflow-hidden">
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${p.iconColor}, transparent)`, opacity: 0.4 }} />
+                  <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl" style={{ background: p.iconBg, color: p.iconColor }}>
                     {p.icon}
                   </div>
                   <p className="font-display text-base font-semibold text-foreground">{p.title}</p>
@@ -204,26 +231,30 @@ export default async function HomePage() {
               )}
 
               {/* Card header */}
-              <div className="flex items-start justify-between gap-4 mb-6">
-                <div>
-                  <span className="section-kicker mb-3 inline-flex items-center gap-1.5">
-                    ● Latest picks
-                  </span>
-                  <div className="flex items-center gap-3">
-                    {latest?.logo_url && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img loading="lazy" src={latest.logo_url} alt={latest.name} className="w-8 h-8 object-contain shrink-0 rounded" />
-                    )}
-                    <Link href={`/tournaments/${latest?.slug}`} className="font-display text-3xl font-bold md:text-4xl hover:text-primary transition-colors">
-                      {latest?.name ?? 'Recent picks'}
-                    </Link>
+              <div className="mb-5">
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-2 w-2 shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: 'hsl(var(--success))' }} />
+                      <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: 'hsl(var(--success))' }} />
+                    </span>
+                    <span className="text-xs font-black uppercase tracking-widest" style={{ color: 'hsl(var(--success))' }}>Latest picks</span>
                   </div>
+                  {latestStats && latestStats.accuracy_pct !== null && (
+                    <span className="text-sm font-semibold px-3 py-1.5 rounded-full shrink-0" style={{ background: 'hsl(var(--success) / 0.12)', color: 'hsl(var(--success))' }}>
+                      {latestStats.accuracy_pct}% accuracy
+                    </span>
+                  )}
                 </div>
-                {latestStats && latestStats.accuracy_pct !== null && (
-                  <span className="text-sm font-semibold px-3 py-1.5 rounded-full shrink-0" style={{ background: 'hsl(var(--success) / 0.12)', color: 'hsl(var(--success))' }}>
-                    {latestStats.accuracy_pct}% accuracy
-                  </span>
-                )}
+                <div className="flex items-center gap-3">
+                  {latest?.logo_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img loading="lazy" src={latest.logo_url} alt={latest.name} className="w-8 h-8 object-contain shrink-0 rounded" />
+                  )}
+                  <Link href={`/tournaments/${latest?.slug}`} className="font-display text-3xl font-bold md:text-4xl hover:text-primary transition-colors">
+                    {latest?.name ?? 'Recent picks'}
+                  </Link>
+                </div>
               </div>
 
               {/* Match rows */}
@@ -235,48 +266,53 @@ export default async function HomePage() {
                   return (
                     <div
                       key={m.id}
-                      className="rounded-[1.4rem] border px-5 py-5"
+                      className="rounded-[1.4rem] border px-5 py-4 relative overflow-hidden"
                       style={{ borderColor: 'hsl(var(--border) / 0.7)', background: 'hsl(var(--secondary) / 0.55)' }}
                     >
+                      {/* Top accent line */}
+                      <div className="pointer-events-none absolute inset-x-0 top-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, hsl(var(--primary) / 0.35), transparent)' }} />
+
                       {/* Teams row */}
-                      <div className="flex items-center gap-3 flex-wrap mb-4">
-                        <div className="flex items-center gap-2.5">
+                      <div className="flex items-center gap-2.5 flex-wrap mb-3">
+                        <div className="flex items-center gap-2">
                           {t1?.logo_url && (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img loading="lazy" src={t1.logo_url} alt={t1.name} className="w-8 h-8 object-contain shrink-0" />
+                            <img loading="lazy" src={t1.logo_url} alt={t1.name} className="w-7 h-7 object-contain shrink-0" />
                           )}
-                          <span className="font-display font-bold text-foreground text-xl">
+                          <span className="font-display font-bold text-foreground text-lg">
                             {t1?.slug ? <Link href={`/teams/${t1.slug}`} className="hover:text-primary transition-colors">{t1?.name}</Link> : t1?.name}
                           </span>
                         </div>
-                        <span className="text-muted-foreground font-normal text-base">vs</span>
-                        <div className="flex items-center gap-2.5">
+                        <span className="text-[10px] font-black text-muted-foreground/50 px-1.5 py-0.5 rounded border border-border/40 tracking-wider">VS</span>
+                        <div className="flex items-center gap-2">
                           {t2?.logo_url && (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img loading="lazy" src={t2.logo_url} alt={t2.name} className="w-8 h-8 object-contain shrink-0" />
+                            <img loading="lazy" src={t2.logo_url} alt={t2.name} className="w-7 h-7 object-contain shrink-0" />
                           )}
-                          <span className="font-display font-bold text-foreground text-xl">
+                          <span className="font-display font-bold text-foreground text-lg">
                             {t2?.slug ? <Link href={`/teams/${t2.slug}`} className="hover:text-primary transition-colors">{t2?.name}</Link> : t2?.name}
                           </span>
                         </div>
                       </div>
+
                       {/* Analysis */}
                       {m.pre_analysis && (
-                        <p className="text-base text-muted-foreground line-clamp-2 mb-4 leading-7">{m.pre_analysis}</p>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3 leading-6">{m.pre_analysis}</p>
                       )}
+
                       {/* Pick */}
                       {(pick || m.predicted_draw) && (
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground/60 uppercase tracking-widest">Pick</span>
+                          <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'hsl(var(--muted-foreground) / 0.5)' }}>→ Pick</span>
                           <div
-                            className="rounded-full border px-3 py-1.5 flex items-center gap-2"
-                            style={{ borderColor: 'hsl(var(--border) / 0.7)', background: 'hsl(var(--background) / 0.55)', color: 'hsl(var(--muted-foreground))' }}
+                            className="rounded-full px-3 py-1.5 flex items-center gap-1.5"
+                            style={{ background: 'hsl(var(--background) / 0.65)', color: 'var(--foreground)', border: '1px solid hsl(var(--border) / 0.9)' }}
                           >
                             {pick?.logo_url && (
                               // eslint-disable-next-line @next/next/no-img-element
-                              <img loading="lazy" src={pick.logo_url} alt={pick.name} className="w-5 h-5 object-contain" />
+                              <img loading="lazy" src={pick.logo_url} alt={pick.name} className="w-4 h-4 object-contain" />
                             )}
-                            <span className="text-base font-semibold">{pick ? (pick.short_name ?? pick.name) : 'Draw (1–1)'}</span>
+                            <span className="text-sm font-bold text-foreground">{pick ? (pick.short_name ?? pick.name) : 'Draw (1–1)'}</span>
                           </div>
                         </div>
                       )}
@@ -286,7 +322,8 @@ export default async function HomePage() {
               </div>
 
               {/* Footer blurb */}
-              <div className="rounded-[1.6rem] border p-5" style={{ borderColor: 'hsl(var(--border) / 0.7)', background: 'hsl(var(--background) / 0.45)' }}>
+              <div className="rounded-[1.6rem] border p-5 relative overflow-hidden" style={{ borderColor: 'hsl(var(--border) / 0.7)', background: 'hsl(var(--background) / 0.45)' }}>
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, hsl(var(--primary) / 0.3), transparent)' }} />
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground mb-2">What you get here</p>
                 <p className="font-display text-xl leading-tight text-foreground">
                   One pick per match. My honest read, written before the draft. No fluff, no hedging.

@@ -316,10 +316,12 @@ export default function MatchCard({ match, tournament, h2h, liveScore }: Props) 
             {/* Label + outcome badge row */}
             <div className="flex items-center justify-between mb-4">
               <span
-                className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.2em]"
+                className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em]"
                 style={{ color: 'hsl(var(--primary))' }}
               >
-                <span className="text-base leading-none">◎</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+                </svg>
                 Prediction
               </span>
               {hasResult && effectiveIsCorrect !== null ? (
@@ -334,7 +336,15 @@ export default function MatchCard({ match, tournament, h2h, liveScore }: Props) 
                   {effectiveIsCorrect ? '✓ Correct' : '✗ Wrong'}
                 </span>
               ) : !hasResult ? (
-                <span className="stat-badge-success">{confidence}% confidence</span>
+                <div className="flex flex-col items-end gap-1">
+                  <div className="flex items-baseline gap-1">
+                    <span className="font-display text-sm font-black tabular-nums" style={{ color: confidence >= 65 ? 'hsl(var(--success))' : confidence >= 50 ? 'hsl(var(--primary))' : '#f59e0b' }}>{confidence}%</span>
+                    <span className="text-[10px] font-semibold" style={{ color: 'hsl(var(--muted-foreground))' }}>confidence</span>
+                  </div>
+                  <div className="w-20 h-1 rounded-full overflow-hidden" style={{ background: 'hsl(var(--border))' }}>
+                    <div className="h-full rounded-full transition-all" style={{ width: `${confidence}%`, background: confidence >= 65 ? 'hsl(var(--success))' : confidence >= 50 ? 'hsl(var(--primary))' : '#f59e0b' }} />
+                  </div>
+                </div>
               ) : null}
             </div>
 

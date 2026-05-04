@@ -12,24 +12,24 @@ const CATEGORIES = [
 
 const CATEGORY_STYLES: Record<string, { inactive: string; active: string }> = {
   all:        {
-    inactive: 'text-muted-foreground border-border/50 hover:text-foreground hover:border-border hover:bg-secondary/40',
+    inactive: 'text-muted-foreground border-border/60 hover:text-foreground hover:border-border hover:bg-secondary/40',
     active:   'text-foreground bg-secondary border-border',
   },
   upgrade:    {
-    inactive: 'text-amber-400/55 bg-amber-400/5 border-amber-400/15 hover:text-amber-400/80 hover:bg-amber-400/10 hover:border-amber-400/25',
-    active:   'text-amber-400 bg-amber-400/15 border-amber-400/40',
+    inactive: 'text-amber-400/80 bg-amber-400/10 border-amber-400/30 hover:text-amber-400 hover:bg-amber-400/15 hover:border-amber-400/50',
+    active:   'text-amber-400 bg-amber-400/20 border-amber-400/50',
   },
   basic:      {
-    inactive: 'text-sky-400/55 bg-sky-400/5 border-sky-400/15 hover:text-sky-400/80 hover:bg-sky-400/10 hover:border-sky-400/25',
-    active:   'text-sky-400 bg-sky-400/15 border-sky-400/40',
+    inactive: 'text-sky-400/80 bg-sky-400/10 border-sky-400/30 hover:text-sky-400 hover:bg-sky-400/15 hover:border-sky-400/50',
+    active:   'text-sky-400 bg-sky-400/20 border-sky-400/50',
   },
   neutral:    {
-    inactive: 'text-emerald-400/55 bg-emerald-400/5 border-emerald-400/15 hover:text-emerald-400/80 hover:bg-emerald-400/10 hover:border-emerald-400/25',
-    active:   'text-emerald-400 bg-emerald-400/15 border-emerald-400/40',
+    inactive: 'text-emerald-400/80 bg-emerald-400/10 border-emerald-400/30 hover:text-emerald-400 hover:bg-emerald-400/15 hover:border-emerald-400/50',
+    active:   'text-emerald-400 bg-emerald-400/20 border-emerald-400/50',
   },
   consumable: {
-    inactive: 'text-rose-400/55 bg-rose-400/5 border-rose-400/15 hover:text-rose-400/80 hover:bg-rose-400/10 hover:border-rose-400/25',
-    active:   'text-rose-400 bg-rose-400/15 border-rose-400/40',
+    inactive: 'text-rose-400/80 bg-rose-400/10 border-rose-400/30 hover:text-rose-400 hover:bg-rose-400/15 hover:border-rose-400/50',
+    active:   'text-rose-400 bg-rose-400/20 border-rose-400/50',
   },
 }
 

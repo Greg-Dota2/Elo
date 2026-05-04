@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import Link from 'next/link'
-import { fetchAllItems, itemIconUrl, type ItemCategory } from '@/lib/items'
-import ItemsFilter from '@/components/ItemsFilter'
+import { fetchAllItems } from '@/lib/items'
+import ItemsClient from '@/components/ItemsClient'
 
 export const revalidate = 86400
 
@@ -15,36 +15,8 @@ export const metadata: Metadata = {
   twitter: { card: 'summary', title: 'Dota 2 Items — Stats, Costs & Pro Usage', description: 'Every Dota 2 item in one place — costs, active/passive abilities, build paths, and when to buy them.' },
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  all: 'All',
-  consumable: 'Consumables',
-  basic: 'Basic',
-  upgrade: 'Upgrades',
-  neutral: 'Neutral',
-}
-
-interface Props {
-  searchParams: Promise<{ cat?: string }>
-}
-
-export default async function ItemsPage({ searchParams }: Props) {
-  const { cat } = await searchParams
-  const activeCategory = cat || 'all'
-
-  const CATEGORY_ORDER: Record<string, number> = { upgrade: 0, basic: 1, neutral: 2, consumable: 3 }
-
+export default async function ItemsPage() {
   const allItems = await fetchAllItems()
-  const items = activeCategory === 'all'
-    ? [...allItems].sort((a, b) => (CATEGORY_ORDER[a.category] ?? 99) - (CATEGORY_ORDER[b.category] ?? 99))
-    : allItems.filter(i => i.category === activeCategory)
-
-  const counts = {
-    all: allItems.length,
-    consumable: allItems.filter(i => i.category === 'consumable').length,
-    basic: allItems.filter(i => i.category === 'basic').length,
-    upgrade: allItems.filter(i => i.category === 'upgrade').length,
-    neutral: allItems.filter(i => i.category === 'neutral').length,
-  }
 
   return (
     <div className="fade-in-up">
@@ -81,8 +53,7 @@ export default async function ItemsPage({ searchParams }: Props) {
             Win Rates &amp; Meta →
           </Link>
         </div>
-        <p className="text-sm text-muted-foreground">{counts.all} items total</p>
-        <p className="text-sm text-muted-foreground leading-relaxed mt-3">
+        <p className="text-sm text-muted-foreground leading-relaxed mt-1">
           Every item has a dedicated page with stats, active and passive abilities, build components, and cost.
           Use the category filter below to browse by type, or head to the{' '}
           <Link href="/items/meta" className="text-primary hover:underline">Win Rates &amp; Meta</Link>{' '}
@@ -90,51 +61,9 @@ export default async function ItemsPage({ searchParams }: Props) {
         </p>
       </div>
 
-      {/* Filter */}
       <Suspense>
-        <ItemsFilter active={activeCategory} counts={counts} />
+        <ItemsClient items={allItems} />
       </Suspense>
-
-      {/* Grid */}
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2 mt-6">
-        {items.map(item => (
-          <Link
-            key={item.key}
-            href={`/items/${item.key}`}
-            className="group relative rounded-xl border border-border/50 bg-card/60 overflow-hidden hover:border-primary/40 hover:bg-card/80 transition-all duration-200"
-            title={item.dname}
-          >
-            {/* Item icon */}
-            <div className="relative aspect-[88/64] bg-secondary/40 overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={itemIconUrl(item.key)}
-                alt={item.dname}
-                className="w-full h-full object-cover"
-                loading="lazy"
-              />
-            </div>
-
-            {/* Name + cost */}
-            <div className="px-2 py-1.5">
-              <p className="text-[10px] font-semibold leading-tight text-foreground line-clamp-2 mb-1">
-                {item.dname}
-              </p>
-              {item.cost > 0 && (
-                <p className="text-[10px] font-bold text-amber-400 tabular-nums">
-                  {item.cost.toLocaleString()} g
-                </p>
-              )}
-            </div>
-          </Link>
-        ))}
-      </div>
-
-      {items.length === 0 && (
-        <div className="rounded-2xl p-10 text-center border border-border/60 bg-card/60">
-          <p className="text-muted-foreground text-sm">No items found.</p>
-        </div>
-      )}
     </div>
   )
 }
