@@ -133,9 +133,12 @@ export default async function PlayerRankingsPage() {
           </Link>
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Ranked by total prize earnings across all tracked Tier 1 tournaments. Prize money is attributed
-          to every player on the roster at the time of the result — better placements and higher prize pools
-          push players up the table.
+          Rankings are driven by three factors in order of importance: <span className="text-primary font-semibold">EPT points</span> come
+          first — they are only awarded at the most prestigious circuit events, so they carry the most
+          weight. Next is a <span className="text-foreground font-semibold">placement score</span> — each
+          tournament finish earns points (1st = 100, 2nd = 75, 3rd/4th = 50…) multiplied by the prize money
+          won, so a final at a $1M event outranks a final at a $175K event. <span className="text-amber-400 font-semibold">Prize earnings</span> break
+          any remaining ties. Players on the same team always appear carry → mid → offlane → support.
         </p>
       </div>
 
