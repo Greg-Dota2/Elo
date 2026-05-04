@@ -63,11 +63,11 @@ export default async function RuTournamentsPage() {
   const totalCorrect     = tournamentsWithStats.reduce((s, { stats }) => s + (stats?.correct ?? 0), 0)
   const overallAccuracy  = totalPredictions > 0 ? Math.round((totalCorrect / totalPredictions) * 100) : null
 
-  const sections: { status: TournamentStatus; label: string; items: typeof tournamentsWithStats }[] = [
-    { status: 'live',     label: '● Live',    items: live },
-    { status: 'upcoming', label: 'Upcoming',  items: upcoming },
-    { status: 'finished', label: 'Завершены', items: finished },
-  ].filter(s => s.items.length > 0)
+  const sections: { status: TournamentStatus; label: string; items: typeof tournamentsWithStats }[] = ([
+    { status: 'live'     as const, label: '● Live',    items: live },
+    { status: 'upcoming' as const, label: 'Upcoming',  items: upcoming },
+    { status: 'finished' as const, label: 'Завершены', items: finished },
+  ] as const).filter(s => s.items.length > 0)
 
   return (
     <div className="fade-in-up">
