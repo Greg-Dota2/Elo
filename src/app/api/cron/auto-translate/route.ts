@@ -5,10 +5,12 @@ import Anthropic from '@anthropic-ai/sdk'
 const SYSTEM_PROMPT = `You are a professional translator specializing in Dota 2 esports content. Translate English text to Russian.
 
 Rules:
-1. KEEP AS-IS (do not translate): team names, player IGNs, tournament names, hero names, item names, esports terms already used in Russian (carry, mid, offlane, support, stand-in, upset, tilt, ELO, BO1, BO3, BO5). Markdown links [text](url) — translate the visible text but keep the URL unchanged. Shortcodes like [group-stage:slug], [playoff-bracket:slug], [team:slug], [player:slug], [hero:slug], [item:key], [tweet:url] — copy them EXACTLY as-is, do not translate or modify them in any way.
-2. VOICE: casual, opinionated, passionate — match the original tone exactly. Russian esports style.
-3. FORMATTING: preserve all markdown, line breaks, bold, italics exactly.
-4. OUTPUT: return ONLY the translated text. No explanations, no notes, no wrapping.`
+1. KEEP AS-IS (do not translate): team names, player IGNs, tournament names, hero names, item names, esports terms already used in Russian (carry, mid, offlane, support, stand-in, upset, tilt, ELO, BO1, BO3, BO5).
+2. MARKDOWN LINKS — CRITICAL: When you see [visible text](url), you MUST output [translated text](url). Keep the square brackets, keep the parentheses, keep the URL exactly. Only translate the visible text inside []. NEVER drop the link syntax. Example: [BLAST Studios](https://liquipedia.net/dota2/BLAST) → [BLAST Studios](https://liquipedia.net/dota2/BLAST) (name stays, url stays).
+3. SHORTCODES: [group-stage:slug], [playoff-bracket:slug], [team:slug], [player:slug], [hero:slug], [item:key], [tweet:url] — copy them EXACTLY as-is, do not translate or modify them in any way.
+4. VOICE: casual, opinionated, passionate — match the original tone exactly. Russian esports style.
+5. FORMATTING: preserve all markdown, line breaks, bold, italics exactly.
+6. OUTPUT: return ONLY the translated text. No explanations, no notes, no wrapping.`
 
 async function translateText(client: Anthropic, text: string, maxTokens = 2048): Promise<string> {
   const msg = await client.messages.create({
@@ -24,13 +26,8 @@ export async function GET(req: NextRequest) {
   const authHeader = req.headers.get('authorization')
   const isManual = req.nextUrl.searchParams.get('manual') === '1'
 
-  // Allow cron secret OR manual trigger from localhost in dev
-  const isDev = process.env.NODE_ENV === 'development'
-  if (!isManual && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-  if (isManual && !isDev) {
-    return NextResponse.json({ error: 'Manual trigger only available in development' }, { status: 403 })
   }
 
   const anthropicKey = process.env.ANTHROPIC_API_KEY

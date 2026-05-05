@@ -35,6 +35,8 @@ export default function EditTournamentPage({ params }: Props) {
   const [archiving, setArchiving] = useState(false)
   const [archiveResult, setArchiveResult] = useState('')
   const [clearingArchive, setClearingArchive] = useState(false)
+  const [retranslating, setRetranslating] = useState(false)
+  const [retranslateResult, setRetranslateResult] = useState('')
   const [overviewText, setOverviewText] = useState('')
   const [formatText, setFormatText] = useState('')
 
@@ -192,6 +194,7 @@ export default function EditTournamentPage({ params }: Props) {
       body: JSON.stringify({
         id: tournamentId,
         name: form.get('name') || tournament?.name,
+        slug: form.get('slug') || undefined,
         is_published: form.get('is_published') === 'on',
         start_date: form.get('start_date') || null,
         end_date: form.get('end_date') || null,
@@ -274,6 +277,31 @@ export default function EditTournamentPage({ params }: Props) {
       setArchiveResult(`✓ Archived ${data.groups_count} group(s): ${data.group_names.join(', ')}`)
     } else {
       setArchiveResult(`✗ ${data.error}`)
+    }
+  }
+
+  async function handleRetranslate() {
+    if (!tournament?.slug) return
+    setRetranslating(true)
+    setRetranslateResult('')
+    // Clear existing RU fields so the cron picks them up again
+    await fetch('/api/admin/tournaments', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: tournamentId, overview_ru: null, format_ru: null }),
+    })
+    // Run translate targeting this tournament
+    const res = await fetch('/api/admin/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'tournament', slug: tournament.slug }),
+    })
+    const data = await res.json()
+    setRetranslating(false)
+    if (res.ok) {
+      setRetranslateResult(`✓ ${data.translated} field(s) retranslated`)
+    } else {
+      setRetranslateResult(`✗ ${data.error ?? 'Failed'}`)
     }
   }
 
@@ -617,12 +645,38 @@ export default function EditTournamentPage({ params }: Props) {
         </div>
       </div>
 
+      {/* ── Retranslate RU ── */}
+      <div className="rounded-lg p-5 mb-6" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+        <h2 className="font-semibold mb-1">Retranslate Russian</h2>
+        <p className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>
+          Clears the stored Russian overview and format text for this tournament, then retranslates them from English. Use this if the translation lost links or had errors.
+        </p>
+        <div className="flex items-center gap-3 flex-wrap">
+          <button
+            onClick={handleRetranslate}
+            disabled={retranslating}
+            className="px-4 py-2 rounded font-semibold text-sm disabled:opacity-50"
+            style={{ background: 'rgba(99,102,241,0.15)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.3)' }}
+          >
+            {retranslating ? 'Retranslating…' : '🌐 Clear & Retranslate RU'}
+          </button>
+          {retranslateResult && (
+            <span className="text-sm font-medium" style={{ color: retranslateResult.startsWith('✓') ? 'var(--correct)' : 'var(--wrong)' }}>
+              {retranslateResult}
+            </span>
+          )}
+        </div>
+      </div>
+
       {/* ── Tournament Settings ── */}
       <div className="rounded-lg p-5" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
         <h2 className="font-semibold mb-4">Tournament Settings</h2>
         <form key={tournament.name} onSubmit={handleSaveSettings} className="grid gap-4">
           <Field label="Tournament name">
             <input name="name" type="text" defaultValue={tournament.name} className={inputClass} />
+          </Field>
+          <Field label="URL slug (edit to fix broken URLs)">
+            <input name="slug" type="text" defaultValue={tournament.slug ?? ''} className={inputClass} placeholder="blast-slam-7" />
           </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Start date">

@@ -31,13 +31,8 @@ export async function PATCH(req: NextRequest) {
   const { id, ...body } = await req.json()
   const supabase = createAdminClient()
 
-  // Re-derive slug when name changes
-  if (body.name) {
-    body.slug = (body.name as string)
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '')
-  }
+  // Only update slug if explicitly provided; never auto-derive from name on edit
+  // (auto-deriving would silently break existing URLs when the display name changes)
 
   const { data, error } = await supabase
     .from('tournaments')
