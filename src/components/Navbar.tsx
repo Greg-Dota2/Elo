@@ -32,11 +32,6 @@ const links = [
 export default function Navbar() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
-  const [isAdmin, setIsAdmin] = useState(false)
-
-  useEffect(() => {
-    setIsAdmin(document.cookie.includes('admin_token='))
-  }, [])
 
   // Close menu on route change
   useEffect(() => { setOpen(false) }, [pathname])
@@ -81,29 +76,27 @@ export default function Navbar() {
             )
           })}
           {/* Language switcher */}
-          <div className="ml-2 flex items-center gap-0.5">
+          <div className="ml-2 flex items-center gap-1">
             <Link
               href={getLangUrl(pathname, 'en')}
-              className={['px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-200 border', !isRu ? 'text-primary bg-primary/8 border-primary/20' : 'text-muted-foreground border-transparent hover:text-foreground'].join(' ')}
+              className={['px-3 py-1.5 rounded-lg text-xs font-bold tracking-wider transition-all duration-200 border', !isRu ? 'text-blue-300 bg-blue-500/25 border-blue-400/50 shadow-[0_0_8px_rgba(96,165,250,0.2)]' : 'text-blue-400/50 bg-blue-500/8 border-blue-400/20 hover:text-blue-300 hover:bg-blue-500/20 hover:border-blue-400/40'].join(' ')}
             >
               EN
             </Link>
             <Link
               href={getLangUrl(pathname, 'ru')}
-              className={['px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-200 border', isRu ? 'text-primary bg-primary/8 border-primary/20' : 'text-muted-foreground border-transparent hover:text-foreground'].join(' ')}
+              className={['px-3 py-1.5 rounded-lg text-xs font-bold tracking-wider transition-all duration-200 border', isRu ? 'text-red-300 bg-red-500/25 border-red-400/50 shadow-[0_0_8px_rgba(248,113,113,0.2)]' : 'text-red-400/50 bg-red-500/8 border-red-400/20 hover:text-red-300 hover:bg-red-500/20 hover:border-red-400/40'].join(' ')}
             >
               RU
             </Link>
           </div>
-          {isAdmin && (
-            <Link
-              href="/admin"
-              className="ml-1 px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-200 border"
-              style={{ borderColor: 'hsl(var(--primary) / 0.4)', color: 'hsl(var(--primary))' }}
-            >
-              Admin
-            </Link>
-          )}
+          <Link
+            href="/admin"
+            className="ml-1 px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-200 border"
+            style={{ borderColor: 'hsl(var(--primary) / 0.4)', color: 'hsl(var(--primary))' }}
+          >
+            Admin
+          </Link>
         </nav>
 
         {/* Hamburger button — mobile only */}
@@ -144,29 +137,27 @@ export default function Navbar() {
               )
             })}
             {/* Language switcher — mobile */}
-            <div className="flex items-center gap-0.5 px-1 mt-1">
+            <div className="flex items-center gap-2 px-1 mt-1">
               <Link
                 href={getLangUrl(pathname, 'en')}
-                className={['px-4 py-3 rounded-xl text-base font-semibold transition-all duration-200 border', !isRu ? 'text-primary bg-primary/8 border-primary/20' : 'text-muted-foreground border-transparent'].join(' ')}
+                className={['px-5 py-2.5 rounded-lg text-sm font-bold tracking-wider transition-all duration-200 border', !isRu ? 'text-blue-300 bg-blue-500/25 border-blue-400/50 shadow-[0_0_10px_rgba(96,165,250,0.2)]' : 'text-blue-400/50 bg-blue-500/8 border-blue-400/20'].join(' ')}
               >
                 EN
               </Link>
               <Link
                 href={getLangUrl(pathname, 'ru')}
-                className={['px-4 py-3 rounded-xl text-base font-semibold transition-all duration-200 border', isRu ? 'text-primary bg-primary/8 border-primary/20' : 'text-muted-foreground border-transparent'].join(' ')}
+                className={['px-5 py-2.5 rounded-lg text-sm font-bold tracking-wider transition-all duration-200 border', isRu ? 'text-red-300 bg-red-500/25 border-red-400/50 shadow-[0_0_10px_rgba(248,113,113,0.2)]' : 'text-red-400/50 bg-red-500/8 border-red-400/20'].join(' ')}
               >
                 RU
               </Link>
             </div>
-            {isAdmin && (
-              <Link
-                href="/admin"
-                className="mt-2 px-4 py-3 rounded-xl text-base font-semibold border"
-                style={{ borderColor: 'hsl(var(--primary) / 0.4)', color: 'hsl(var(--primary))' }}
-              >
-                Admin
-              </Link>
-            )}
+            <Link
+              href="/admin"
+              className="mt-2 px-4 py-3 rounded-xl text-base font-semibold border"
+              style={{ borderColor: 'hsl(var(--primary) / 0.4)', color: 'hsl(var(--primary))' }}
+            >
+              Admin
+            </Link>
           </nav>
         </div>
       )}
