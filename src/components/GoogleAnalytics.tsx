@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation'
 import { useEffect } from 'react'
 
 const GA_ID = 'G-XWHFK8WLTK'
-const AW_ID = 'AW-17155280275'
 
 export default function GoogleAnalytics() {
   const pathname = usePathname()
@@ -28,7 +27,6 @@ export default function GoogleAnalytics() {
         function gtag(){dataLayer.push(arguments);}
         gtag('js',new Date());
         gtag('config','${GA_ID}');
-        gtag('config','${AW_ID}');
       `}</Script>
     </>
   )
