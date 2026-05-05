@@ -29,9 +29,14 @@ const links = [
   { href: '/rankings', label: 'Rankings' },
 ]
 
-export default function Navbar({ isAdmin }: { isAdmin?: boolean }) {
+export default function Navbar() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    setIsAdmin(document.cookie.includes('admin_token='))
+  }, [])
 
   // Close menu on route change
   useEffect(() => { setOpen(false) }, [pathname])

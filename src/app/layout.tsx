@@ -5,7 +5,6 @@ import Navbar from '@/components/Navbar'
 import CookieBanner from '@/components/CookieBanner'
 import GoogleAnalytics from '@/components/GoogleAnalytics'
 import Link from 'next/link'
-import { cookies } from 'next/headers'
 import { Analytics } from '@vercel/analytics/next'
 import { Suspense } from 'react'
 
@@ -65,11 +64,7 @@ export const metadata: Metadata = {
   alternates: { canonical: SITE_URL },
 }
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const cookieStore = await cookies()
-  const isAdmin = cookieStore.get('admin_token')?.value === process.env.ADMIN_PASSWORD
-  const cookieConsent = cookieStore.get('cookie_consent')?.value ?? null
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`dark ${manrope.variable} ${oxanium.variable}`}>
       <head>
@@ -107,10 +102,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body suppressHydrationWarning>
         <Suspense fallback={null}><GoogleAnalytics /></Suspense>
-        <Navbar isAdmin={isAdmin} />
+        <Navbar />
         <main className="max-w-7xl mx-auto px-4 py-8">{children}</main>
         <Analytics />
-        <CookieBanner initialConsent={cookieConsent} />
+        <CookieBanner />
         <footer className="mt-20 border-t border-border/50">
           <div className="max-w-5xl mx-auto px-4 py-12 flex flex-col gap-10 sm:flex-row sm:justify-between">
             {/* Left: brand + tagline + socials */}
