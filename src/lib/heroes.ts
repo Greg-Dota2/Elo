@@ -219,6 +219,8 @@ export async function fetchHeroItemPopularity(
     raw = await res.json()
   }
 
+  if (!raw) return []
+
   const PHASES = [
     { key: 'start_game_items', label: 'Starting Items', upgradeOnly: false },
     { key: 'early_game_items', label: 'Early Game',     upgradeOnly: false },
