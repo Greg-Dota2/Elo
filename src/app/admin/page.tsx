@@ -7,6 +7,7 @@ import SyncScheduleButton from './SyncScheduleButton'
 import SyncResultsButton from './SyncResultsButton'
 import RefreshGameCacheButton from './RefreshGameCacheButton'
 import TranslateButton from './TranslateButton'
+import RefreshOpenDotaButton from './RefreshOpenDotaButton'
 
 export default async function AdminPage() {
   let tournaments: Awaited<ReturnType<typeof getAllTournamentsAdmin>> = []
@@ -95,6 +96,7 @@ export default async function AdminPage() {
         <SyncResultsButton />
         <RefreshGameCacheButton />
         <TranslateButton />
+        <RefreshOpenDotaButton />
       </div>
 
       <h2 className="text-sm font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-muted)' }}>

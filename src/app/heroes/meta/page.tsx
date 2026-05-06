@@ -28,9 +28,18 @@ interface RawStat {
 export default async function HeroMetaPage() {
   let rawStats: RawStat[] = []
   try {
-    const res = await fetch('https://api.opendota.com/api/heroStats', { next: { revalidate: 3600 } })
-    if (res.ok) rawStats = await res.json()
-  } catch { /* api unavailable */ }
+    const { createAdminClient } = await import('@/lib/supabase/admin')
+    const { data } = await createAdminClient()
+      .from('opendota_cache').select('data').eq('key', 'hero_stats').single()
+    if (data?.data) rawStats = data.data
+  } catch { /* fall through */ }
+
+  if (rawStats.length === 0) {
+    try {
+      const res = await fetch('https://api.opendota.com/api/heroStats', { next: { revalidate: 3600 } })
+      if (res.ok) rawStats = await res.json()
+    } catch { /* api unavailable */ }
+  }
 
   const valid = rawStats.filter(s => s.pub_pick > 500)
   const totalPicks = valid.reduce((sum, s) => sum + s.pub_pick, 0)

@@ -202,11 +202,22 @@ export async function fetchHeroItemPopularity(
   basicItemKeys: Set<string>,
   componentsMap: Map<string, string[]>,
 ): Promise<HeroItemPhase[]> {
-  const res = await fetch(`https://api.opendota.com/api/heroes/${heroId}/itemPopularity`, {
-    next: { revalidate: 86400 },
-  })
-  if (!res.ok) return []
-  const raw: Record<string, Record<string, number>> = await res.json()
+  let raw: Record<string, Record<string, number>> | null = null
+
+  try {
+    const { createAdminClient } = await import('@/lib/supabase/admin')
+    const { data } = await createAdminClient()
+      .from('opendota_cache').select('data').eq('key', `item_popularity_${heroId}`).single()
+    if (data?.data) raw = data.data
+  } catch { /* fall through */ }
+
+  if (!raw) {
+    const res = await fetch(`https://api.opendota.com/api/heroes/${heroId}/itemPopularity`, {
+      next: { revalidate: 86400 },
+    })
+    if (!res.ok) return []
+    raw = await res.json()
+  }
 
   const PHASES = [
     { key: 'start_game_items', label: 'Starting Items', upgradeOnly: false },
@@ -260,17 +271,43 @@ export interface HeroItemUsage {
 
 export async function fetchHeroesForItem(itemId: number): Promise<HeroItemUsage[]> {
   const heroes = await fetchAllHeroes()
+  const heroById = new Map(heroes.map(h => [h.id, h]))
 
-  const results = await Promise.allSettled(
-    heroes.map(async hero => {
-      const res = await fetch(`https://api.opendota.com/api/heroes/${hero.id}/itemPopularity`, {
-        next: { revalidate: 86400 },
+  // Try Supabase cache first — avoids 130 OpenDota requests
+  let cachedRows: Array<{ key: string; data: Record<string, Record<string, number>> }> = []
+  try {
+    const { createAdminClient } = await import('@/lib/supabase/admin')
+    const { data } = await createAdminClient()
+      .from('opendota_cache').select('key, data').like('key', 'item_popularity_%')
+    if (data && data.length > 0) cachedRows = data as typeof cachedRows
+  } catch { /* fall through */ }
+
+  type HeroRaw = { hero: HeroData; raw: Record<string, Record<string, number>> }
+  let heroRaws: HeroRaw[]
+
+  if (cachedRows.length > 0) {
+    heroRaws = cachedRows
+      .map(row => {
+        const id = parseInt(row.key.replace('item_popularity_', ''))
+        const hero = heroById.get(id)
+        return hero ? { hero, raw: row.data } : null
       })
-      if (!res.ok) return null
-      const raw: Record<string, Record<string, number>> = await res.json()
-      return { hero, raw }
-    })
-  )
+      .filter((x): x is HeroRaw => x !== null)
+  } else {
+    const results = await Promise.allSettled(
+      heroes.map(async hero => {
+        const res = await fetch(`https://api.opendota.com/api/heroes/${hero.id}/itemPopularity`, {
+          next: { revalidate: 86400 },
+        })
+        if (!res.ok) return null
+        const raw: Record<string, Record<string, number>> = await res.json()
+        return { hero, raw }
+      })
+    )
+    heroRaws = results
+      .filter((r): r is PromiseFulfilledResult<HeroRaw> => r.status === 'fulfilled' && r.value !== null)
+      .map(r => r.value)
+  }
 
   const PHASE_LABELS: Record<string, string> = {
     start_game_items: 'Starting',
@@ -281,9 +318,7 @@ export async function fetchHeroesForItem(itemId: number): Promise<HeroItemUsage[
 
   const usage: HeroItemUsage[] = []
 
-  for (const result of results) {
-    if (result.status !== 'fulfilled' || !result.value) continue
-    const { hero, raw } = result.value
+  for (const { hero, raw } of heroRaws) {
 
     let bestCount = 0
     let bestPhase = ''
@@ -332,12 +367,24 @@ export async function fetchHeroNeutralItems(heroId: number): Promise<{ itemId: n
 }
 
 export async function fetchHeroMatchups(heroId: number): Promise<HeroMatchup[]> {
-  const res = await fetch(`https://api.opendota.com/api/heroes/${heroId}/matchups`, {
-    next: { revalidate: 86400 },
-  })
-  if (!res.ok) throw new Error('Failed to fetch hero matchups')
-  const data: Array<{ hero_id: number; games_played: number; wins: number }> = await res.json()
-  return data
+  let data: Array<{ hero_id: number; games_played: number; wins: number }> | null = null
+
+  try {
+    const { createAdminClient } = await import('@/lib/supabase/admin')
+    const { data: row } = await createAdminClient()
+      .from('opendota_cache').select('data').eq('key', `matchups_${heroId}`).single()
+    if (row?.data) data = row.data
+  } catch { /* fall through */ }
+
+  if (!data) {
+    const res = await fetch(`https://api.opendota.com/api/heroes/${heroId}/matchups`, {
+      next: { revalidate: 86400 },
+    })
+    if (!res.ok) throw new Error('Failed to fetch hero matchups')
+    data = await res.json()
+  }
+
+  return (data ?? [])
     .filter(m => m.games_played >= 100)
     .map(m => ({ ...m, win_rate: m.wins / m.games_played }))
 }

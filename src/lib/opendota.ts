@@ -54,16 +54,31 @@ function median(entries: BenchmarkEntry[] | undefined): number {
 
 export async function fetchHeroRadarStats(heroId: number): Promise<HeroRadarStats | null> {
   try {
-    const [benchRes, statsRes] = await Promise.all([
-      fetch(`https://api.opendota.com/api/benchmarks?hero_id=${heroId}`, { next: { revalidate: 3600 } }),
-      fetch(`https://api.opendota.com/api/heroStats`, { next: { revalidate: 3600 } }),
-    ])
-    if (!benchRes.ok) return null
+    const { createAdminClient } = await import('@/lib/supabase/admin')
+    const supabase = createAdminClient()
 
-    const benchData: { result: BenchmarkResult } = await benchRes.json()
+    const [{ data: benchRow }, { data: statsRow }] = await Promise.all([
+      supabase.from('opendota_cache').select('data').eq('key', `benchmarks_${heroId}`).single(),
+      supabase.from('opendota_cache').select('data').eq('key', 'hero_stats').single(),
+    ])
+
+    let benchData: { result: BenchmarkResult } | null = benchRow?.data ?? null
+    let allStats: Array<{ id: number } & Record<string, number>> | null = statsRow?.data ?? null
+
+    // Fall back to OpenDota if cache is empty
+    if (!benchData) {
+      const res = await fetch(`https://api.opendota.com/api/benchmarks?hero_id=${heroId}`, { next: { revalidate: 3600 } })
+      if (!res.ok) return null
+      benchData = await res.json()
+    }
+    if (!allStats) {
+      const res = await fetch('https://api.opendota.com/api/heroStats', { next: { revalidate: 3600 } })
+      if (res.ok) allStats = await res.json()
+    }
+
+    if (!benchData) return null
     const r = benchData.result
 
-    // Use median (50th percentile) for each metric
     const medGpm       = median(r.gold_per_min)
     const medXpm       = median(r.xp_per_min)
     const medKillsMin  = median(r.kills_per_min)
@@ -71,10 +86,8 @@ export async function fetchHeroRadarStats(heroId: number): Promise<HeroRadarStat
     const medDeaths    = median(r.deaths)
     const medAssists   = median(r.assists)
 
-    // Assume ~35 min average game for kills/assists per match
     const AVG_GAME_MIN = 35
     const medKills   = medKillsMin * AVG_GAME_MIN
-    const medLh      = medLhMin * AVG_GAME_MIN
     const kda        = (medKills + medAssists) / Math.max(1, medDeaths)
 
     const performance = pct(kda, 7)
@@ -83,10 +96,8 @@ export async function fetchHeroRadarStats(heroId: number): Promise<HeroRadarStat
     const fighting    = pct(medKills + medAssists, 22)
     const experience  = pct(medXpm, 900)
 
-    // Win rate from heroStats (all-rank aggregate)
     let form = 50
-    if (statsRes.ok) {
-      const allStats: Array<{ id: number } & Record<string, number>> = await statsRes.json()
+    if (allStats) {
       const h = allStats.find(x => x.id === heroId)
       if (h) {
         const totalWins  = [1,2,3,4,5,6,7,8].reduce((s, b) => s + (h[`${b}_win`]  ?? 0), 0)
@@ -95,7 +106,7 @@ export async function fetchHeroRadarStats(heroId: number): Promise<HeroRadarStat
       }
     }
 
-    if (!medGpm && !medXpm) return null  // benchmarks returned empty data
+    if (!medGpm && !medXpm) return null
 
     return { form, performance, laning, farmGold, fighting, experience, matchCount: 0 }
   } catch {
