@@ -18,34 +18,22 @@ interface TimingRow {
   wins: string
 }
 
-const BATCH = 20
-
-async function fetchTimingsForItem(key: string): Promise<TimingRow[]> {
-  try {
-    const res = await fetch(
-      `https://api.opendota.com/api/scenarios/itemTimings?item=${key}`,
-      { next: { revalidate: 86400 } }
-    )
-    return res.ok ? res.json() : []
-  } catch {
-    return []
-  }
-}
-
 export default async function ItemMetaPage() {
   const allItems = await fetchAllItems()
 
   // Build item lookup by key
   const itemByKey = new Map(allItems.map(i => [i.key, i]))
 
-  // Fetch itemTimings per upgrade item individually — the bulk endpoint is too
-  // sparse (~15 rows/item), per-item requests give ~400+ rows each.
-  const upgradeKeys = allItems.filter(i => i.category === 'upgrade').map(i => i.key)
-  const allTimings: TimingRow[] = []
-  for (let i = 0; i < upgradeKeys.length; i += BATCH) {
-    const batch = upgradeKeys.slice(i, i + BATCH)
-    const results = await Promise.all(batch.map(fetchTimingsForItem))
-    allTimings.push(...results.flat())
+  // Bulk fetch — one request for all items instead of ~80 per-item requests that hit rate limits
+  let allTimings: TimingRow[] = []
+  try {
+    const res = await fetch(
+      'https://api.opendota.com/api/scenarios/itemTimings',
+      { next: { revalidate: 86400 } }
+    )
+    if (res.ok) allTimings = await res.json()
+  } catch {
+    // leave allTimings empty; upgradeItems will be empty but page won't crash
   }
 
   // Aggregate: sum games + wins per item key, track timing buckets
