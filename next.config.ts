@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
     // External CDNs that already serve optimized images — skip Vercel transformation
     unoptimized: true,
   },
+  async rewrites() {
+    return [
+      { source: '/sitemap.xml', destination: '/sitemap-gen' },
+    ]
+  },
   async redirects() {
     return [
       // ── Teams ─────────────────────────────────────────────────────────────

@@ -101,7 +101,7 @@ export async function GET() {
     { data: heroGuides },
     { data: itemGuides },
   ] = await Promise.all([
-    supabase.from('tournaments').select('slug, updated_at').eq('is_published', true),
+    supabase.from('tournaments').select('slug, end_date').eq('is_published', true),
     supabase.from('teams').select('slug, created_at').not('slug', 'is', null),
     supabase.from('players').select('slug, created_at').eq('is_published', true).not('slug', 'is', null),
     supabase.from('hero_guides').select('updated_at').order('updated_at', { ascending: false }).limit(1),
@@ -132,7 +132,7 @@ export async function GET() {
   // Content-driven lastmod for index pages
   const heroLastMod = latestDate([heroGuides?.[0]?.updated_at], now)
   const itemLastMod = latestDate([itemGuides?.[0]?.updated_at], now)
-  const tournamentsLastMod = latestDate((tournaments ?? []).map(t => t.updated_at), now)
+  const tournamentsLastMod = latestDate((tournaments ?? []).map(t => t.end_date), now)
   const postsLastMod = latestDate((posts ?? []).map(p => p.updated_at), now)
   const teamsLastMod = latestDate((teams ?? []).map(t => t.created_at), now)
   const playersLastMod = latestDate((players ?? []).map(p => p.created_at), now)
@@ -173,7 +173,7 @@ export async function GET() {
   // Static EN-only pages
   xml += urlBlock(`${SITE_URL}/teams`, teamsLastMod, 'weekly', 0.8)
   xml += urlBlock(`${SITE_URL}/players`, playersLastMod, 'weekly', 0.8)
-  xml += urlBlock(`${SITE_URL}/rankings`, tournamentsLastMod, 'daily', 0.7)
+  xml += urlBlock(`${SITE_URL}/rankings`, teamsLastMod, 'daily', 0.7)
   xml += urlBlock(`${SITE_URL}/track-record`, tournamentsLastMod, 'daily', 0.8)
   xml += urlBlock(`${SITE_URL}/heroes`, heroLastMod, 'weekly', 0.8)
   xml += urlBlock(`${SITE_URL}/items`, itemLastMod, 'weekly', 0.8)
@@ -193,7 +193,7 @@ export async function GET() {
 
   // Individual tournament pages (EN + RU bilingual)
   for (const t of tournaments ?? []) {
-    const lastMod = t.updated_at ? new Date(t.updated_at) : now
+    const lastMod = t.end_date ? new Date(t.end_date) : now
     const enUrl = `${SITE_URL}/tournaments/${t.slug}`
     const ruUrl = `${SITE_URL}/ru/tournaments/${t.slug}`
     const alts = bilingualAlts(enUrl, ruUrl)

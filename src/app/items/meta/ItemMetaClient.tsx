@@ -245,20 +245,19 @@ export default function ItemMetaClient({
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'hsl(var(--muted-foreground) / 0.6)', flexShrink: 0 }}>
                 <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
               </svg>
-              <div className="flex rounded-lg border border-border/50 overflow-hidden">
-                {([100, 500, 1000, 5000] as const).map((n, idx) => (
+              <div className="flex gap-1.5">
+                {([
+                  { n: 100,  label: '100+', active: 'text-slate-400 bg-slate-400/20 border-slate-400/50',   inactive: 'text-slate-400/80 bg-slate-400/10 border-slate-400/30 hover:text-slate-400 hover:bg-slate-400/15 hover:border-slate-400/50' },
+                  { n: 500,  label: '500+', active: 'text-sky-400 bg-sky-400/20 border-sky-400/50',         inactive: 'text-sky-400/80 bg-sky-400/10 border-sky-400/30 hover:text-sky-400 hover:bg-sky-400/15 hover:border-sky-400/50' },
+                  { n: 1000, label: '1k+',  active: 'text-emerald-400 bg-emerald-400/20 border-emerald-400/50', inactive: 'text-emerald-400/80 bg-emerald-400/10 border-emerald-400/30 hover:text-emerald-400 hover:bg-emerald-400/15 hover:border-emerald-400/50' },
+                  { n: 5000, label: '5k+',  active: 'text-amber-400 bg-amber-400/20 border-amber-400/50',   inactive: 'text-amber-400/80 bg-amber-400/10 border-amber-400/30 hover:text-amber-400 hover:bg-amber-400/15 hover:border-amber-400/50' },
+                ]).map(({ n, label, active, inactive }) => (
                   <button
                     key={n}
                     onClick={() => setMinGames(n)}
-                    className={[
-                      'px-2.5 py-1 text-xs font-semibold transition-all',
-                      idx > 0 ? 'border-l border-border/50' : '',
-                      minGames === n
-                        ? 'bg-primary/90 text-background'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50',
-                    ].join(' ')}
+                    className={['px-4 py-2 rounded-full text-sm font-semibold border transition-all duration-200', minGames === n ? active : inactive].join(' ')}
                   >
-                    {n >= 1000 ? `${n / 1000}k+` : `${n}+`}
+                    {label}
                   </button>
                 ))}
               </div>
