@@ -5,7 +5,7 @@ import { fetchAllItems } from '@/lib/items'
 import { getCachedHeroes, getCachedItems } from '@/lib/game-cache'
 
 export const dynamic = 'force-dynamic'
-export const maxDuration = 600
+export const maxDuration = 300
 
 const OD = 'https://api.opendota.com/api'
 
