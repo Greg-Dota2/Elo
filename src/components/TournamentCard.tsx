@@ -6,6 +6,23 @@ import { useState, useEffect } from 'react'
 import type { Tournament, TournamentStats, MatchPrediction, TeamAccuracy } from '@/lib/types'
 import MatchCard from './MatchCard'
 
+function sortByStatus(matches: MatchPrediction[]): MatchPrediction[] {
+  const now = new Date()
+  const priority = (m: MatchPrediction) => {
+    if (m.score_team_1 !== null && m.score_team_2 !== null) return 2
+    const start = m.match_date && m.match_time ? new Date(`${m.match_date}T${m.match_time}:00Z`) : null
+    return start && now >= start ? 0 : 1
+  }
+  return [...matches].sort((a, b) => {
+    const pa = priority(a), pb = priority(b)
+    if (pa !== pb) return pa - pb
+    const da = a.match_date ?? '', db = b.match_date ?? ''
+    if (pa === 2) return db !== da ? db.localeCompare(da) : (b.match_order ?? 0) - (a.match_order ?? 0)
+    if (da !== db) return da.localeCompare(db)
+    return (a.match_time ?? '').localeCompare(b.match_time ?? '')
+  })
+}
+
 export type TournamentStatus = 'live' | 'upcoming' | 'finished'
 
 function formatDateRange(start?: string | null, end?: string | null): string | null {
@@ -31,17 +48,48 @@ interface Props {
   stats?: TournamentStats | null
   status?: TournamentStatus
   linkPrefix?: string
+  locale?: 'en' | 'ru'
 }
 
 const MEDAL = ['#1', '#2', '#3']
 
-const STATUS_BADGE: Record<TournamentStatus, { label: string; style: React.CSSProperties }> = {
-  live:     { label: '● Live',     style: { background: 'hsl(var(--success) / 0.12)', color: 'hsl(var(--success))' } },
-  upcoming: { label: 'Upcoming',   style: { background: 'hsl(var(--primary) / 0.12)', color: 'hsl(var(--primary))' } },
-  finished: { label: 'Completed',  style: { background: 'hsl(var(--border))',          color: 'var(--text-muted)' } },
+const STATUS_BADGE: Record<TournamentStatus, { label: Record<'en'|'ru', string>; style: React.CSSProperties }> = {
+  live:     { label: { en: '● Live',      ru: '● Live'      }, style: { background: 'hsl(var(--success) / 0.12)', color: 'hsl(var(--success))' } },
+  upcoming: { label: { en: 'Upcoming',    ru: 'Скоро'       }, style: { background: 'hsl(var(--primary) / 0.12)', color: 'hsl(var(--primary))' } },
+  finished: { label: { en: 'Completed',   ru: 'Завершён'    }, style: { background: 'hsl(var(--border))',          color: 'var(--text-muted)' } },
 }
 
-export default function TournamentCard({ tournament, status, linkPrefix = '/tournaments' }: Props) {
+const L10N = {
+  en: {
+    accuracy: 'accuracy',
+    correct: 'correct',
+    statistics: 'Statistics',
+    predictionAccuracy: 'Prediction accuracy',
+    total: 'Total', correctLabel: 'Correct', wrong: 'Wrong',
+    bestTeams: 'Best predicted teams',
+    showPredictions: 'Show predictions',
+    hidePredictions: 'Hide predictions',
+    loading: 'Loading predictions...',
+    noPredictions: 'No predictions yet.',
+    viewFull: 'View full tournament →',
+  },
+  ru: {
+    accuracy: 'точность',
+    correct: 'верных',
+    statistics: 'Статистика',
+    predictionAccuracy: 'Точность прогнозов',
+    total: 'Всего', correctLabel: 'Верных', wrong: 'Неверных',
+    bestTeams: 'Лучшие предсказанные команды',
+    showPredictions: 'Показать прогнозы',
+    hidePredictions: 'Скрыть прогнозы',
+    loading: 'Загрузка прогнозов...',
+    noPredictions: 'Прогнозов пока нет.',
+    viewFull: 'Открыть турнир →',
+  },
+}
+
+export default function TournamentCard({ tournament, status, linkPrefix = '/tournaments', locale = 'en' }: Props) {
+  const T = L10N[locale]
   const [open, setOpen] = useState(false)
   const [matches, setMatches] = useState<MatchPrediction[]>([])
   const [loading, setLoading] = useState(false)
@@ -65,8 +113,16 @@ export default function TournamentCard({ tournament, status, linkPrefix = '/tour
       setLoading(true)
       try {
         const res = await fetch(`/api/predictions?tournament_id=${tournament.id}`)
-        const data = await res.json()
-        setMatches(Array.isArray(data) ? data : [])
+        const data: MatchPrediction[] = await res.json()
+        const rows = Array.isArray(data) ? data : []
+        const localized = locale === 'ru'
+          ? rows.map(p => ({
+              ...p,
+              pre_analysis: p.pre_analysis_ru ?? p.pre_analysis,
+              post_commentary: p.post_commentary_ru ?? p.post_commentary,
+            }))
+          : rows
+        setMatches(sortByStatus(localized))
       } catch {
         setMatches([])
       } finally {
@@ -97,12 +153,12 @@ export default function TournamentCard({ tournament, status, linkPrefix = '/tour
             <div className="flex items-center gap-2">
               {status && (
                 <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={STATUS_BADGE[status].style}>
-                  {STATUS_BADGE[status].label}
+                  {STATUS_BADGE[status].label[locale]}
                 </span>
               )}
               {hasStats && (
                 <span className="text-sm px-2.5 py-1 rounded-lg font-semibold" style={{ background: 'var(--correct-dim)', color: 'var(--correct)', border: '1px solid var(--correct-border)' }}>
-                  {accuracyPct}% accuracy
+                  {accuracyPct}% {T.accuracy}
                 </span>
               )}
             </div>
@@ -126,7 +182,7 @@ export default function TournamentCard({ tournament, status, linkPrefix = '/tour
               <span className="badge badge-accent">Tier 1</span>
               {status && (
                 <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={STATUS_BADGE[status].style}>
-                  {STATUS_BADGE[status].label}
+                  {STATUS_BADGE[status].label[locale]}
                 </span>
               )}
             </div>
@@ -149,7 +205,7 @@ export default function TournamentCard({ tournament, status, linkPrefix = '/tour
               <div className="text-2xl font-black tabular-nums" style={{ fontFamily: 'var(--font-oxanium), sans-serif', color: accuracyPct >= 60 ? 'var(--correct)' : 'var(--amber)' }}>
                 {accuracyPct}%
               </div>
-              <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{stats!.correct}/{stats!.total_predictions} correct</div>
+              <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{stats!.correct}/{stats!.total_predictions} {T.correct}</div>
             </div>
           )}
         </div>
@@ -158,16 +214,16 @@ export default function TournamentCard({ tournament, status, linkPrefix = '/tour
       {/* ── Statistics (always visible once loaded) ── */}
       {statsLoaded && hasStats && (
         <div className="px-5 py-5" style={{ borderTop: '1px solid var(--border)' }}>
-          <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: 'var(--text-muted)' }}>Statistics</p>
+          <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: 'var(--text-muted)' }}>{T.statistics}</p>
 
           {/* Accuracy row */}
           <div className="mb-4">
-            <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>Prediction accuracy</p>
+            <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>{T.predictionAccuracy}</p>
             <div className="grid grid-cols-3 gap-2">
               {[
-                { label: 'Total', value: stats!.total_predictions, pct: '100%', color: 'var(--text)' },
-                { label: 'Correct', value: stats!.correct, pct: `${accuracyPct}%`, color: 'var(--correct)' },
-                { label: 'Wrong', value: stats!.wrong, pct: `${Math.round((stats!.wrong / stats!.total_predictions) * 100)}%`, color: 'var(--wrong)' },
+                { label: T.total, value: stats!.total_predictions, pct: '100%', color: 'var(--text)' },
+                { label: T.correctLabel, value: stats!.correct, pct: `${accuracyPct}%`, color: 'var(--correct)' },
+                { label: T.wrong, value: stats!.wrong, pct: `${Math.round((stats!.wrong / stats!.total_predictions) * 100)}%`, color: 'var(--wrong)' },
               ].map(s => (
                 <div key={s.label} className="rounded-xl px-3 py-3 text-center" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
                   <div className="text-2xl font-black tabular-nums leading-none mb-1" style={{ fontFamily: 'var(--font-oxanium), sans-serif', color: s.color }}>{s.value}</div>
@@ -181,7 +237,7 @@ export default function TournamentCard({ tournament, status, linkPrefix = '/tour
           {/* Best predicted teams */}
           {teamAccuracy.length > 0 && (
             <div>
-              <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>Best predicted teams</p>
+              <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>{T.bestTeams}</p>
               <div className="grid gap-2">
                 {teamAccuracy.map((t, i) => (
                   <div key={t.team_id} className="flex items-center gap-3 rounded-xl px-3 py-2.5" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
@@ -207,7 +263,7 @@ export default function TournamentCard({ tournament, status, linkPrefix = '/tour
         className="w-full flex items-center justify-between px-5 py-3 text-sm font-semibold transition-colors hover:bg-white/[0.03]"
         style={{ color: 'var(--text-muted)', borderTop: '1px solid var(--border)' }}
       >
-        <span>{open ? 'Hide predictions' : 'Show predictions'}</span>
+        <span>{open ? T.hidePredictions : T.showPredictions}</span>
         <span
           className="transition-transform duration-200"
           style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', display: 'inline-block' }}
@@ -220,14 +276,14 @@ export default function TournamentCard({ tournament, status, linkPrefix = '/tour
       {open && (
         <div className="px-4 pb-4" style={{ borderTop: '1px solid var(--border)' }}>
           {loading ? (
-            <p className="text-sm text-center py-6" style={{ color: 'var(--text-muted)' }}>Loading predictions...</p>
+            <p className="text-sm text-center py-6" style={{ color: 'var(--text-muted)' }}>{T.loading}</p>
           ) : matches.length === 0 ? (
-            <p className="text-sm text-center py-6" style={{ color: 'var(--text-muted)' }}>No predictions yet.</p>
+            <p className="text-sm text-center py-6" style={{ color: 'var(--text-muted)' }}>{T.noPredictions}</p>
           ) : (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
                 {matches.map(m => (
-                  <MatchCard key={m.id} match={m} tournament={tournament} />
+                  <MatchCard key={m.id} match={m} tournament={tournament} locale={locale} />
                 ))}
               </div>
               <div className="flex justify-center mt-5">
@@ -236,7 +292,7 @@ export default function TournamentCard({ tournament, status, linkPrefix = '/tour
                   className="px-5 py-2 rounded-full font-semibold text-sm transition-opacity hover:opacity-80"
                   style={{ background: 'hsl(var(--primary))', color: 'hsl(var(--background))' }}
                 >
-                  View full tournament →
+                  {T.viewFull}
                 </Link>
               </div>
             </>

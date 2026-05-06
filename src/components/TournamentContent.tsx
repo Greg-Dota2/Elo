@@ -55,7 +55,25 @@ function buildDateGroups(stages: Stage[]) {
     .map(([dateKey, matches]) => ({ dateKey, matches: [...matches].sort((a, b) => priority(a) - priority(b)) }))
 }
 
+const L10N = {
+  en: {
+    noPredictions: 'No predictions yet',
+    noPredictionsHint: "Predictions will appear here as they're added.",
+    predictions: 'Predictions',
+    matchPredictions: 'Match Predictions',
+    dateLocale: 'en-US',
+  },
+  ru: {
+    noPredictions: 'Прогнозов пока нет',
+    noPredictionsHint: 'Прогнозы появятся здесь по мере добавления.',
+    predictions: 'Прогнозы',
+    matchPredictions: 'Прогнозы на матчи',
+    dateLocale: 'ru-RU',
+  },
+}
+
 export default function TournamentContent({ tournament, stages, stats, teamAccuracy, h2hMap, liveScoreMap, bracketExtra, locale = 'en' }: Props) {
+  const T = L10N[locale]
   function resolveLiveScore(match: MatchPrediction) {
     if (!liveScoreMap) return undefined
     const t1 = match.team_1?.name ?? ''
@@ -80,9 +98,9 @@ export default function TournamentContent({ tournament, stages, stats, teamAccur
           style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
         >
           <p className="text-4xl mb-3">⚔️</p>
-          <p className="font-semibold mb-1">No predictions yet</p>
+          <p className="font-semibold mb-1">{T.noPredictions}</p>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            Predictions will appear here as they&apos;re added.
+            {T.noPredictionsHint}
           </p>
         </div>
       ) : (
@@ -97,10 +115,10 @@ export default function TournamentContent({ tournament, stages, stats, teamAccur
                   <div className="w-1 h-5 rounded-full shrink-0" style={{ background: 'var(--accent)' }} />
                   <h2 className="font-bold text-base">
                     {dateKey !== 'undated'
-                      ? `${new Date(`${dateKey}T00:00:00Z`).toLocaleDateString('en-US', {
+                      ? `${new Date(`${dateKey}T00:00:00Z`).toLocaleDateString(T.dateLocale, {
                           month: 'long', day: 'numeric', year: 'numeric', timeZone: 'Europe/Athens',
-                        })} Predictions`
-                      : 'Match Predictions'}
+                        })} — ${T.predictions}`
+                      : T.matchPredictions}
                   </h2>
                 </div>
                 {tournament.liquipedia_url && (

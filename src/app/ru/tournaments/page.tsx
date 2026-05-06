@@ -148,6 +148,7 @@ export default async function RuTournamentsPage() {
                       stats={stats}
                       status={status}
                       linkPrefix="/ru/tournaments"
+                      locale="ru"
                     />
                   </div>
                 ))}
