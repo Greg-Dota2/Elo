@@ -42,14 +42,27 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const supabase = createAdminClient()
     const { data: t } = await supabase
       .from('tournaments')
-      .select('name, meta_description_ru, overview_ru, overview, logo_url')
+      .select('name, meta_description_ru, overview_ru, overview, logo_url, prize_pool_usd, participants, start_date, end_date, location_type, location_name')
       .eq('slug', slug)
       .eq('is_published', true)
       .single()
     if (!t) return { title: 'Турнир не найден' }
-    const title = `${t.name} — Прогнозы и Аналитика`
-    const description = t.meta_description_ru || t.overview_ru?.slice(0, 155) || t.overview?.slice(0, 155) ||
-      `Прогнозы на матчи и аналитика турнира ${t.name} на Dota2ProTips.`
+    const title = `${t.name} — Прогнозы, Расписание и Команды`
+    let description = t.meta_description_ru || ''
+    if (!description) {
+      const parts: string[] = []
+      if (t.prize_pool_usd) parts.push(`Призовой фонд $${t.prize_pool_usd.toLocaleString('ru-RU')}`)
+      if (t.participants?.length) parts.push(`${t.participants.length} команд`)
+      if (t.location_type === 'lan' && t.location_name) parts.push(`LAN — ${t.location_name}`)
+      else if (t.location_type === 'online') parts.push('онлайн-турнир')
+      if (t.start_date && t.end_date) {
+        const fmt = (d: string) => new Date(d).toLocaleDateString('ru-RU', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+        parts.push(`${fmt(t.start_date)} – ${fmt(t.end_date)}`)
+      }
+      description = parts.length
+        ? `${t.name}: ${parts.join(', ')}. Прогнозы на каждый матч, аналитика и статистика точности на Dota2ProTips.`
+        : (t.overview_ru?.slice(0, 155) || t.overview?.slice(0, 155) || `Прогнозы на матчи и аналитика турнира ${t.name} на Dota2ProTips.`)
+    }
     return {
       title,
       description,

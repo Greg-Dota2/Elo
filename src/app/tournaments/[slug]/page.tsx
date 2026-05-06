@@ -37,9 +37,22 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   try {
     const t = await getTournamentBySlug(slug)
-    const title = `${t.name} — Predictions & Analysis`
-    const description = (t.meta_description || t.overview?.slice(0, 155)) ||
-      `Match predictions, analysis, and accuracy tracking for ${t.name} on Dota2ProTips.`
+    const title = `${t.name} — Predictions, Schedule & Teams`
+    let description = t.meta_description || ''
+    if (!description) {
+      const parts: string[] = []
+      if (t.prize_pool_usd) parts.push(`$${t.prize_pool_usd.toLocaleString('en-US')} prize pool`)
+      if (t.participants?.length) parts.push(`${t.participants.length} teams`)
+      if (t.location_type === 'lan' && t.location_name) parts.push(`LAN — ${t.location_name}`)
+      else if (t.location_type === 'online') parts.push('online tournament')
+      if (t.start_date && t.end_date) {
+        const fmt = (d: string) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+        parts.push(`${fmt(t.start_date)} – ${fmt(t.end_date)}`)
+      }
+      description = parts.length
+        ? `${t.name}: ${parts.join(', ')}. Match-by-match predictions, analysis, and accuracy tracking on Dota2ProTips.`
+        : (t.overview?.slice(0, 155) || `Match predictions, analysis, and accuracy tracking for ${t.name} on Dota2ProTips.`)
+    }
     return {
       title,
       description,
