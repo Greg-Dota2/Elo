@@ -9,6 +9,8 @@ import RefreshGameCacheButton from './RefreshGameCacheButton'
 import TranslateButton from './TranslateButton'
 import RefreshOpenDotaButton from './RefreshOpenDotaButton'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminPage() {
   let tournaments: Awaited<ReturnType<typeof getAllTournamentsAdmin>> = []
 

@@ -4,6 +4,8 @@ import Link from 'next/link'
 
 const POSITION_LABEL: Record<number, string> = { 1: 'Carry', 2: 'Mid', 3: 'Offlane', 4: 'Soft Sup', 5: 'Hard Sup' }
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminPlayersPage() {
   const [players, teams] = await Promise.all([
     getAllPlayersAdmin().catch(() => []),

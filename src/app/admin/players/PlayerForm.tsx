@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import type { Player } from '@/lib/types'
 import ImageUpload from '@/components/ImageUpload'
 import RichTextarea from '@/components/admin/RichTextarea'
+import { useGuardedNav } from '@/components/UnsavedChangesGuard'
 
 interface TeamOption { id: string; name: string }
 
@@ -29,6 +30,8 @@ export default function PlayerForm({ player, teams }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [isDirty, setIsDirty] = useState(false)
+  const guard = useGuardedNav(isDirty)
   const [photoUrl, setPhotoUrl] = useState(player?.photo_url ?? '')
   const [bio, setBio] = useState(player?.bio ?? '')
   const [achievements, setAchievements] = useState(player?.achievements ?? '')
@@ -68,6 +71,7 @@ export default function PlayerForm({ player, teams }: Props) {
     const data = await res.json()
     if (!res.ok) { setError(data.error); setLoading(false); return }
 
+    setIsDirty(false)
     router.push('/admin/players')
     router.refresh()
   }
@@ -83,7 +87,7 @@ export default function PlayerForm({ player, teams }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-4">
+    <form onSubmit={handleSubmit} onChange={() => setIsDirty(true)} className="grid gap-4">
       <div className="grid grid-cols-2 gap-4">
         <Field label="In-Game Name (IGN) *">
           <input name="ign" required defaultValue={player?.ign} className={inputClass} placeholder="Collapse" />
@@ -172,7 +176,7 @@ export default function PlayerForm({ player, teams }: Props) {
         <button type="submit" disabled={loading} className="px-5 py-2 rounded font-semibold text-sm disabled:opacity-50" style={{ background: 'var(--accent)', color: '#fff' }}>
           {loading ? 'Saving...' : isEdit ? 'Save Changes' : 'Create Player'}
         </button>
-        <button type="button" onClick={() => router.back()} className="px-5 py-2 rounded text-sm" style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}>
+        <button type="button" onClick={() => guard(() => router.back())} className="px-5 py-2 rounded text-sm" style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}>
           Cancel
         </button>
         {isEdit && (

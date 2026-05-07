@@ -10,6 +10,8 @@ const TYPE_LABELS: Record<string, string> = {
   retired: 'Retired',
 }
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminTransfersPage() {
   const [transfers, players, teams] = await Promise.all([
     getAllTransfersAdmin().catch(() => []),

@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import type { ItemGuide } from '@/lib/guides'
 import RichTextarea from '@/components/admin/RichTextarea'
+import { useGuardedNav } from '@/components/UnsavedChangesGuard'
 
 const inputClass = 'w-full rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-orange-500 bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] placeholder:text-[var(--text-muted)]'
 
@@ -12,6 +14,7 @@ interface Props {
 }
 
 export default function ItemGuideForm({ itemKey, initial }: Props) {
+  const router = useRouter()
   const [whyBuy, setWhyBuy] = useState(initial?.why_buy ?? '')
   const [whenToBuy, setWhenToBuy] = useState(initial?.when_to_buy ?? '')
   const [tipsText, setTipsText] = useState((initial?.tips ?? []).join('\n'))
@@ -19,6 +22,8 @@ export default function ItemGuideForm({ itemKey, initial }: Props) {
   const [loading, setLoading] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
+  const [isDirty, setIsDirty] = useState(false)
+  const guard = useGuardedNav(isDirty)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -37,10 +42,11 @@ export default function ItemGuideForm({ itemKey, initial }: Props) {
     setLoading(false)
     if (!res.ok) { setError(data.error); return }
     setSaved(true)
+    setIsDirty(false)
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-5">
+    <form onSubmit={handleSubmit} onChange={() => setIsDirty(true)} className="grid gap-5">
       <div className="grid gap-1">
         <label className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Why buy</label>
         <p className="text-xs mb-1" style={{ color: 'var(--text-subtle)' }}>What problem does this item solve? What&apos;s the core reason to purchase it?</p>
@@ -101,13 +107,14 @@ export default function ItemGuideForm({ itemKey, initial }: Props) {
         >
           {loading ? 'Saving…' : 'Save guide'}
         </button>
-        <a
-          href="/admin/items"
+        <button
+          type="button"
+          onClick={() => guard(() => router.push('/admin/items'))}
           className="px-4 py-2 rounded text-sm"
           style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}
         >
           Back to items
-        </a>
+        </button>
       </div>
     </form>
   )

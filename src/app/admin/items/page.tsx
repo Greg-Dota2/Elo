@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { fetchAllItems, itemIconUrl } from '@/lib/items'
 import { createAdminClient } from '@/lib/supabase/admin'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminItemsPage() {
   let items: Awaited<ReturnType<typeof fetchAllItems>> = []
   try { items = await fetchAllItems() } catch { /* API may be unavailable */ }

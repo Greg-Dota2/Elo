@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import type { Team } from '@/lib/types'
 import ImageUpload from '@/components/ImageUpload'
 import RichTextarea from '@/components/admin/RichTextarea'
+import { useGuardedNav } from '@/components/UnsavedChangesGuard'
 
 const REGIONS = ['Western Europe', 'Eastern Europe', 'China', 'Southeast Asia', 'North America', 'South America', 'CIS', 'Other']
 
@@ -28,6 +29,8 @@ export default function TeamForm({ team }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [isDirty, setIsDirty] = useState(false)
+  const guard = useGuardedNav(isDirty)
   const [logoUrl, setLogoUrl] = useState(team?.logo_url ?? '')
   const [bannerUrl, setBannerUrl] = useState(team?.banner_url ?? '')
   const [bio, setBio] = useState(team?.bio ?? '')
@@ -65,6 +68,7 @@ export default function TeamForm({ team }: Props) {
     const data = await res.json()
     if (!res.ok) { setError(data.error); setLoading(false); return }
 
+    setIsDirty(false)
     router.push('/admin/teams')
     router.refresh()
   }
@@ -80,7 +84,7 @@ export default function TeamForm({ team }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-4">
+    <form onSubmit={handleSubmit} onChange={() => setIsDirty(true)} className="grid gap-4">
       <div className="grid grid-cols-2 gap-4">
         <Field label="Team Name *">
           <input name="name" required defaultValue={team?.name} className={inputClass} placeholder="Team Liquid" />
@@ -148,7 +152,7 @@ export default function TeamForm({ team }: Props) {
         <button type="submit" disabled={loading} className="px-5 py-2 rounded font-semibold text-sm disabled:opacity-50" style={{ background: 'var(--accent)', color: '#fff' }}>
           {loading ? 'Saving...' : isEdit ? 'Save Changes' : 'Create Team'}
         </button>
-        <button type="button" onClick={() => router.back()} className="px-5 py-2 rounded text-sm" style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}>
+        <button type="button" onClick={() => guard(() => router.back())} className="px-5 py-2 rounded text-sm" style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}>
           Cancel
         </button>
         {isEdit && (

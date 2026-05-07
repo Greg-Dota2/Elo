@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { fetchAllHeroes, heroSlug, heroPortraitUrl, ATTR_CONFIG } from '@/lib/heroes'
 import { createAdminClient } from '@/lib/supabase/admin'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminHeroesPage() {
   let heroes: Awaited<ReturnType<typeof fetchAllHeroes>> = []
   try { heroes = await fetchAllHeroes() } catch { /* API may be unavailable */ }

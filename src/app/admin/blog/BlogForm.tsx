@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useGuardedNav } from '@/components/UnsavedChangesGuard'
 
 interface EntityOption {
   label: string    // display name
@@ -87,6 +88,8 @@ export default function BlogForm({ initial }: Props) {
   const [tags, setTags] = useState<string[]>(initial?.tags ?? [])
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [deleting, setDeleting] = useState(false)
+  const [isDirty, setIsDirty] = useState(false)
+  const guard = useGuardedNav(isDirty)
 
   // Toolbar insert state
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -189,6 +192,7 @@ export default function BlogForm({ initial }: Props) {
 
     if (res.ok) {
       setStatus('saved')
+      setIsDirty(false)
       if (!isEdit) {
         const data = await res.json()
         router.push(`/admin/blog/${data.id}/edit`)
@@ -215,10 +219,10 @@ export default function BlogForm({ initial }: Props) {
   const isEntityMode = insertMode && ENTITY_MODES.includes(insertMode)
 
   return (
-    <div className="max-w-3xl mx-auto py-8">
+    <div className="max-w-3xl mx-auto py-8" onChange={() => setIsDirty(true)}>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <a href="/admin/blog" className="text-xs text-muted-foreground hover:text-foreground transition-colors">← Blog Posts</a>
+          <button type="button" onClick={() => guard(() => router.push('/admin/blog'))} className="text-xs text-muted-foreground hover:text-foreground transition-colors">← Blog Posts</button>
           <h1 className="font-display text-3xl font-black mt-1">{isEdit ? 'Edit Post' : 'New Post'}</h1>
         </div>
         <div className="flex items-center gap-3">

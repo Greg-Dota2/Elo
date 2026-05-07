@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import type { HeroGuide } from '@/lib/guides'
 import RichTextarea from '@/components/admin/RichTextarea'
+import { useGuardedNav } from '@/components/UnsavedChangesGuard'
 
 const inputClass = 'w-full rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-orange-500 bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] placeholder:text-[var(--text-muted)]'
 
@@ -13,12 +15,15 @@ interface Props {
 }
 
 export default function HeroGuideForm({ heroId, heroName, initial }: Props) {
+  const router = useRouter()
   const [whenToPick, setWhenToPick] = useState(initial?.when_to_pick ?? '')
   const [tipsText, setTipsText] = useState((initial?.tips ?? []).join('\n'))
   const [summary, setSummary] = useState(initial?.summary ?? '')
   const [loading, setLoading] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
+  const [isDirty, setIsDirty] = useState(false)
+  const guard = useGuardedNav(isDirty)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -37,10 +42,11 @@ export default function HeroGuideForm({ heroId, heroName, initial }: Props) {
     setLoading(false)
     if (!res.ok) { setError(data.error); return }
     setSaved(true)
+    setIsDirty(false)
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-5">
+    <form onSubmit={handleSubmit} onChange={() => setIsDirty(true)} className="grid gap-5">
       <div className="grid gap-1">
         <label className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>When to pick</label>
         <p className="text-xs mb-1" style={{ color: 'var(--text-subtle)' }}>Draft context, matchup conditions, and situations where this hero shines or struggles.</p>
@@ -89,13 +95,14 @@ export default function HeroGuideForm({ heroId, heroName, initial }: Props) {
         >
           {loading ? 'Saving…' : 'Save guide'}
         </button>
-        <a
-          href="/admin/heroes"
+        <button
+          type="button"
+          onClick={() => guard(() => router.push('/admin/heroes'))}
           className="px-4 py-2 rounded text-sm"
           style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}
         >
           Back to heroes
-        </a>
+        </button>
       </div>
     </form>
   )
