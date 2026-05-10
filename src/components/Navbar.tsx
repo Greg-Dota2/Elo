@@ -58,6 +58,21 @@ export default function Navbar() {
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-0.5">
+          {/* Language switcher */}
+          <div className="mr-2 flex items-center gap-1">
+            <Link
+              href={getLangUrl(pathname, 'en')}
+              className={['px-3 py-1.5 rounded-lg text-xs font-bold tracking-wider transition-all duration-200 border', !isRu ? 'text-blue-300 bg-blue-500/25 border-blue-400/50 shadow-[0_0_8px_rgba(96,165,250,0.2)]' : 'text-blue-400/50 bg-blue-500/8 border-blue-400/20 hover:text-blue-300 hover:bg-blue-500/20 hover:border-blue-400/40'].join(' ')}
+            >
+              EN
+            </Link>
+            <Link
+              href={getLangUrl(pathname, 'ru')}
+              className={['px-3 py-1.5 rounded-lg text-xs font-bold tracking-wider transition-all duration-200 border', isRu ? 'text-red-300 bg-red-500/25 border-red-400/50 shadow-[0_0_8px_rgba(248,113,113,0.2)]' : 'text-red-400/50 bg-red-500/8 border-red-400/20 hover:text-red-300 hover:bg-red-500/20 hover:border-red-400/40'].join(' ')}
+            >
+              RU
+            </Link>
+          </div>
           {links.filter(l => l.href !== '/').map((link) => {
             const active = pathname.startsWith(link.href)
             return (
@@ -75,23 +90,8 @@ export default function Navbar() {
               </Link>
             )
           })}
-          {/* Language switcher */}
-          <div className="ml-2 flex items-center gap-1">
-            <Link
-              href={getLangUrl(pathname, 'en')}
-              className={['px-3 py-1.5 rounded-lg text-xs font-bold tracking-wider transition-all duration-200 border', !isRu ? 'text-blue-300 bg-blue-500/25 border-blue-400/50 shadow-[0_0_8px_rgba(96,165,250,0.2)]' : 'text-blue-400/50 bg-blue-500/8 border-blue-400/20 hover:text-blue-300 hover:bg-blue-500/20 hover:border-blue-400/40'].join(' ')}
-            >
-              EN
-            </Link>
-            <Link
-              href={getLangUrl(pathname, 'ru')}
-              className={['px-3 py-1.5 rounded-lg text-xs font-bold tracking-wider transition-all duration-200 border', isRu ? 'text-red-300 bg-red-500/25 border-red-400/50 shadow-[0_0_8px_rgba(248,113,113,0.2)]' : 'text-red-400/50 bg-red-500/8 border-red-400/20 hover:text-red-300 hover:bg-red-500/20 hover:border-red-400/40'].join(' ')}
-            >
-              RU
-            </Link>
-          </div>
           <Link
-            href="/admin"
+            href="/admin" rel="nofollow"
             className="ml-1 px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-200 border"
             style={{ borderColor: 'hsl(var(--primary) / 0.4)', color: 'hsl(var(--primary))' }}
           >
@@ -119,6 +119,21 @@ export default function Navbar() {
           style={{ background: 'hsl(var(--background) / 0.97)', borderColor: 'var(--border)' }}
         >
           <nav className="max-w-5xl mx-auto px-4 py-4 flex flex-col gap-1">
+            {/* Language switcher — mobile */}
+            <div className="flex items-center gap-2 px-1 mb-1">
+              <Link
+                href={getLangUrl(pathname, 'en')}
+                className={['px-5 py-2.5 rounded-lg text-sm font-bold tracking-wider transition-all duration-200 border', !isRu ? 'text-blue-300 bg-blue-500/25 border-blue-400/50 shadow-[0_0_10px_rgba(96,165,250,0.2)]' : 'text-blue-400/50 bg-blue-500/8 border-blue-400/20'].join(' ')}
+              >
+                EN
+              </Link>
+              <Link
+                href={getLangUrl(pathname, 'ru')}
+                className={['px-5 py-2.5 rounded-lg text-sm font-bold tracking-wider transition-all duration-200 border', isRu ? 'text-red-300 bg-red-500/25 border-red-400/50 shadow-[0_0_10px_rgba(248,113,113,0.2)]' : 'text-red-400/50 bg-red-500/8 border-red-400/20'].join(' ')}
+              >
+                RU
+              </Link>
+            </div>
             {links.map((link) => {
               const active = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href)
               return (
@@ -136,23 +151,8 @@ export default function Navbar() {
                 </Link>
               )
             })}
-            {/* Language switcher — mobile */}
-            <div className="flex items-center gap-2 px-1 mt-1">
-              <Link
-                href={getLangUrl(pathname, 'en')}
-                className={['px-5 py-2.5 rounded-lg text-sm font-bold tracking-wider transition-all duration-200 border', !isRu ? 'text-blue-300 bg-blue-500/25 border-blue-400/50 shadow-[0_0_10px_rgba(96,165,250,0.2)]' : 'text-blue-400/50 bg-blue-500/8 border-blue-400/20'].join(' ')}
-              >
-                EN
-              </Link>
-              <Link
-                href={getLangUrl(pathname, 'ru')}
-                className={['px-5 py-2.5 rounded-lg text-sm font-bold tracking-wider transition-all duration-200 border', isRu ? 'text-red-300 bg-red-500/25 border-red-400/50 shadow-[0_0_10px_rgba(248,113,113,0.2)]' : 'text-red-400/50 bg-red-500/8 border-red-400/20'].join(' ')}
-              >
-                RU
-              </Link>
-            </div>
             <Link
-              href="/admin"
+              href="/admin" rel="nofollow"
               className="mt-2 px-4 py-3 rounded-xl text-base font-semibold border"
               style={{ borderColor: 'hsl(var(--primary) / 0.4)', color: 'hsl(var(--primary))' }}
             >
