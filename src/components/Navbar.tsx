@@ -29,7 +29,7 @@ const links = [
   { href: '/rankings', label: 'Rankings' },
 ]
 
-export default function Navbar() {
+export default function Navbar({ isAdmin }: { isAdmin?: boolean }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
 
@@ -90,13 +90,15 @@ export default function Navbar() {
               </Link>
             )
           })}
-          <Link
-            href="/admin" rel="nofollow"
-            className="ml-1 px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-200 border"
-            style={{ borderColor: 'hsl(var(--primary) / 0.4)', color: 'hsl(var(--primary))' }}
-          >
-            Admin
-          </Link>
+          {isAdmin && (
+            <Link
+              href="/admin" rel="nofollow"
+              className="ml-1 px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-200 border"
+              style={{ borderColor: 'hsl(var(--primary) / 0.4)', color: 'hsl(var(--primary))' }}
+            >
+              Admin
+            </Link>
+          )}
         </nav>
 
         {/* Hamburger button — mobile only */}
@@ -151,13 +153,15 @@ export default function Navbar() {
                 </Link>
               )
             })}
-            <Link
-              href="/admin" rel="nofollow"
-              className="mt-2 px-4 py-3 rounded-xl text-base font-semibold border"
-              style={{ borderColor: 'hsl(var(--primary) / 0.4)', color: 'hsl(var(--primary))' }}
-            >
-              Admin
-            </Link>
+            {isAdmin && (
+              <Link
+                href="/admin" rel="nofollow"
+                className="mt-2 px-4 py-3 rounded-xl text-base font-semibold border"
+                style={{ borderColor: 'hsl(var(--primary) / 0.4)', color: 'hsl(var(--primary))' }}
+              >
+                Admin
+              </Link>
+            )}
           </nav>
         </div>
       )}
