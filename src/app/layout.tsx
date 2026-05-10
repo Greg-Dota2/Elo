@@ -7,6 +7,7 @@ import GoogleAnalytics from '@/components/GoogleAnalytics'
 import Link from 'next/link'
 import { Analytics } from '@vercel/analytics/next'
 import { Suspense } from 'react'
+import { cookies } from 'next/headers'
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -64,7 +65,10 @@ export const metadata: Metadata = {
   alternates: { canonical: SITE_URL },
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies()
+  const adminPwd = process.env.ADMIN_PASSWORD
+  const isAdmin = !!adminPwd && cookieStore.get('admin_token')?.value === adminPwd
   return (
     <html lang="en" className={`dark ${manrope.variable} ${oxanium.variable}`}>
       <head>
@@ -102,7 +106,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body suppressHydrationWarning>
         <Suspense fallback={null}><GoogleAnalytics /></Suspense>
-        <Navbar />
+        <Navbar isAdmin={isAdmin} />
         <main className="max-w-7xl mx-auto px-4 py-8">{children}</main>
         <Analytics />
         <CookieBanner />
