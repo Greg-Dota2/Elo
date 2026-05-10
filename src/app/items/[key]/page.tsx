@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { key } = await params
   const item = await fetchItemByKey(key)
   if (!item) return {}
-  const title = `${item.dname} — Dota 2 Item Guide`
+  const title = `${item.dname} — Dota 2 Item Guide & Stats`
   const statSummary = item.attrib
     .slice(0, 2)
     .map(a => a.display ? a.display.replace('{val}', a.value) : '')
@@ -212,7 +212,7 @@ export default async function ItemPage({ params }: Props) {
         <div className="rounded-2xl border border-border/60 bg-card/60 p-5 mb-4">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Stats</p>
           <div className="grid grid-cols-2 gap-x-8 gap-y-2">
-            {item.attrib.filter(a => a.display).map((a, i) => {
+            {item.attrib.filter(a => a.display && parseFloat(a.value) !== 0).map((a, i) => {
               const text = a.display!.replace('{value}', a.value)
               return (
                 <div key={i} className="flex items-center gap-2">

@@ -50,7 +50,7 @@ export async function generateMetadata({
     const hero = heroes.find(h => heroSlug(h.name) === slug)
     if (!hero) return { title: 'Hero Not Found' }
     const cfg = ATTR_CONFIG[hero.primary_attr]
-    const title = `${hero.localized_name} — Dota 2 Hero`
+    const title = `${hero.localized_name} — Dota 2 Hero Guide & Abilities`
     const article = ['Agility', 'Intelligence'].includes(cfg.label) ? 'An' : 'A'
     const primaryRole = hero.roles[0] ?? 'various roles'
     const description = `${hero.localized_name} abilities, stats, and talent tree. ${article} ${cfg.label} ${hero.attack_type} hero played as ${primaryRole} — full guide covering everything you need to know about ${hero.localized_name} in Dota 2.`
@@ -106,7 +106,9 @@ function AbilityCard({ ability }: { ability: ValveAbility }) {
   const behaviors = decodeBehavior(ability.behavior)
   const cd = formatLevelValues(ability.cooldowns.filter(v => v > 0))
   const mc = formatLevelValues(ability.mana_costs.filter(v => v > 0))
-  const specialValues = ability.special_values.filter(sv => sv.heading_loc && sv.heading_loc.trim())
+  const specialValues = ability.special_values.filter(sv =>
+    sv.heading_loc && sv.heading_loc.trim() && sv.values_float.some(v => v !== 0)
+  )
 
   const badges: { label: string; className: string }[] = []
   if (ability.ability_is_innate) badges.push({ label: 'Innate', className: 'text-amber-400 bg-amber-400/10 border-amber-400/20' })
@@ -285,7 +287,7 @@ export default async function HeroPage({
 
   const rawTalents = detail?.talents ?? []
   const talentValueMap = buildTalentValueMap(detail?.abilities ?? [])
-  const TALENT_LEVELS = [10, 15, 20, 25]
+  const TALENT_LEVELS = [25, 20, 15, 10]
   const talentRows = TALENT_LEVELS.map((level, i) => ({
     level,
     left: rawTalents[i * 2] ? resolveTalentName(rawTalents[i * 2].name_loc, rawTalents[i * 2], talentValueMap) : '',
@@ -577,35 +579,35 @@ export default async function HeroPage({
       {/* Talents */}
       {rawTalents.length > 0 && (
         <div className="mb-6">
-          <p className="section-label mb-3">Talents</p>
-          <div className="rounded-2xl border border-border/60 bg-card/60 p-5">
-            <div className="flex flex-col items-stretch gap-0">
-              {talentRows.map(({ level, left, right }, i) => (
-                <div key={level} className="flex flex-col items-center">
-                  {/* Vertical connector between rows */}
-                  {i > 0 && <div className="w-px h-4 bg-amber-500/30 shrink-0" />}
-                  {/* Row: left box — line — badge — line — right box */}
-                  <div className="w-full flex items-center gap-0">
-                    {/* Left talent */}
-                    <div className="flex-1 rounded-xl border border-border/60 bg-secondary/40 px-3 py-2.5 text-right">
-                      <span className="text-sm font-medium leading-snug">{left}</span>
-                    </div>
-                    {/* Horizontal connector left */}
-                    <div className="w-4 h-px bg-amber-500/30 shrink-0" />
-                    {/* Level badge */}
-                    <div className="shrink-0 w-11 h-11 rounded-full border-2 border-amber-500/50 bg-amber-500/10 flex items-center justify-center z-10">
-                      <span className="font-display font-bold text-sm text-amber-400">{level}</span>
-                    </div>
-                    {/* Horizontal connector right */}
-                    <div className="w-4 h-px bg-amber-500/30 shrink-0" />
-                    {/* Right talent */}
-                    <div className="flex-1 rounded-xl border border-border/60 bg-secondary/40 px-3 py-2.5 text-left">
-                      <span className="text-sm font-medium leading-snug">{right}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+          <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid hsl(var(--border) / 0.6)', background: 'hsl(220 20% 8%)' }}>
+            {/* Header */}
+            <div className="py-3 text-center" style={{ background: 'hsl(220 20% 11%)', borderBottom: '1px solid hsl(43 90% 55% / 0.3)' }}>
+              <p className="text-xs font-black uppercase tracking-[0.25em]" style={{ color: 'hsl(43 100% 72%)' }}>Talent Tree</p>
             </div>
+            {/* Rows */}
+            {talentRows.map(({ level, left, right }, i) => (
+              <div
+                key={level}
+                className="flex items-center"
+                style={{ borderTop: i > 0 ? '1px solid hsl(var(--border) / 0.35)' : undefined }}
+              >
+                {/* Left talent */}
+                <div className="flex-1 px-4 py-3.5 text-right">
+                  <span className="text-sm font-medium leading-snug text-foreground">{left}</span>
+                </div>
+                {/* Level badge */}
+                <div
+                  className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center mx-3"
+                  style={{ background: 'hsl(220 25% 12%)', border: '2px solid hsl(43 90% 55% / 0.55)' }}
+                >
+                  <span className="font-bold text-sm" style={{ color: 'hsl(0 0% 93%)' }}>{level}</span>
+                </div>
+                {/* Right talent */}
+                <div className="flex-1 px-4 py-3.5 text-left">
+                  <span className="text-sm font-medium leading-snug text-foreground">{right}</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

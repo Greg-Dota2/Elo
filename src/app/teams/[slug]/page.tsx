@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   try {
     const team = await getTeamBySlug(slug) as Team
-    const title = `${team.name} — Dota 2 Team Profile`
+    const title = `${team.name} — Dota 2 Pro Team: Roster & Results`
     const description = `${team.name} roster, ELO rating, recent results, and full match history. Every series tracked across Tier 1 Dota 2 tournaments at Dota2ProTips.`
     return {
       title,

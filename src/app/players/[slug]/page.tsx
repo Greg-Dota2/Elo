@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const posLabel: Record<number, string> = { 1: 'Carry', 2: 'Mid', 3: 'Offlane', 4: 'Soft Support', 5: 'Hard Support' }
     const role = player.position ? posLabel[player.position] : null
     const team = player.team?.name
-    const title = `${player.ign} — Dota 2 Player Profile`
+    const title = `${player.ign} — Dota 2 Pro Player: Stats & Career`
     const description = (role && team)
       ? `${player.ign} plays ${role} for ${team}. Career stats, signature heroes, tournament results, and match history — all tracked at Dota2ProTips.`
       : role
