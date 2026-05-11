@@ -20,6 +20,12 @@ export interface HeroMetaEntry {
 
 type SortKey = 'winRate' | 'pickRate' | 'winRateDelta' | 'proPick'
 
+const ROLES_RU: Record<string, string> = {
+  Carry: 'Керри', Support: 'Саппорт', Nuker: 'Нюкер',
+  Disabler: 'Дизейблер', Durable: 'Живучий', Escape: 'Бегство',
+  Pusher: 'Пушер', Initiator: 'Инициатор', Jungler: 'Джанглер',
+}
+
 const ROLE_STYLE: Record<string, string> = {
   'Carry':     'bg-orange-500/15 text-orange-400 border-orange-500/25',
   'Support':   'bg-sky-500/15 text-sky-400 border-sky-500/25',
@@ -71,16 +77,16 @@ function Sparkline({ points }: { points: number[] }) {
   )
 }
 
-function SpotlightCard({ hero, label, stat, statColor, accent }: {
+function SpotlightCard({ hero, label, stat, statColor, accent, heroPrefix }: {
   hero: HeroMetaEntry
   label: string
   stat: string
   statColor: string
   accent: string
+  heroPrefix: string
 }) {
   return (
-    <Link href={`/heroes/${hero.slug}`} className="group relative rounded-xl border border-border/50 bg-card overflow-hidden hover:border-primary/40 transition-all duration-200 flex flex-col">
-      {/* Colored top accent */}
+    <Link href={`${heroPrefix}/${hero.slug}`} className="group relative rounded-xl border border-border/50 bg-card overflow-hidden hover:border-primary/40 transition-all duration-200 flex flex-col">
       <div className={`h-[3px] w-full ${accent}`} />
       <div className="relative h-28 overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -90,7 +96,6 @@ function SpotlightCard({ hero, label, stat, statColor, accent }: {
           className="w-full h-full object-cover object-top scale-105 opacity-75 group-hover:opacity-90 group-hover:scale-110 transition-all duration-300"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
-        {/* Label badge overlaid on image */}
         <span className="absolute top-2 left-2 text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-black/50 text-white/70 backdrop-blur-sm">
           {label}
         </span>
@@ -103,24 +108,67 @@ function SpotlightCard({ hero, label, stat, statColor, accent }: {
   )
 }
 
-const SORT_OPTIONS: { key: SortKey; label: string }[] = [
-  { key: 'winRate', label: 'Win Rate' },
-  { key: 'pickRate', label: 'Pick Rate' },
-  { key: 'winRateDelta', label: 'Change' },
-  { key: 'proPick', label: 'Pro Picks' },
-]
-
 export default function HeroMetaTable({
   heroes,
   updatedAt,
+  heroPrefix = '/heroes',
+  locale = 'en',
 }: {
   heroes: HeroMetaEntry[]
   updatedAt: string
+  heroPrefix?: string
+  locale?: 'en' | 'ru'
 }) {
   const [sort, setSort] = useState<SortKey>('winRate')
   const [asc, setAsc] = useState(false)
   const [search, setSearch] = useState('')
   const [attrFilter, setAttrFilter] = useState('')
+
+  const L = locale === 'ru' ? {
+    sectionLabel: 'Знание игры',
+    title: 'Мета героев',
+    subtitle: `Процент побед и популярность в публичных матчах · ${heroes.length} героев`,
+    liveData: 'Обновлено',
+    allHeroes: 'Все герои',
+    spotlightWR: 'Лучший % побед',
+    spotlightPick: 'Самый популярный',
+    spotlightRiser: 'Растёт быстрее всех',
+    spotlightFaller: 'Падает быстрее всех',
+    searchPlaceholder: 'Поиск героя...',
+    attrAll: 'Все',
+    colHero: 'Герой',
+    colRoles: 'Роли',
+    colWR: '% Побед',
+    colTrend: 'Тренд',
+    colChange: 'Изм.',
+    colPickRate: '% Выбора',
+    colProPicks: 'Про пики',
+    noHeroes: 'Герои не найдены.',
+    footer: 'Данные OpenDota · Публичные матчи всех уровней · Тренд = % побед за 7 периодов',
+    countLabel: (n: number) => `${n} героев`,
+  } : {
+    sectionLabel: 'Game Knowledge',
+    title: 'Hero Meta',
+    subtitle: `Public match win & pick rates across all brackets · ${heroes.length} heroes`,
+    liveData: 'Live data',
+    allHeroes: 'All Heroes',
+    spotlightWR: 'Highest Win Rate',
+    spotlightPick: 'Most Picked',
+    spotlightRiser: 'Biggest Riser',
+    spotlightFaller: 'Biggest Faller',
+    searchPlaceholder: 'Search hero...',
+    attrAll: 'All',
+    colHero: 'Hero',
+    colRoles: 'Roles',
+    colWR: 'Win Rate',
+    colTrend: 'Trend',
+    colChange: 'Change',
+    colPickRate: 'Pick Rate',
+    colProPicks: 'Pro Picks',
+    noHeroes: 'No heroes found.',
+    footer: 'Data from OpenDota · Public matches across all skill brackets · Trend = win rate over last 7 periods',
+    countLabel: (n: number) => `${n} heroes`,
+  }
 
   const topWR    = [...heroes].sort((a, b) => b.winRate - a.winRate)[0]
   const topPick  = [...heroes].sort((a, b) => b.pickRate - a.pickRate)[0]
@@ -155,6 +203,14 @@ export default function HeroMetaTable({
     )
   }
 
+  const attrFilters = [
+    { val: '',    label: L.attrAll,  dot: '' },
+    { val: 'str', label: 'STR', dot: 'bg-red-400' },
+    { val: 'agi', label: 'AGI', dot: 'bg-green-400' },
+    { val: 'int', label: 'INT', dot: 'bg-blue-400' },
+    { val: 'all', label: 'UNI', dot: 'bg-purple-400' },
+  ]
+
   return (
     <div className="fade-in-up">
 
@@ -164,46 +220,55 @@ export default function HeroMetaTable({
 
         <div className="flex items-start justify-between gap-4 flex-wrap mb-4">
           <div>
-            <p className="section-label mb-2">Game Knowledge</p>
-            <h1 className="text-4xl font-black tracking-tight mb-1">Hero Meta</h1>
-            <p className="text-sm text-muted-foreground">Public match win &amp; pick rates across all brackets · {heroes.length} heroes</p>
+            <p className="section-label mb-2">{L.sectionLabel}</p>
+            <h1 className="text-4xl font-black tracking-tight mb-1">{L.title}</h1>
+            <p className="text-sm text-muted-foreground">{L.subtitle}</p>
           </div>
           <div className="flex items-center gap-2 shrink-0 px-3 py-2 rounded-xl border border-border/40 bg-[var(--surface)]">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider leading-none mb-0.5">Live data</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider leading-none mb-0.5">{L.liveData}</p>
               <p className="text-xs font-mono font-semibold">{updatedAt} EET</p>
             </div>
           </div>
         </div>
 
         <Link
-          href="/heroes"
+          href={heroPrefix}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border/50 bg-[var(--surface)] text-sm font-semibold text-muted-foreground hover:text-foreground hover:border-border transition-all"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 12H5M12 5l-7 7 7 7"/>
           </svg>
-          All Heroes
+          {L.allHeroes}
         </Link>
       </div>
 
       {/* Explanation */}
-      <p className="text-sm text-muted-foreground leading-relaxed mb-8">
-        Win rate and pick rate are pulled from OpenDota once a day — same raw data every analyst uses.
-        The sparkline next to each hero shows where their win rate was heading across the last 7 data snapshots:
-        green line going up means they&apos;re gaining strength in the current patch, red going down means either a nerf
-        landed, the meta shifted, or their counters became popular. The <span className="text-foreground font-medium">Change</span> column
-        is the exact win rate difference between the first and last snapshot.
-      </p>
+      {locale === 'ru' ? (
+        <p className="text-sm text-muted-foreground leading-relaxed mb-8">
+          Данные о проценте побед и популярности героев получены из OpenDota — такие же данные, которые используют все аналитики.
+          Искра рядом с каждым героем показывает динамику процента побед за последние 7 периодов:
+          зелёная линия вверх означает рост силы в текущем патче, красная вниз — нёрф, сдвиг меты или рост контр-пиков.
+          Колонка <span className="text-foreground font-medium">«Изм.»</span> — точная разница между первым и последним снапшотом.
+        </p>
+      ) : (
+        <p className="text-sm text-muted-foreground leading-relaxed mb-8">
+          Win rate and pick rate are pulled from OpenDota once a day — same raw data every analyst uses.
+          The sparkline next to each hero shows where their win rate was heading across the last 7 data snapshots:
+          green line going up means they&apos;re gaining strength in the current patch, red going down means either a nerf
+          landed, the meta shifted, or their counters became popular. The <span className="text-foreground font-medium">Change</span> column
+          is the exact win rate difference between the first and last snapshot.
+        </p>
+      )}
 
       {/* Spotlight cards */}
       {(topWR || topPick || topRiser || topFaller) && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-          {topWR    && <SpotlightCard hero={topWR}    label="Highest Win Rate" stat={`${topWR.winRate.toFixed(1)}%`}           statColor="text-emerald-400" accent="bg-emerald-400" />}
-          {topPick  && <SpotlightCard hero={topPick}  label="Most Picked"      stat={`${topPick.pickRate.toFixed(2)}%`}         statColor="text-sky-400"     accent="bg-sky-400" />}
-          {topRiser && <SpotlightCard hero={topRiser} label="Biggest Riser"    stat={`+${topRiser.winRateDelta.toFixed(2)}%`}  statColor="text-emerald-400" accent="bg-emerald-400" />}
-          {topFaller && <SpotlightCard hero={topFaller} label="Biggest Faller" stat={`${topFaller.winRateDelta.toFixed(2)}%`} statColor="text-red-400"     accent="bg-red-400" />}
+          {topWR    && <SpotlightCard hero={topWR}    label={L.spotlightWR}    stat={`${topWR.winRate.toFixed(1)}%`}           statColor="text-emerald-400" accent="bg-emerald-400" heroPrefix={heroPrefix} />}
+          {topPick  && <SpotlightCard hero={topPick}  label={L.spotlightPick}  stat={`${topPick.pickRate.toFixed(2)}%`}         statColor="text-sky-400"     accent="bg-sky-400"     heroPrefix={heroPrefix} />}
+          {topRiser && <SpotlightCard hero={topRiser} label={L.spotlightRiser} stat={`+${topRiser.winRateDelta.toFixed(2)}%`}  statColor="text-emerald-400" accent="bg-emerald-400" heroPrefix={heroPrefix} />}
+          {topFaller && <SpotlightCard hero={topFaller} label={L.spotlightFaller} stat={`${topFaller.winRateDelta.toFixed(2)}%`} statColor="text-red-400"   accent="bg-red-400"     heroPrefix={heroPrefix} />}
         </div>
       )}
 
@@ -215,7 +280,7 @@ export default function HeroMetaTable({
           </svg>
           <input
             type="search"
-            placeholder="Search hero..."
+            placeholder={L.searchPlaceholder}
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="rounded-lg pl-7 pr-3 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] outline-none focus:ring-1 focus:ring-orange-500 w-44 placeholder:text-[var(--text-muted)]"
@@ -225,13 +290,7 @@ export default function HeroMetaTable({
         <div className="w-px h-5 bg-border/40 hidden sm:block" />
 
         <div className="flex gap-1.5">
-          {([
-            { val: '',    label: 'All',  dot: '' },
-            { val: 'str', label: 'STR',  dot: 'bg-red-400' },
-            { val: 'agi', label: 'AGI',  dot: 'bg-green-400' },
-            { val: 'int', label: 'INT',  dot: 'bg-blue-400' },
-            { val: 'all', label: 'UNI',  dot: 'bg-purple-400' },
-          ] as const).map(({ val, label, dot }) => (
+          {attrFilters.map(({ val, label, dot }) => (
             <button
               key={val}
               onClick={() => setAttrFilter(val)}
@@ -249,7 +308,7 @@ export default function HeroMetaTable({
         </div>
 
         <span className="ml-auto text-xs font-semibold tabular-nums px-2.5 py-1 rounded-full bg-[var(--surface)] border border-[var(--border)] text-muted-foreground">
-          {filtered.length} heroes
+          {L.countLabel(filtered.length)}
         </span>
       </div>
 
@@ -260,13 +319,13 @@ export default function HeroMetaTable({
             <thead>
               <tr className="border-b border-border/40 bg-card/80">
                 <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground w-10">#</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">Hero</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">Roles</th>
-                <SortTh col="winRate">Win Rate</SortTh>
-                <th className="px-4 py-3 text-center text-xs font-semibold text-muted-foreground">Trend</th>
-                <SortTh col="winRateDelta">Change</SortTh>
-                <SortTh col="pickRate">Pick Rate</SortTh>
-                <SortTh col="proPick">Pro Picks</SortTh>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">{L.colHero}</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">{L.colRoles}</th>
+                <SortTh col="winRate">{L.colWR}</SortTh>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-muted-foreground">{L.colTrend}</th>
+                <SortTh col="winRateDelta">{L.colChange}</SortTh>
+                <SortTh col="pickRate">{L.colPickRate}</SortTh>
+                <SortTh col="proPick">{L.colProPicks}</SortTh>
               </tr>
             </thead>
             <tbody>
@@ -277,7 +336,7 @@ export default function HeroMetaTable({
                 >
                   <td className="px-4 py-2.5 text-muted-foreground/40 font-mono text-xs tabular-nums">{i + 1}</td>
                   <td className="px-4 py-2.5">
-                    <Link href={`/heroes/${hero.slug}`} className="flex items-center gap-2.5 group">
+                    <Link href={`${heroPrefix}/${hero.slug}`} className="flex items-center gap-2.5 group">
                       <div className="relative w-16 h-10 rounded-md overflow-hidden border border-border/30 flex-shrink-0 group-hover:border-primary/40 transition-colors">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={heroPortraitUrl(hero.slug)} alt={hero.localized_name} className="w-full h-full object-cover" />
@@ -299,7 +358,7 @@ export default function HeroMetaTable({
                           key={role}
                           className={`text-[9px] font-bold px-1.5 py-0.5 rounded border whitespace-nowrap ${ROLE_STYLE[role] ?? 'bg-muted/20 text-muted-foreground border-border/30'}`}
                         >
-                          {role}
+                          {(locale === 'ru' ? ROLES_RU[role] : null) ?? role}
                         </span>
                       ))}
                     </div>
@@ -335,12 +394,12 @@ export default function HeroMetaTable({
         </div>
 
         {filtered.length === 0 && (
-          <p className="text-center py-12 text-muted-foreground text-sm">No heroes found.</p>
+          <p className="text-center py-12 text-muted-foreground text-sm">{L.noHeroes}</p>
         )}
       </div>
 
       <p className="mt-4 text-xs text-muted-foreground/50 text-center">
-        Data from OpenDota · Public matches across all skill brackets · Trend = win rate over last 7 periods
+        {L.footer}
       </p>
     </div>
   )

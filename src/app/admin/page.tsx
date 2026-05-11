@@ -7,6 +7,7 @@ import SyncScheduleButton from './SyncScheduleButton'
 import SyncResultsButton from './SyncResultsButton'
 import RefreshGameCacheButton from './RefreshGameCacheButton'
 import TranslateButton from './TranslateButton'
+import TranslateGuidesButton from './TranslateGuidesButton'
 import RefreshOpenDotaButton from './RefreshOpenDotaButton'
 
 export const dynamic = 'force-dynamic'
@@ -98,6 +99,11 @@ export default async function AdminPage() {
         <SyncResultsButton />
         <RefreshGameCacheButton />
         <TranslateButton />
+        <TranslateGuidesButton type="all-heroes" label="Translate Hero Guides RU" emoji="🦸🌐" />
+        <TranslateGuidesButton type="all-items" label="Translate Item Guides RU" emoji="⚗️🌐" />
+        <TranslateGuidesButton type="all-items-lore" label="Translate Item Lore & Abilities RU" emoji="📜🌐" />
+        <TranslateGuidesButton type="all-players" label="Translate Players RU" emoji="🎮🌐" />
+        <TranslateGuidesButton type="all-teams" label="Translate Teams RU" emoji="🛡️🌐" />
         <RefreshOpenDotaButton />
       </div>
 

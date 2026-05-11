@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Transfer } from '@/lib/types'
 
@@ -113,6 +113,9 @@ export default function TransferForm({ transfer, playerOptions, teamOptions }: P
   const [error, setError] = useState('')
   const [playerSlug, setPlayerSlug] = useState(transfer?.player_slug ?? '')
   const [playerPhoto, setPlayerPhoto] = useState(transfer?.player_photo_url ?? '')
+  const [notesRu, setNotesRu] = useState(transfer?.notes_ru ?? '')
+  const [translating, setTranslating] = useState(false)
+  const notesRef = useRef<HTMLTextAreaElement>(null)
   const isEdit = !!transfer
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -132,6 +135,7 @@ export default function TransferForm({ transfer, playerOptions, teamOptions }: P
       transfer_date:      form.get('transfer_date'),
       type:               form.get('type'),
       notes:              form.get('notes') || null,
+      notes_ru:           notesRu || null,
       is_published:       form.get('is_published') === 'on',
     }
     if (isEdit) body.id = transfer.id
@@ -147,6 +151,20 @@ export default function TransferForm({ transfer, playerOptions, teamOptions }: P
 
     router.push('/admin/transfers')
     router.refresh()
+  }
+
+  async function handleTranslate() {
+    const notes = notesRef.current?.value?.trim()
+    if (!notes) return
+    setTranslating(true)
+    const res = await fetch('/api/admin/guides/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'transfer-notes', notes }),
+    })
+    const data = await res.json()
+    if (res.ok) setNotesRu(data.notes_ru)
+    setTranslating(false)
   }
 
   async function handleDelete() {
@@ -218,9 +236,26 @@ export default function TransferForm({ transfer, playerOptions, teamOptions }: P
         </Field>
       </div>
 
-      <Field label="Notes" hint="Short context. Optional.">
-        <textarea name="notes" rows={2} defaultValue={transfer?.notes ?? ''} className={inputClass} placeholder="Replaced Miracle after TI qualifiers..." />
-      </Field>
+      <div className="grid grid-cols-2 gap-4">
+        <Field label="Notes (EN)" hint="Short context. Optional.">
+          <textarea ref={notesRef} name="notes" rows={2} defaultValue={transfer?.notes ?? ''} className={inputClass} placeholder="Replaced Miracle after TI qualifiers..." />
+        </Field>
+        <div className="grid gap-1">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Notes (RU)</label>
+            <button
+              type="button"
+              onClick={handleTranslate}
+              disabled={translating}
+              className="text-xs font-semibold px-2 py-0.5 rounded transition-opacity disabled:opacity-50 hover:opacity-80"
+              style={{ background: 'var(--surface-2)', color: 'var(--accent)', border: '1px solid var(--border)' }}
+            >
+              {translating ? '⏳' : '🤖 Translate'}
+            </button>
+          </div>
+          <textarea rows={2} value={notesRu} onChange={e => setNotesRu(e.target.value)} className={inputClass} placeholder="Заменил Miracle после квалификаций на TI..." />
+        </div>
+      </div>
 
       <label className="flex items-center gap-2 text-sm cursor-pointer">
         <input name="is_published" type="checkbox" defaultChecked={transfer?.is_published ?? false} className="w-4 h-4" />

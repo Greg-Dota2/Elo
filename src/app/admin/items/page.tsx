@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { fetchAllItems, itemIconUrl } from '@/lib/items'
 import { createAdminClient } from '@/lib/supabase/admin'
+import TranslateGuidesButton from '@/app/admin/TranslateGuidesButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,6 +24,12 @@ export default async function AdminItemsPage() {
       <p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>
         Add &ldquo;Why buy&rdquo; and &ldquo;When to buy&rdquo; editorial content for items. Focus on high-value upgrade items first.
       </p>
+
+      <div className="grid grid-cols-2 gap-3 mb-8 max-w-sm">
+        <TranslateGuidesButton type="all-items-lore" label="Translate Lore & Abilities → RU" emoji="🌐" />
+        <TranslateGuidesButton type="all-items" label="Translate Guides → RU" emoji="📖" />
+      </div>
+
       <div className="grid gap-2">
         {upgradeItems.map(item => (
           <div

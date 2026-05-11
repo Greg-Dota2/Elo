@@ -13,6 +13,16 @@ const REGION_FLAG: Record<string, string> = {
   'CIS': '🌍',
 }
 
+const REGION_RU: Record<string, string> = {
+  'Western Europe': 'Западная Европа',
+  'Eastern Europe': 'Восточная Европа',
+  'China': 'Китай',
+  'Southeast Asia': 'Юго-Восточная Азия',
+  'North America': 'Северная Америка',
+  'South America': 'Южная Америка',
+  'CIS': 'СНГ',
+}
+
 type Team = {
   id: string
   name: string
@@ -31,11 +41,17 @@ interface Props {
   active: Team[]
   inactive: Team[]
   statsMap: Record<string, Stats>
+  locale?: 'ru'
 }
 
-export default function TeamsClient({ active, inactive, statsMap }: Props) {
+export default function TeamsClient({ active, inactive, statsMap, locale }: Props) {
   const [search, setSearch] = useState('')
   const q = search.toLowerCase()
+  const prefix = locale === 'ru' ? '/ru' : ''
+
+  const L = locale === 'ru'
+    ? { activeTeams: 'активных команд', placeholder: 'Поиск команд или регионов…', notFound: 'Команды не найдены', notFoundSub: 'Попробуйте другой запрос.', inactive: 'Неактивные / Расформированные' }
+    : { activeTeams: 'active teams', placeholder: 'Search teams or regions…', notFound: 'No teams found', notFoundSub: 'Try a different search term.', inactive: 'Inactive / Disbanded' }
 
   const filteredActive = active.filter(t =>
     !q || t.name.toLowerCase().includes(q) || (t.region ?? '').toLowerCase().includes(q)
@@ -51,7 +67,7 @@ export default function TeamsClient({ active, inactive, statsMap }: Props) {
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-primary/25 bg-primary/8">
           <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
           <span className="text-sm font-bold text-primary tabular-nums">{active.length}</span>
-          <span className="text-sm text-muted-foreground">active teams</span>
+          <span className="text-sm text-muted-foreground">{L.activeTeams}</span>
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-400/25 bg-amber-400/8">
           <span className="text-sm font-bold text-amber-400">1500</span>
@@ -68,7 +84,7 @@ export default function TeamsClient({ active, inactive, statsMap }: Props) {
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Search teams or regions…"
+          placeholder={L.placeholder}
           className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-secondary/60 border border-border/60 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 focus:bg-secondary/80 transition-colors"
         />
         {search && (
@@ -91,7 +107,7 @@ export default function TeamsClient({ active, inactive, statsMap }: Props) {
             const winRate = total > 0 ? Math.round(((s?.wins ?? 0) / total) * 100) : null
 
             return (
-              <Link key={team.id} href={team.slug ? `/teams/${team.slug}` : '#'}>
+              <Link key={team.id} href={team.slug ? `${prefix}/teams/${team.slug}` : '#'}>
                 <article className="group rounded-2xl border border-border/60 bg-card/60 overflow-hidden hover:border-primary/40 hover:bg-card/80 transition-all duration-300 hover:-translate-y-1">
                   <div className="relative h-40 bg-secondary/60 flex items-center justify-center overflow-hidden">
                     {team.banner_url && (
@@ -120,7 +136,9 @@ export default function TeamsClient({ active, inactive, statsMap }: Props) {
                   <div className="p-4">
                     <h3 className="font-display text-base font-bold text-foreground leading-tight mb-1">{team.name}</h3>
                     {team.region && (
-                      <p className="text-xs text-muted-foreground mb-3">{REGION_FLAG[team.region] ?? '🌐'} {team.region}</p>
+                      <p className="text-xs text-muted-foreground mb-3">
+                        {REGION_FLAG[team.region] ?? '🌐'} {(locale === 'ru' ? REGION_RU[team.region] : null) ?? team.region}
+                      </p>
                     )}
                     <div className="flex items-center justify-between">
                       <span className="font-display text-xl font-black tabular-nums text-foreground">{elo}</span>
@@ -143,15 +161,15 @@ export default function TeamsClient({ active, inactive, statsMap }: Props) {
 
       {filteredActive.length === 0 && filteredInactive.length === 0 && (
         <div className="rounded-2xl p-12 text-center border border-border/60 bg-card/40">
-          <p className="font-semibold mb-1">No teams found</p>
-          <p className="text-sm text-muted-foreground">Try a different search term.</p>
+          <p className="font-semibold mb-1">{L.notFound}</p>
+          <p className="text-sm text-muted-foreground">{L.notFoundSub}</p>
         </div>
       )}
 
       {/* Inactive */}
       {filteredInactive.length > 0 && (
         <div>
-          <p className="section-label mb-4">Inactive / Disbanded</p>
+          <p className="section-label mb-4">{L.inactive}</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 opacity-50">
             {filteredInactive.map(team => (
               <div key={team.id} className="rounded-xl border border-border/40 bg-card/30 p-3 flex items-center gap-3">
@@ -161,7 +179,7 @@ export default function TeamsClient({ active, inactive, statsMap }: Props) {
                 )}
                 <div className="min-w-0">
                   <p className="text-sm font-semibold truncate">{team.name}</p>
-                  {team.region && <p className="text-xs text-muted-foreground truncate">{team.region}</p>}
+                  {team.region && <p className="text-xs text-muted-foreground truncate">{(locale === 'ru' ? REGION_RU[team.region] : null) ?? team.region}</p>}
                 </div>
               </div>
             ))}

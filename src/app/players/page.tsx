@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   title: 'Dota 2 Pro Players — Profiles & Career Stats',
   description: 'Profiles for every tracked Dota 2 pro player — roles, signature heroes, career achievements, and tournament results. The people behind the picks, not just the team names.',
   keywords: ['Dota 2 pro players', 'Dota 2 players', 'professional Dota 2', 'Dota 2 roster', 'Dota 2 carry', 'Dota 2 midlaner'],
-  alternates: { canonical: '/players' },
+  alternates: { canonical: '/players', languages: { 'x-default': '/players', 'en': '/players', 'ru': '/ru/players' } },
   openGraph: { title: 'Dota 2 Pro Players — Profiles & Career Stats', description: 'Profiles for every tracked Dota 2 pro player — roles, signature heroes, career achievements, and tournament results.', url: '/players' },
   twitter: { card: 'summary', title: 'Dota 2 Pro Players — Profiles & Career Stats', description: 'Profiles for every tracked Dota 2 pro player — roles, signature heroes, career achievements, and tournament results.' },
 }

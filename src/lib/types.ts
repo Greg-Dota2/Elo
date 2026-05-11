@@ -9,12 +9,16 @@ export interface Team {
   liquipedia_url: string | null
   website_url: string | null
   bio: string | null
+  bio_ru: string | null
   achievements: string | null
+  achievements_ru: string | null
   founded_year: number | null
   opendota_team_id: number | null
   current_elo: number
   is_active: boolean
+  ru_synced_at: string | null
   created_at: string
+  updated_at: string | null
 }
 
 export interface PrizePlacement {
@@ -110,13 +114,17 @@ export interface Player {
   date_of_birth: string | null
   photo_url: string | null
   bio: string | null
+  bio_ru: string | null
   signature_heroes: string[] | null
   achievements: string | null
+  achievements_ru: string | null
   previous_teams: string | null
   liquipedia_url: string | null
   opendota_id: number | null
   is_published: boolean
+  ru_synced_at: string | null
   created_at: string
+  updated_at: string | null
   // joined
   team?: { id: string; name: string; logo_url: string | null; slug: string | null } | null
 }
@@ -133,6 +141,7 @@ export interface Transfer {
   transfer_date: string
   type: 'permanent' | 'loan' | 'stand-in' | 'free_agent' | 'retired'
   notes: string | null
+  notes_ru: string | null
   is_published: boolean
   created_at: string
 }

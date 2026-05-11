@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     title: 'My Dota 2 Prediction Track Record',
     description: '154 picks across 4 Tier 1 tournaments. 67% accuracy overall. Every correct and every wrong call is here — no edits, no hiding.',
   },
-  alternates: { canonical: '/track-record' },
+  alternates: { canonical: '/track-record', languages: { 'x-default': '/track-record', 'en': '/track-record', 'ru': '/ru/track-record' } },
 }
 
 export default async function TrackRecordPage() {

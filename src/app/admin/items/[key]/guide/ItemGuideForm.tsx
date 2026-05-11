@@ -23,7 +23,13 @@ export default function ItemGuideForm({ itemKey, initial }: Props) {
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
   const [isDirty, setIsDirty] = useState(false)
+  const [translating, setTranslating] = useState(false)
+  const [translateMsg, setTranslateMsg] = useState('')
   const guard = useGuardedNav(isDirty)
+
+  const isStale = initial?.ru_synced_at && initial?.updated_at
+    ? new Date(initial.ru_synced_at) < new Date(initial.updated_at)
+    : !initial?.ru_synced_at && !!(initial?.why_buy || initial?.when_to_buy || initial?.tips?.length || initial?.summary)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -43,6 +49,20 @@ export default function ItemGuideForm({ itemKey, initial }: Props) {
     if (!res.ok) { setError(data.error); return }
     setSaved(true)
     setIsDirty(false)
+  }
+
+  async function handleTranslate() {
+    setTranslating(true)
+    setTranslateMsg('')
+    const res = await fetch('/api/admin/guides/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'item', item_key: itemKey }),
+    })
+    const data = await res.json()
+    setTranslating(false)
+    setTranslateMsg(res.ok ? '✓ RU updated' : `Error: ${data.error}`)
+    if (res.ok) router.refresh()
   }
 
   return (
@@ -98,7 +118,7 @@ export default function ItemGuideForm({ itemKey, initial }: Props) {
       {error && <p className="text-sm text-red-400">{error}</p>}
       {saved && <p className="text-sm text-green-400">Saved — page will revalidate shortly.</p>}
 
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3 items-center">
         <button
           type="submit"
           disabled={loading}
@@ -115,6 +135,21 @@ export default function ItemGuideForm({ itemKey, initial }: Props) {
         >
           Back to items
         </button>
+        <button
+          type="button"
+          onClick={handleTranslate}
+          disabled={translating || !initial}
+          className="px-4 py-2 rounded text-sm font-semibold disabled:opacity-50 flex items-center gap-2"
+          style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}
+        >
+          {translating ? 'Translating…' : '🌐 Translate to RU'}
+        </button>
+        {isStale && !translateMsg && (
+          <span className="text-xs text-amber-400">⚠ RU out of sync</span>
+        )}
+        {translateMsg && (
+          <span className={`text-xs ${translateMsg.startsWith('✓') ? 'text-green-400' : 'text-red-400'}`}>{translateMsg}</span>
+        )}
       </div>
     </form>
   )

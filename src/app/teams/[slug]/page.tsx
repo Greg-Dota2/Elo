@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         ...(team.logo_url ? { images: [{ url: team.logo_url, alt: team.name }] } : {}),
       },
       twitter: { card: team.logo_url ? 'summary_large_image' : 'summary', title, description, ...(team.logo_url ? { images: [team.logo_url] } : {}) },
-      alternates: { canonical: `/teams/${slug}` },
+      alternates: { canonical: `/teams/${slug}`, languages: { 'x-default': `/teams/${slug}`, 'en': `/teams/${slug}`, 'ru': `/ru/teams/${slug}` } },
     }
   } catch {
     return { title: 'Team Not Found' }

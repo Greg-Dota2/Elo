@@ -35,7 +35,23 @@ export default function TeamForm({ team }: Props) {
   const [bannerUrl, setBannerUrl] = useState(team?.banner_url ?? '')
   const [bio, setBio] = useState(team?.bio ?? '')
   const [achievements, setAchievements] = useState(team?.achievements ?? '')
+  const [translateStatus, setTranslateStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
   const isEdit = !!team
+
+  const isStale = isEdit && (bio || achievements) && (
+    !team.ru_synced_at || (team.updated_at && new Date(team.ru_synced_at) < new Date(team.updated_at))
+  )
+
+  async function handleTranslate() {
+    if (!team) return
+    setTranslateStatus('loading')
+    const res = await fetch('/api/admin/guides/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'team', team_id: team.id }),
+    })
+    setTranslateStatus(res.ok ? 'done' : 'error')
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -145,6 +161,23 @@ export default function TeamForm({ team }: Props) {
         <input name="is_active" type="checkbox" defaultChecked={team?.is_active ?? true} className="w-4 h-4" />
         <span style={{ color: 'var(--text-muted)' }}>Active (visible in rankings)</span>
       </label>
+
+      {isEdit && (bio || achievements) && (
+        <div className="flex items-center gap-3 pt-1">
+          <button
+            type="button"
+            onClick={handleTranslate}
+            disabled={translateStatus === 'loading'}
+            className="px-4 py-1.5 rounded text-sm font-semibold disabled:opacity-50"
+            style={{ background: 'var(--surface-2)', color: translateStatus === 'done' ? 'var(--correct)' : translateStatus === 'error' ? 'var(--wrong)' : 'var(--text-muted)', border: '1px solid var(--border)' }}
+          >
+            {translateStatus === 'loading' ? '⏳ Translating…' : translateStatus === 'done' ? '✅ Translated' : translateStatus === 'error' ? '❌ Failed' : '🌐 Translate to RU'}
+          </button>
+          {isStale && translateStatus === 'idle' && (
+            <span className="text-xs font-semibold" style={{ color: 'var(--wrong)' }}>⚠ RU out of sync</span>
+          )}
+        </div>
+      )}
 
       {error && <p className="text-sm" style={{ color: 'var(--wrong)' }}>{error}</p>}
 

@@ -23,6 +23,7 @@ export async function POST(req: Request) {
           transfer_date:      body.transfer_date,
           type:               body.type || 'permanent',
           notes:              body.notes || null,
+          notes_ru:           body.notes_ru || null,
           is_published:       body.is_published ?? false,
         }))
 
@@ -50,6 +51,7 @@ export async function POST(req: Request) {
         transfer_date:       body.transfer_date,
         type:                body.type || 'permanent',
         notes:               body.notes || null,
+        notes_ru:            body.notes_ru || null,
         is_published:        body.is_published ?? false,
       })
       .select()
@@ -84,6 +86,7 @@ export async function PATCH(req: Request) {
     if (fields.transfer_date !== undefined)      update.transfer_date = fields.transfer_date
     if (fields.type !== undefined)               update.type = fields.type
     if (fields.notes !== undefined)              update.notes = fields.notes || null
+    if (fields.notes_ru !== undefined)           update.notes_ru = fields.notes_ru || null
     if (fields.is_published !== undefined)       update.is_published = fields.is_published
 
     const { data, error } = await supabase

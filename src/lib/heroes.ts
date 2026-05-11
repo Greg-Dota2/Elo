@@ -375,7 +375,7 @@ export async function fetchHeroMatchups(heroId: number): Promise<HeroMatchup[]> 
     const { createAdminClient } = await import('@/lib/supabase/admin')
     const { data: row } = await createAdminClient()
       .from('opendota_cache').select('data').eq('key', `matchups_${heroId}`).single()
-    if (row?.data) data = row.data
+    if (row?.data && Array.isArray(row.data) && row.data.length >= 50) data = row.data
   } catch { /* fall through */ }
 
   if (!data) {
@@ -436,8 +436,8 @@ export function resolveTalentName(
     .replace(/%%|%([^%]+)%/g, (match, key) => key ? (lookup(key) ?? match) : '%')
 }
 
-export async function fetchHeroDetail(heroId: number): Promise<ValveHeroDetail> {
-  const res = await fetch(`${VALVE_BASE}/herodata?language=english&hero_id=${heroId}`, {
+export async function fetchHeroDetail(heroId: number, language = 'english'): Promise<ValveHeroDetail> {
+  const res = await fetch(`${VALVE_BASE}/herodata?language=${language}&hero_id=${heroId}`, {
     next: { revalidate: 86400 },
   })
   if (!res.ok) throw new Error('Failed to fetch hero detail')

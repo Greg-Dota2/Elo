@@ -7,6 +7,13 @@ export interface ItemGuide {
   tips: string[]
   summary: string | null
   updated_at: string
+  why_buy_ru: string | null
+  when_to_buy_ru: string | null
+  tips_ru: string[] | null
+  summary_ru: string | null
+  lore_ru: string | null
+  abilities_ru: Array<{ description: string }> | null
+  ru_synced_at: string | null
 }
 
 export interface HeroGuide {
@@ -15,6 +22,10 @@ export interface HeroGuide {
   tips: string[]
   summary: string | null
   updated_at: string
+  when_to_pick_ru: string | null
+  tips_ru: string[] | null
+  summary_ru: string | null
+  ru_synced_at: string | null
 }
 
 export async function fetchItemGuide(itemKey: string): Promise<ItemGuide | null> {

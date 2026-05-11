@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getAllTransfersAdmin, getAllPlayersAdmin, getAllTeams } from '@/lib/queries'
 import TransferTabs from './TransferTabs'
+import TranslateGuidesButton from '@/app/admin/TranslateGuidesButton'
 
 const TYPE_LABELS: Record<string, string> = {
   permanent: 'Signed',
@@ -40,6 +41,11 @@ export default async function AdminTransfersPage() {
       </div>
 
       <TransferTabs playerOptions={playerOptions} teamOptions={teamOptions} />
+
+      {/* Bulk translate */}
+      <div className="mb-6 max-w-xs">
+        <TranslateGuidesButton type="all-transfers" label="Translate All Notes → RU" emoji="🌐" />
+      </div>
 
       {/* Existing transfers */}
       <h2 className="text-sm font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-muted)' }}>

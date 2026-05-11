@@ -7,6 +7,7 @@ import type { Player } from '@/lib/types'
 import PlayersFilter from '@/components/PlayersFilter'
 
 const POSITION_LABEL: Record<number, string> = { 1: 'Carry', 2: 'Mid', 3: 'Offlane', 4: 'Soft Support', 5: 'Hard Support' }
+const POSITION_LABEL_RU: Record<number, string> = { 1: 'Керри', 2: 'Мид', 3: 'Офлейн', 4: 'Саппорт', 5: 'Хард саппорт' }
 const POSITION_COLOR: Record<number, string> = {
   1: 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20',
   2: 'text-primary bg-primary/10 border-primary/20',
@@ -16,10 +17,10 @@ const POSITION_COLOR: Record<number, string> = {
 }
 const POS_ORDER = [1, 2, 3, 4, 5]
 
-function PlayerCard({ player }: { player: Player }) {
+function PlayerCard({ player, prefix, posLabels }: { player: Player; prefix: string; posLabels: Record<number, string> }) {
   const posColor = player.position ? POSITION_COLOR[player.position] : 'text-muted-foreground bg-muted/50 border-border'
   return (
-    <Link href={`/players/${player.slug}`}>
+    <Link href={`${prefix}/players/${player.slug}`}>
       <article className="group rounded-2xl border border-border/60 bg-card/60 overflow-hidden hover:border-primary/40 hover:bg-card/80 transition-all duration-300 hover:-translate-y-1">
         <div className="relative h-52 bg-secondary/60 overflow-hidden">
           {player.photo_url ? (
@@ -51,7 +52,7 @@ function PlayerCard({ player }: { player: Player }) {
               </div>
             )}
             {player.position && (
-              <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${posColor}`}>{POSITION_LABEL[player.position]}</span>
+              <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${posColor}`}>{posLabels[player.position]}</span>
             )}
           </div>
           {player.signature_heroes && player.signature_heroes.length > 0 && (
@@ -63,10 +64,15 @@ function PlayerCard({ player }: { player: Player }) {
   )
 }
 
-export default function PlayersClient({ players }: { players: Player[] }) {
+export default function PlayersClient({ players, locale }: { players: Player[]; locale?: 'ru' }) {
   const searchParams = useSearchParams()
   const filterPos = searchParams.get('pos') ? Number(searchParams.get('pos')) : null
   const [search, setSearch] = useState('')
+  const prefix = locale === 'ru' ? '/ru' : ''
+  const posLabels = locale === 'ru' ? POSITION_LABEL_RU : POSITION_LABEL
+  const L = locale === 'ru'
+    ? { placeholder: 'Поиск игроков или команд…', notFound: 'Игроки не найдены', notFoundSub: 'Попробуйте другой фильтр.', freeAgents: 'Свободные агенты', countSuffix: 'профилей игроков' }
+    : { placeholder: 'Search players or teams…', notFound: 'No players found', notFoundSub: 'Try a different search or filter.', freeAgents: 'Free Agents', countSuffix: 'player profiles' }
 
   const q = search.toLowerCase()
   const filtered = players
@@ -109,7 +115,7 @@ export default function PlayersClient({ players }: { players: Player[] }) {
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Search players or teams…"
+          placeholder={L.placeholder}
           className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-secondary/60 border border-border/60 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 focus:bg-secondary/80 transition-colors"
         />
         {search && (
@@ -121,17 +127,17 @@ export default function PlayersClient({ players }: { players: Player[] }) {
         )}
       </div>
 
-      <PlayersFilter counts={counts} />
+      <PlayersFilter counts={counts} locale={locale} />
 
       <p className="text-sm text-muted-foreground mb-6">
-        {filtered.length}{filtered.length !== players.length ? ` of ${players.length}` : ''} player profiles
-        {search ? ` matching "${search}"` : ''}
+        {filtered.length}{filtered.length !== players.length ? ` / ${players.length}` : ''} {L.countSuffix}
+        {search ? ` — "${search}"` : ''}
       </p>
 
       {filtered.length === 0 ? (
         <div className="rounded-2xl p-12 text-center border border-border/60 bg-card/40">
-          <p className="font-semibold mb-1">No players found</p>
-          <p className="text-sm text-muted-foreground">Try a different search or filter.</p>
+          <p className="font-semibold mb-1">{L.notFound}</p>
+          <p className="text-sm text-muted-foreground">{L.notFoundSub}</p>
         </div>
       ) : (
         <div className="space-y-10">
@@ -139,15 +145,15 @@ export default function PlayersClient({ players }: { players: Player[] }) {
             <div key={teamName}>
               <p className="section-label mb-4">{teamName}</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {roster.map(p => <PlayerCard key={p.id} player={p} />)}
+                {roster.map(p => <PlayerCard key={p.id} player={p} prefix={prefix} posLabels={posLabels} />)}
               </div>
             </div>
           ))}
           {noTeam.length > 0 && (
             <div>
-              <p className="section-label mb-4">Free Agents</p>
+              <p className="section-label mb-4">{L.freeAgents}</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {noTeam.map(p => <PlayerCard key={p.id} player={p} />)}
+                {noTeam.map(p => <PlayerCard key={p.id} player={p} prefix={prefix} posLabels={posLabels} />)}
               </div>
             </div>
           )}

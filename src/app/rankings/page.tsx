@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: 'Dota 2 ELO Team Rankings 2026',
   description: 'Dota 2 ELO team rankings updated after every Tier 1 series. Weighted by opponent strength — a live snapshot of which teams are actually performing right now, not six months ago.',
   keywords: ['Dota 2 ELO rankings', 'Dota 2 power rankings', 'best Dota 2 teams', 'Dota 2 team ratings', 'Dota 2 standings'],
-  alternates: { canonical: '/rankings' },
+  alternates: { canonical: '/rankings', languages: { 'x-default': '/rankings', 'en': '/rankings', 'ru': '/ru/rankings' } },
   openGraph: { title: 'Dota 2 ELO Team Rankings 2026', description: 'Dota 2 ELO team rankings updated after every Tier 1 series. Weighted by opponent strength — a live snapshot of which teams are actually performing right now.', url: '/rankings' },
   twitter: { card: 'summary', title: 'Dota 2 ELO Team Rankings 2026', description: 'Dota 2 ELO team rankings updated after every Tier 1 series. Weighted by opponent strength.' },
 }

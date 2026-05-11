@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: 'Dota 2 Roster Moves & Player Transfers',
   description: 'The latest Dota 2 roster changes and player transfers — tracked as they happen. Who\'s joining, who\'s leaving, and what it means for the teams heading into the next tournament.',
   keywords: ['Dota 2 transfers', 'Dota 2 roster changes', 'Dota 2 signings', 'pro Dota 2 roster', 'Dota 2 free agents'],
-  alternates: { canonical: '/transfers' },
+  alternates: { canonical: '/transfers', languages: { 'x-default': '/transfers', 'en': '/transfers', 'ru': '/ru/transfers' } },
   openGraph: {
     title: 'Dota 2 Roster Moves & Player Transfers',
     description: 'The latest Dota 2 roster changes and player transfers — tracked as they happen.',

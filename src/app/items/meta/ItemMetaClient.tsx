@@ -83,10 +83,14 @@ export default function ItemMetaClient({
   upgradeItems,
   neutralItems,
   updatedAt,
+  itemPrefix = '/items',
+  locale = 'en',
 }: {
   upgradeItems: UpgradeItemStat[]
   neutralItems: NeutralItemEntry[]
   updatedAt: string
+  itemPrefix?: string
+  locale?: 'en' | 'ru'
 }) {
   const [tab, setTab] = useState<'upgrades' | 'neutral'>('upgrades')
   const [sort, setSort] = useState<SortKey>('winRate')
@@ -95,6 +99,60 @@ export default function ItemMetaClient({
   const [neutralAsc, setNeutralAsc] = useState(false)
   const [search, setSearch] = useState('')
   const [minGames, setMinGames] = useState(500)
+
+  const L = locale === 'ru' ? {
+    sectionLabel: 'Dota 2',
+    title: 'Мета предметов',
+    subtitle: 'Процент побед улучшений в публичных матчах · нейтральные предметы по % побед',
+    liveData: 'Обновлено',
+    allItems: 'Все предметы',
+    spotlightWR: 'Лучший % побед',
+    spotlightBought: 'Самый популярный',
+    spotlightBudget: 'Бюджетный лидер',
+    spotlightLate: 'Лучший лейт',
+    spotlightMostEquipped: 'Чаще всего в слоте',
+    spotlightT1: 'Лучший T1',
+    spotlightT5: 'Лучший T5',
+    tabUpgrades: (n: number) => `Улучшения (${n})`,
+    tabNeutral: (n: number) => `Нейтральные (${n})`,
+    searchPlaceholder: 'Поиск предмета...',
+    countLabel: (n: number) => `${n} предметов`,
+    colItem: 'Предмет',
+    colCost: 'Цена',
+    colWR: '% Побед',
+    colGames: 'Игры',
+    colTiming: 'Пик',
+    colTier: 'Тир',
+    noItems: 'Предметы не найдены.',
+    footerUpgrade: 'Данные OpenDota · По всем героям и тайтлингам · Обновляется ежедневно',
+    footerNeutral: 'Данные OpenDota · Последние публичные матчи · % побед = матчи с нейтральным предметом, завершённые победой',
+  } : {
+    sectionLabel: 'Dota 2',
+    title: 'Item Meta',
+    subtitle: 'Upgrade win rates from public matches · neutral items by win rate',
+    liveData: 'Live data',
+    allItems: 'All Items',
+    spotlightWR: 'Highest Win Rate',
+    spotlightBought: 'Most Bought',
+    spotlightBudget: 'Best Budget',
+    spotlightLate: 'Best Late Game',
+    spotlightMostEquipped: 'Most Equipped',
+    spotlightT1: 'Best Tier 1',
+    spotlightT5: 'Best Tier 5',
+    tabUpgrades: (n: number) => `Upgrades (${n})`,
+    tabNeutral: (n: number) => `Neutral Items (${n})`,
+    searchPlaceholder: 'Search item...',
+    countLabel: (n: number) => `${n} items`,
+    colItem: 'Item',
+    colCost: 'Cost',
+    colWR: 'Win Rate',
+    colGames: 'Games',
+    colTiming: 'Peak Timing',
+    colTier: 'Tier',
+    noItems: 'No items found.',
+    footerUpgrade: 'Data from OpenDota · Aggregated across all heroes and purchase timings · Updated daily',
+    footerNeutral: 'Data from OpenDota · Recent public matches · Win rate = games where player held this neutral item and won',
+  }
 
   // Upgrade spotlights
   const topWR     = upgradeItems[0]
@@ -125,7 +183,6 @@ export default function ItemMetaClient({
       const diff = (a.games ?? -1) - (b.games ?? -1)
       return neutralAsc ? diff : -diff
     }
-    // tier
     const diff = a.tier - b.tier
     return neutralAsc ? diff : -diff
   })
@@ -166,37 +223,46 @@ export default function ItemMetaClient({
 
         <div className="flex items-start justify-between gap-4 flex-wrap mb-4">
           <div>
-            <p className="section-label mb-2">Dota 2</p>
-            <h1 className="text-4xl font-black tracking-tight mb-1">Item Meta</h1>
-            <p className="text-sm text-muted-foreground">Upgrade win rates from public matches · neutral items by win rate</p>
+            <p className="section-label mb-2">{L.sectionLabel}</p>
+            <h1 className="text-4xl font-black tracking-tight mb-1">{L.title}</h1>
+            <p className="text-sm text-muted-foreground">{L.subtitle}</p>
           </div>
           <div className="flex items-center gap-2 shrink-0 px-3 py-2 rounded-xl border border-border/40 bg-[var(--surface)]">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider leading-none mb-0.5">Live data</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider leading-none mb-0.5">{L.liveData}</p>
               <p className="text-xs font-mono font-semibold">{updatedAt} EET</p>
             </div>
           </div>
         </div>
 
         <Link
-          href="/items"
+          href={itemPrefix}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border/50 bg-[var(--surface)] text-sm font-semibold text-muted-foreground hover:text-foreground hover:border-border transition-all"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 12H5M12 5l-7 7 7 7"/>
           </svg>
-          All Items
+          {L.allItems}
         </Link>
       </div>
 
       {/* Explanation */}
-      <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-        Upgrade win rates come from OpenDota&apos;s match data — aggregated across all heroes and purchase timings.
-        An item with a high win rate doesn&apos;t mean it wins games on its own; it means the heroes who build it tend to win more often,
-        which reflects both item strength and the situations it&apos;s bought in. Peak timing shows the most common minute window it&apos;s purchased.
-        Neutral item win rates are pulled from recent matches where a player held that item and won.
-      </p>
+      {locale === 'ru' ? (
+        <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+          Данные о проценте побед предметов получены из OpenDota — агрегированы по всем героям и тайтлингам покупок.
+          Высокий процент побед предмета не означает, что он выигрывает игры сам по себе — это значит, что герои, собирающие его, побеждают чаще.
+          Пик по времени показывает наиболее частую минуту покупки.
+          Данные по нейтральным предметам берутся из последних матчей, где игрок имел предмет в слоте и победил.
+        </p>
+      ) : (
+        <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+          Upgrade win rates come from OpenDota&apos;s match data — aggregated across all heroes and purchase timings.
+          An item with a high win rate doesn&apos;t mean it wins games on its own; it means the heroes who build it tend to win more often,
+          which reflects both item strength and the situations it&apos;s bought in. Peak timing shows the most common minute window it&apos;s purchased.
+          Neutral item win rates are pulled from recent matches where a player held that item and won.
+        </p>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-1 mb-6 border-b border-border/40">
@@ -206,7 +272,7 @@ export default function ItemMetaClient({
             onClick={() => setTab(t)}
             className={['px-5 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors', tab === t ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'].join(' ')}
           >
-            {t === 'upgrades' ? `Upgrades (${upgradeItems.length})` : `Neutral Items (${neutralItems.length})`}
+            {t === 'upgrades' ? L.tabUpgrades(upgradeItems.length) : L.tabNeutral(neutralItems.length)}
           </button>
         ))}
       </div>
@@ -216,10 +282,10 @@ export default function ItemMetaClient({
         <>
           {/* Spotlight cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            {topWR     && <SpotlightCard item={topWR}      label="Highest Win Rate" stat={`${topWR.winRate.toFixed(1)}%`}                                            statColor="text-emerald-400" accent="bg-emerald-400" href={`/items/${topWR.key}`} />}
-            {mostBought && <SpotlightCard item={mostBought} label="Most Bought"      stat={`${(mostBought.games/1000).toFixed(1)}k games`}                            statColor="text-sky-400"     accent="bg-sky-400"     href={`/items/${mostBought.key}`} />}
-            {bestBudget && <SpotlightCard item={bestBudget} label="Best Budget"      stat={`${bestBudget.winRate.toFixed(1)}% · ${bestBudget.cost.toLocaleString()}g`} statColor="text-emerald-400" accent="bg-violet-400"  href={`/items/${bestBudget.key}`} />}
-            {bestLate   && <SpotlightCard item={bestLate}   label="Best Late Game"   stat={`${bestLate.winRate.toFixed(1)}% · ${bestLate.cost.toLocaleString()}g`}    statColor="text-amber-400"   accent="bg-amber-400"   href={`/items/${bestLate.key}`} />}
+            {topWR     && <SpotlightCard item={topWR}      label={L.spotlightWR}           stat={`${topWR.winRate.toFixed(1)}%`}                                            statColor="text-emerald-400" accent="bg-emerald-400" href={`${itemPrefix}/${topWR.key}`} />}
+            {mostBought && <SpotlightCard item={mostBought} label={L.spotlightBought}       stat={`${(mostBought.games/1000).toFixed(1)}k games`}                            statColor="text-sky-400"     accent="bg-sky-400"     href={`${itemPrefix}/${mostBought.key}`} />}
+            {bestBudget && <SpotlightCard item={bestBudget} label={L.spotlightBudget}       stat={`${bestBudget.winRate.toFixed(1)}% · ${bestBudget.cost.toLocaleString()}g`} statColor="text-emerald-400" accent="bg-violet-400"  href={`${itemPrefix}/${bestBudget.key}`} />}
+            {bestLate   && <SpotlightCard item={bestLate}   label={L.spotlightLate}         stat={`${bestLate.winRate.toFixed(1)}% · ${bestLate.cost.toLocaleString()}g`}    statColor="text-amber-400"   accent="bg-amber-400"   href={`${itemPrefix}/${bestLate.key}`} />}
           </div>
 
           {/* Controls */}
@@ -231,7 +297,7 @@ export default function ItemMetaClient({
               </svg>
               <input
                 type="search"
-                placeholder="Search item..."
+                placeholder={L.searchPlaceholder}
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 className="w-full rounded-lg pl-7 pr-3 py-1.5 text-sm bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] outline-none focus:ring-1 focus:ring-primary/50 placeholder:text-[var(--text-muted)]"
@@ -268,7 +334,7 @@ export default function ItemMetaClient({
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'hsl(var(--muted-foreground) / 0.6)' }}>
                 <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
               </svg>
-              <span className="text-xs font-semibold tabular-nums text-muted-foreground">{filtered.length} items</span>
+              <span className="text-xs font-semibold tabular-nums text-muted-foreground">{L.countLabel(filtered.length)}</span>
             </div>
           </div>
 
@@ -278,11 +344,11 @@ export default function ItemMetaClient({
                 <thead>
                   <tr className="border-b border-border/40 bg-card/80">
                     <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground w-10">#</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">Item</th>
-                    <SortTh col="cost">Cost</SortTh>
-                    <SortTh col="winRate">Win Rate</SortTh>
-                    <SortTh col="games">Games</SortTh>
-                    <SortTh col="peakTiming">Peak Timing</SortTh>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">{L.colItem}</th>
+                    <SortTh col="cost">{L.colCost}</SortTh>
+                    <SortTh col="winRate">{L.colWR}</SortTh>
+                    <SortTh col="games">{L.colGames}</SortTh>
+                    <SortTh col="peakTiming">{L.colTiming}</SortTh>
                   </tr>
                 </thead>
                 <tbody>
@@ -290,7 +356,7 @@ export default function ItemMetaClient({
                     <tr key={item.key} className="border-b border-border/20 last:border-0 hover:bg-white/[0.03] transition-colors">
                       <td className="px-4 py-2.5 text-muted-foreground/40 font-mono text-xs tabular-nums">{i + 1}</td>
                       <td className="px-4 py-2.5">
-                        <Link href={`/items/${item.key}`} className="flex items-center gap-2.5 group">
+                        <Link href={`${itemPrefix}/${item.key}`} className="flex items-center gap-2.5 group">
                           <div className="w-12 h-9 rounded-md overflow-hidden border border-border/30 flex-shrink-0 group-hover:border-primary/40 transition-colors">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={itemIconUrl(item.key)} alt={item.dname} className="w-full h-full object-cover" />
@@ -317,10 +383,10 @@ export default function ItemMetaClient({
                 </tbody>
               </table>
             </div>
-            {filtered.length === 0 && <p className="text-center py-12 text-muted-foreground text-sm">No items found.</p>}
+            {filtered.length === 0 && <p className="text-center py-12 text-muted-foreground text-sm">{L.noItems}</p>}
           </div>
           <p className="mt-4 text-xs text-muted-foreground/50 text-center">
-            Data from OpenDota · Aggregated across all heroes and purchase timings · Updated daily
+            {L.footerUpgrade}
           </p>
         </>
       )}
@@ -330,10 +396,10 @@ export default function ItemMetaClient({
         <>
           {/* Spotlight cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            {topNeutralWR    && <SpotlightCard item={topNeutralWR}    label="Highest Win Rate" stat={`${topNeutralWR.winRate!.toFixed(1)}%`}                          statColor="text-emerald-400" accent="bg-emerald-400" href={`/items/${topNeutralWR.key}`} />}
-            {mostUsedNeutral && <SpotlightCard item={mostUsedNeutral} label="Most Equipped"    stat={`${((mostUsedNeutral.games ?? 0)/1000).toFixed(1)}k games`}       statColor="text-sky-400"     accent="bg-sky-400"     href={`/items/${mostUsedNeutral.key}`} />}
-            {topNeutralT1    && <SpotlightCard item={topNeutralT1}    label="Best Tier 1"      stat={`${topNeutralT1.winRate!.toFixed(1)}% · ${TIER_DROP[1]}`}         statColor="text-slate-300"   accent="bg-slate-400"   href={`/items/${topNeutralT1.key}`} />}
-            {topNeutralT5    && <SpotlightCard item={topNeutralT5}    label="Best Tier 5"      stat={`${topNeutralT5.winRate!.toFixed(1)}% · ${TIER_DROP[5]}`}         statColor="text-amber-400"   accent="bg-amber-400"   href={`/items/${topNeutralT5.key}`} />}
+            {topNeutralWR    && <SpotlightCard item={topNeutralWR}    label={L.spotlightWR}           stat={`${topNeutralWR.winRate!.toFixed(1)}%`}                          statColor="text-emerald-400" accent="bg-emerald-400" href={`${itemPrefix}/${topNeutralWR.key}`} />}
+            {mostUsedNeutral && <SpotlightCard item={mostUsedNeutral} label={L.spotlightMostEquipped} stat={`${((mostUsedNeutral.games ?? 0)/1000).toFixed(1)}k games`}       statColor="text-sky-400"     accent="bg-sky-400"     href={`${itemPrefix}/${mostUsedNeutral.key}`} />}
+            {topNeutralT1    && <SpotlightCard item={topNeutralT1}    label={L.spotlightT1}           stat={`${topNeutralT1.winRate!.toFixed(1)}% · ${TIER_DROP[1]}`}         statColor="text-slate-300"   accent="bg-slate-400"   href={`${itemPrefix}/${topNeutralT1.key}`} />}
+            {topNeutralT5    && <SpotlightCard item={topNeutralT5}    label={L.spotlightT5}           stat={`${topNeutralT5.winRate!.toFixed(1)}% · ${TIER_DROP[5]}`}         statColor="text-amber-400"   accent="bg-amber-400"   href={`${itemPrefix}/${topNeutralT5.key}`} />}
           </div>
 
           <div className="rounded-xl border border-border/40 overflow-hidden bg-card/30">
@@ -342,15 +408,15 @@ export default function ItemMetaClient({
                 <thead>
                   <tr className="border-b border-border/40 bg-card/80">
                     <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground w-10">#</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">Item</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">{L.colItem}</th>
                     <th
                       onClick={() => handleNeutralSort('tier')}
                       className={['px-4 py-3 text-left text-xs font-semibold cursor-pointer select-none whitespace-nowrap transition-colors', neutralSort === 'tier' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground/80'].join(' ')}
                     >
-                      Tier{neutralSort === 'tier' ? (neutralAsc ? ' ↑' : ' ↓') : ''}
+                      {L.colTier}{neutralSort === 'tier' ? (neutralAsc ? ' ↑' : ' ↓') : ''}
                     </th>
-                    <NeutralSortTh col="winRate">Win Rate</NeutralSortTh>
-                    <NeutralSortTh col="games">Games</NeutralSortTh>
+                    <NeutralSortTh col="winRate">{L.colWR}</NeutralSortTh>
+                    <NeutralSortTh col="games">{L.colGames}</NeutralSortTh>
                   </tr>
                 </thead>
                 <tbody>
@@ -358,7 +424,7 @@ export default function ItemMetaClient({
                     <tr key={item.key} className="border-b border-border/20 last:border-0 hover:bg-white/[0.03] transition-colors">
                       <td className="px-4 py-2.5 text-muted-foreground/40 font-mono text-xs tabular-nums">{i + 1}</td>
                       <td className="px-4 py-2.5">
-                        <Link href={`/items/${item.key}`} className="flex items-center gap-2.5 group">
+                        <Link href={`${itemPrefix}/${item.key}`} className="flex items-center gap-2.5 group">
                           <div className="w-12 h-9 rounded-md overflow-hidden border border-border/30 flex-shrink-0 group-hover:border-primary/40 transition-colors">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={itemIconUrl(item.key)} alt={item.dname} className="w-full h-full object-cover" />
@@ -386,7 +452,7 @@ export default function ItemMetaClient({
             </div>
           </div>
           <p className="mt-4 text-xs text-muted-foreground/50 text-center">
-            Data from OpenDota · Recent public matches · Win rate = games where player held this neutral item and won
+            {L.footerNeutral}
           </p>
         </>
       )}

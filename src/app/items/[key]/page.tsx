@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: { canonical: `/items/${key}` },
+    alternates: { canonical: `/items/${key}`, languages: { 'x-default': `/items/${key}`, 'en': `/items/${key}`, 'ru': `/ru/items/${key}` } },
     openGraph: { title, description, url: `/items/${key}`, images: [{ url: itemIconUrl(key), alt: item.dname }] },
     twitter: { card: 'summary', title, description, images: [itemIconUrl(key)] },
   }
@@ -240,7 +240,7 @@ export default async function ItemPage({ params }: Props) {
                   <p className="text-sm font-bold text-foreground mb-1.5">{ab.title}</p>
                 )}
                 {ab.description && (
-                  <p className="text-sm text-muted-foreground leading-relaxed">{ab.description}</p>
+                  <p className="text-sm text-foreground/80 leading-relaxed">{ab.description}</p>
                 )}
               </div>
             ))}
@@ -377,8 +377,8 @@ export default async function ItemPage({ params }: Props) {
       {/* Heroes */}
       {heroUsage.length > 0 && (
         <div className="rounded-2xl border border-border/60 bg-card/60 p-5 mb-4">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Popular On</p>
-          <div className="grid grid-cols-2 gap-2">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Popular On</p>
+          <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-8 gap-2">
             {heroUsage.map(({ hero, phase }) => {
               const slug = heroSlug(hero.name)
               const cfg = ATTR_CONFIG[hero.primary_attr]
@@ -386,16 +386,14 @@ export default async function ItemPage({ params }: Props) {
                 <Link
                   key={hero.id}
                   href={`/heroes/${slug}`}
-                  className="flex items-center gap-2.5 rounded-xl p-1.5 hover:bg-secondary/40 transition-colors"
+                  className="group flex flex-col items-center gap-1.5 rounded-xl hover:bg-secondary/40 transition-colors p-1"
                 >
-                  <div className="w-12 h-7 rounded-lg overflow-hidden shrink-0 border border-border/40">
+                  <div className="w-full aspect-video rounded-lg overflow-hidden border border-border/40 bg-secondary/60 relative">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={heroPortraitUrl(slug)} alt={hero.localized_name} className="w-full h-full object-cover object-center" />
+                    <img src={heroPortraitUrl(slug)} alt={hero.localized_name} className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-200" />
+                    <span className={`absolute top-1 right-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${cfg.color} ${cfg.bg} ${cfg.border}`}>{phase}</span>
                   </div>
-                  <span className="text-sm font-semibold flex-1 truncate">{hero.localized_name}</span>
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border shrink-0 ${cfg.color} ${cfg.bg} ${cfg.border}`}>
-                    {phase}
-                  </span>
+                  <span className="text-[10px] font-semibold text-center leading-tight text-foreground/85 line-clamp-2 w-full">{hero.localized_name}</span>
                 </Link>
               )
             })}
@@ -406,10 +404,12 @@ export default async function ItemPage({ params }: Props) {
       {/* Lore */}
       {item.lore && (
         <div className="rounded-2xl border border-border/60 bg-card/40 p-5">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Lore</p>
-          <div className="flex gap-2">
-            <span className="text-2xl leading-none shrink-0 mt-0.5 select-none" style={{ color: 'rgba(200, 170, 100, 0.35)', fontFamily: 'Georgia, serif' }}>&ldquo;</span>
-            <p className="text-sm italic leading-relaxed" style={{ color: 'rgba(200, 170, 100, 0.65)' }}>{item.lore}</p>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Lore</p>
+          <div className="relative rounded-lg pl-4 pr-10 py-3 overflow-hidden border-l-2"
+            style={{ borderLeftColor: 'rgba(215,185,105,0.5)', background: 'rgba(215,185,105,0.05)' }}>
+            <span className="absolute bottom-0 right-2 text-7xl leading-none select-none pointer-events-none"
+              style={{ color: 'rgba(215,185,105,0.08)', fontFamily: 'Georgia, serif' }}>&rdquo;</span>
+            <p className="relative text-sm italic leading-7" style={{ color: 'rgba(215,185,105,0.9)' }}>{item.lore}</p>
           </div>
         </div>
       )}

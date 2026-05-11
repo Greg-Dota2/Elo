@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     url: '/heroes',
   },
   twitter: { card: 'summary', title: 'Dota 2 Heroes — Abilities, Stats & Pro Usage', description: 'Full hero database for Dota 2 — abilities, base stats, talents, and which pro players are known for each one.' },
-  alternates: { canonical: '/heroes' },
+  alternates: { canonical: '/heroes', languages: { 'x-default': '/heroes', 'en': '/heroes', 'ru': '/ru/heroes' } },
 }
 
 export default async function HeroesPage() {

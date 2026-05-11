@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { renderWithLinks } from '@/lib/renderLinks'
 
-export default function ExpandableText({ text }: { text: string }) {
+export default function ExpandableText({ text, locale }: { text: string; locale?: 'en' | 'ru' }) {
   const [expanded, setExpanded] = useState(false)
   const [overflows, setOverflows] = useState(false)
   const pRef = useRef<HTMLParagraphElement>(null)
@@ -11,7 +11,6 @@ export default function ExpandableText({ text }: { text: string }) {
   useEffect(() => {
     const el = pRef.current
     if (!el) return
-    // Measure with clamp active to detect real visual overflow
     setOverflows(el.scrollHeight > el.clientHeight + 2)
   }, [text])
 
@@ -21,7 +20,7 @@ export default function ExpandableText({ text }: { text: string }) {
         ref={pRef}
         className={`text-base leading-7 font-medium text-foreground ${expanded ? '' : 'line-clamp-3'}`}
       >
-        {renderWithLinks(text)}
+        {renderWithLinks(text, locale)}
       </p>
       {overflows && (
         <button

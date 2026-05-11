@@ -283,7 +283,7 @@ export default function TournamentCard({ tournament, status, linkPrefix = '/tour
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
                 {matches.map(m => (
-                  <MatchCard key={m.id} match={m} tournament={tournament} locale={locale} />
+                  <MatchCard key={m.id} match={m} tournament={tournament} locale={locale} teamPrefix={locale === 'ru' ? '/ru/teams' : '/teams'} tournamentPrefix={linkPrefix} />
                 ))}
               </div>
               <div className="flex justify-center mt-5">

@@ -104,6 +104,7 @@ export default function BulkTransferForm({ playerOptions, teamOptions }: Props) 
   const [transferDate, setTransferDate] = useState(new Date().toISOString().slice(0, 10))
   const [type, setType] = useState('permanent')
   const [notes, setNotes] = useState('')
+  const [notesRu, setNotesRu] = useState('')
   const [isPublished, setIsPublished] = useState(false)
 
   const [rows, setRows] = useState<PlayerRow[]>(() => [makeRow(), makeRow(), makeRow()])
@@ -158,6 +159,7 @@ export default function BulkTransferForm({ playerOptions, teamOptions }: Props) 
         transfer_date: transferDate,
         type,
         notes: notes || null,
+        notes_ru: notesRu || null,
         is_published: isPublished,
       }),
     })
@@ -212,15 +214,15 @@ export default function BulkTransferForm({ playerOptions, teamOptions }: Props) 
         </div>
       </div>
 
-      <div className="grid gap-1">
-        <label className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Notes</label>
-        <textarea
-          rows={2}
-          value={notes}
-          onChange={e => setNotes(e.target.value)}
-          className={inputClass}
-          placeholder="Optional context..."
-        />
+      <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-1">
+          <label className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Notes (EN)</label>
+          <textarea rows={2} value={notes} onChange={e => setNotes(e.target.value)} className={inputClass} placeholder="Optional context..." />
+        </div>
+        <div className="grid gap-1">
+          <label className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Notes (RU)</label>
+          <textarea rows={2} value={notesRu} onChange={e => setNotesRu(e.target.value)} className={inputClass} placeholder="Необязательный комментарий..." />
+        </div>
       </div>
 
       {/* Player rows */}

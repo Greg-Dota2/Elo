@@ -8,7 +8,9 @@ export const revalidate = 86400
 export const metadata: Metadata = {
   title: 'Item Meta — Dota 2 Win Rates & Neutral Tiers',
   description: 'Dota 2 upgrade item win rates aggregated from public matches, plus all neutral items organized by tier.',
-  alternates: { canonical: '/items/meta' },
+  alternates: { canonical: '/items/meta', languages: { 'x-default': '/items/meta', 'en': '/items/meta', 'ru': '/ru/items/meta' } },
+  openGraph: { title: 'Item Meta — Dota 2 Win Rates & Neutral Tiers', description: 'Dota 2 upgrade item win rates aggregated from public matches, plus all neutral items organized by tier.', url: '/items/meta' },
+  twitter: { card: 'summary', title: 'Item Meta — Dota 2 Win Rates & Neutral Tiers', description: 'Dota 2 upgrade item win rates aggregated from public matches, plus all neutral items organized by tier.' },
 }
 
 export default async function ItemMetaPage() {

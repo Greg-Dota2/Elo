@@ -9,7 +9,7 @@ export const revalidate = 3600
 export const metadata: Metadata = {
   title: 'Dota 2 Player Rankings — Tournament Performance Score',
   description: 'Pro player rankings by competitive performance across Tier 1 Dota 2 tournaments — placement points, prize earnings, and EPT combined.',
-  alternates: { canonical: '/players/rankings' },
+  alternates: { canonical: '/players/rankings', languages: { 'x-default': '/players/rankings', 'en': '/players/rankings', 'ru': '/ru/players/rankings' } },
   openGraph: { title: 'Dota 2 Player Rankings — Tournament Performance', description: 'Pro player rankings by competitive performance across Tier 1 Dota 2 tournaments.', url: '/players/rankings' },
 }
 

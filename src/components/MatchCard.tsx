@@ -25,10 +25,10 @@ function IconX({ className, style }: IconProps) {
   )
 }
 
-function TeamName({ team, className }: { team: Team; className?: string }) {
+function TeamName({ team, className, prefix = '/teams' }: { team: Team; className?: string; prefix?: string }) {
   if (team.slug) {
     return (
-      <Link href={`/teams/${team.slug}`} className={`hover:text-primary transition-colors ${className ?? ''}`}>
+      <Link href={`${prefix}/${team.slug}`} className={`hover:text-primary transition-colors ${className ?? ''}`}>
         {team.name}
       </Link>
     )
@@ -43,6 +43,8 @@ interface Props {
   h2h?: H2HData
   liveScore?: { score1: number; score2: number }
   locale?: 'en' | 'ru'
+  teamPrefix?: string
+  tournamentPrefix?: string
 }
 
 function TeamLogo({ logo_url, name, dim }: { logo_url: string | null; name: string; dim?: boolean }) {
@@ -62,10 +64,10 @@ function TeamLogo({ logo_url, name, dim }: { logo_url: string | null; name: stri
   )
 }
 
-export default function MatchCard({ match, tournament, h2h, liveScore, locale = 'en' }: Props) {
+export default function MatchCard({ match, tournament, h2h, liveScore, locale = 'en', teamPrefix = '/teams', tournamentPrefix = '/tournaments' }: Props) {
   const L = locale === 'ru'
-    ? { myTake: 'Мой прогноз', aftermath: 'Итоги', aftermathWin: '✓ Итоги', aftermathLoss: '✗ Итоги' }
-    : { myTake: 'My take', aftermath: 'Aftermath', aftermathWin: '✓ Aftermath', aftermathLoss: '✗ Aftermath' }
+    ? { myTake: 'Мой прогноз', aftermath: 'Итоги', aftermathWin: '✓ Итоги', aftermathLoss: '✗ Итоги', prediction: 'Прогноз', correct: '✓ Верно', wrong: '✗ Неверно', confidence: 'уверенность', draw: 'Ничья (1–1)', final: 'финал', freePick: 'Свободный пик' }
+    : { myTake: 'My take', aftermath: 'Aftermath', aftermathWin: '✓ Aftermath', aftermathLoss: '✗ Aftermath', prediction: 'Prediction', correct: '✓ Correct', wrong: '✗ Wrong', confidence: 'confidence', draw: 'Draw (1–1)', final: 'final', freePick: 'Free Pick' }
   const { team_1, team_2, is_correct } = match
   if (!team_1 || !team_2) return null
 
@@ -117,11 +119,11 @@ export default function MatchCard({ match, tournament, h2h, liveScore, locale = 
                 />
               )}
               {tournament?.slug ? (
-                <Link href={`/tournaments/${tournament.slug}`} className="section-kicker hover:opacity-70 transition-opacity truncate">
-                  {tournamentLabel || 'Free Pick'}
+                <Link href={`${tournamentPrefix}/${tournament.slug}`} className="section-kicker hover:opacity-70 transition-opacity truncate">
+                  {tournamentLabel || L.freePick}
                 </Link>
               ) : (
-                <span className="section-kicker truncate">{tournamentLabel || 'Free Pick'}</span>
+                <span className="section-kicker truncate">{tournamentLabel || L.freePick}</span>
               )}
             </div>
 
@@ -131,7 +133,7 @@ export default function MatchCard({ match, tournament, h2h, liveScore, locale = 
                 <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
               </svg>
               {match.match_date
-                ? new Date(`${match.match_date}T00:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'Europe/Athens' })
+                ? new Date(`${match.match_date}T00:00:00Z`).toLocaleDateString(locale === 'ru' ? 'ru-RU' : 'en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'Europe/Athens' })
                 : '–'}
               <span className="text-muted-foreground/40">·</span>
               <MatchTimer matchDate={match.match_date} matchTime={match.match_time} hasResult={hasResult} />
@@ -142,11 +144,11 @@ export default function MatchCard({ match, tournament, h2h, liveScore, locale = 
 
           {/* Big match title */}
           <h3 className="font-display text-xl font-bold md:text-2xl leading-tight text-center">
-            <TeamName team={team_1} className={hasResult && t2Won ? 'text-muted-foreground' : 'text-foreground'} />
+            <TeamName team={team_1} className={hasResult && t2Won ? 'text-muted-foreground' : 'text-foreground'} prefix={teamPrefix} />
             {' '}
             <span className="text-muted-foreground">vs</span>
             {' '}
-            <TeamName team={team_2} className={hasResult && t1Won ? 'text-muted-foreground' : 'text-foreground'} />
+            <TeamName team={team_2} className={hasResult && t1Won ? 'text-muted-foreground' : 'text-foreground'} prefix={teamPrefix} />
           </h3>
         </div>
 
@@ -169,7 +171,7 @@ export default function MatchCard({ match, tournament, h2h, liveScore, locale = 
         <div className="mt-8 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
           <div className="flex flex-col items-center gap-3 text-center">
             <TeamLogo logo_url={team_1.logo_url} name={team_1.name} dim={hasResult && t2Won} />
-            <TeamName team={team_1} className={`font-display text-lg font-bold ${hasResult && t2Won ? 'text-muted-foreground' : 'text-foreground'}`} />
+            <TeamName team={team_1} className={`font-display text-lg font-bold ${hasResult && t2Won ? 'text-muted-foreground' : 'text-foreground'}`} prefix={teamPrefix} />
           </div>
 
           <div className="flex flex-col items-center gap-1 shrink-0">
@@ -190,7 +192,7 @@ export default function MatchCard({ match, tournament, h2h, liveScore, locale = 
                     {match.score_team_2}
                   </span>
                 </div>
-                <span className="text-xs uppercase tracking-widest font-semibold text-muted-foreground/50">final</span>
+                <span className="text-xs uppercase tracking-widest font-semibold text-muted-foreground/50">{L.final}</span>
               </>
             ) : liveScore ? (
               <>
@@ -217,7 +219,7 @@ export default function MatchCard({ match, tournament, h2h, liveScore, locale = 
 
           <div className="flex flex-col items-center gap-3 text-center">
             <TeamLogo logo_url={team_2.logo_url} name={team_2.name} dim={hasResult && t1Won} />
-            <TeamName team={team_2} className={`font-display text-lg font-bold ${hasResult && t1Won ? 'text-muted-foreground' : 'text-foreground'}`} />
+            <TeamName team={team_2} className={`font-display text-lg font-bold ${hasResult && t1Won ? 'text-muted-foreground' : 'text-foreground'}`} prefix={teamPrefix} />
           </div>
         </div>
 
@@ -256,7 +258,7 @@ export default function MatchCard({ match, tournament, h2h, liveScore, locale = 
           <div className="mt-5 flex items-center justify-center gap-2 flex-wrap">
             {match.dotabuff_game_ids.map((gameId, i) => (
               <a
-                key={gameId}
+                key={`${gameId}-${i}`}
                 href={`https://www.dotabuff.com/matches/${gameId}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -326,7 +328,7 @@ export default function MatchCard({ match, tournament, h2h, liveScore, locale = 
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
                 </svg>
-                Prediction
+                {L.prediction}
               </span>
               {hasResult && effectiveIsCorrect !== null ? (
                 <span
@@ -337,13 +339,13 @@ export default function MatchCard({ match, tournament, h2h, liveScore, locale = 
                       : { background: 'hsl(var(--destructive) / 0.09)', color: 'hsl(var(--destructive))', borderColor: 'hsl(var(--destructive) / 0.22)' }
                   }
                 >
-                  {effectiveIsCorrect ? '✓ Correct' : '✗ Wrong'}
+                  {effectiveIsCorrect ? L.correct : L.wrong}
                 </span>
               ) : !hasResult ? (
                 <div className="flex flex-col items-end gap-1">
                   <div className="flex items-baseline gap-1">
                     <span className="font-display text-sm font-black tabular-nums" style={{ color: confidence >= 65 ? 'hsl(var(--success))' : confidence >= 50 ? 'hsl(var(--primary))' : '#f59e0b' }}>{confidence}%</span>
-                    <span className="text-[10px] font-semibold" style={{ color: 'hsl(var(--muted-foreground))' }}>confidence</span>
+                    <span className="text-[10px] font-semibold" style={{ color: 'hsl(var(--muted-foreground))' }}>{L.confidence}</span>
                   </div>
                   <div className="w-20 h-1 rounded-full overflow-hidden" style={{ background: 'hsl(var(--border))' }}>
                     <div className="h-full rounded-full transition-all" style={{ width: `${confidence}%`, background: confidence >= 65 ? 'hsl(var(--success))' : confidence >= 50 ? 'hsl(var(--primary))' : '#f59e0b' }} />
@@ -365,14 +367,14 @@ export default function MatchCard({ match, tournament, h2h, liveScore, locale = 
                 className="font-display text-2xl font-bold"
                 style={{ color: effectiveIsCorrect === false ? 'hsl(var(--destructive))' : predictedDraw ? '#f59e0b' : 'hsl(var(--success))' }}
               >
-                {pick ? pick.name : 'Draw (1–1)'}
+                {pick ? pick.name : L.draw}
               </p>
             </div>
 
             {match.pre_analysis && (
               <div className="mt-5 rounded-xl px-4 py-4" style={{ background: 'hsl(var(--secondary) / 0.5)', border: '1px solid hsl(var(--border) / 0.6)' }}>
                 <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'hsl(var(--muted-foreground) / 0.6)' }}>{L.myTake}</p>
-                <ExpandableText text={match.pre_analysis} />
+                <ExpandableText text={match.pre_analysis} locale={locale} />
               </div>
             )}
 
@@ -395,7 +397,7 @@ export default function MatchCard({ match, tournament, h2h, liveScore, locale = 
                   {effectiveIsCorrect === true ? L.aftermathWin : effectiveIsCorrect === false ? L.aftermathLoss : L.aftermath}
                 </p>
                 <p className="text-base leading-7 font-medium text-foreground">
-                  {renderWithLinks(match.post_commentary)}
+                  {renderWithLinks(match.post_commentary, locale)}
                 </p>
               </div>
             )}

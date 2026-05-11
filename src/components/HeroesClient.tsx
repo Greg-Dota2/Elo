@@ -5,12 +5,19 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { heroSlug, heroPortraitUrl, ATTR_CONFIG, type HeroData } from '@/lib/heroes'
 
+const ROLES_RU: Record<string, string> = {
+  Carry: 'Керри', Support: 'Саппорт', Nuker: 'Нюкер',
+  Disabler: 'Дизейблер', Durable: 'Живучий', Escape: 'Бегство',
+  Pusher: 'Пушер', Initiator: 'Инициатор', Jungler: 'Джанглер',
+}
+const ATTACK_RU: Record<string, string> = { Melee: 'Ближний', Ranged: 'Дальний' }
+
 const ATTR_TABS = [
-  { value: '',    label: 'All Heroes',    icon: null },
-  { value: 'str', label: 'Strength',     icon: 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/hero_strength.png' },
-  { value: 'agi', label: 'Agility',      icon: 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/hero_agility.png' },
-  { value: 'int', label: 'Intelligence', icon: 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/hero_intelligence.png' },
-  { value: 'all', label: 'Universal',    icon: 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/hero_universal.png' },
+  { value: '',    label: 'All Heroes',    labelRu: 'Все герои',     icon: null },
+  { value: 'str', label: 'Strength',     labelRu: 'Сила',          icon: 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/hero_strength.png' },
+  { value: 'agi', label: 'Agility',      labelRu: 'Ловкость',      icon: 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/hero_agility.png' },
+  { value: 'int', label: 'Intelligence', labelRu: 'Интеллект',     icon: 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/hero_intelligence.png' },
+  { value: 'all', label: 'Universal',    labelRu: 'Универсальный', icon: 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/hero_universal.png' },
 ]
 
 const ATTR_TAB_STYLES: Record<string, { inactive: string; active: string }> = {
@@ -32,7 +39,26 @@ const ATTR_TAB_STYLES: Record<string, { inactive: string; active: string }> = {
   },
 }
 
-export default function HeroesClient({ heroes }: { heroes: HeroData[] }) {
+const L = {
+  en: {
+    search: 'Search heroes…',
+    filteredByRole: 'Filtered by role:',
+    count: (n: number, total: number, q: string) =>
+      `${n}${n !== total ? ` of ${total}` : ''} heroes${q ? ` matching "${q}"` : ''}`,
+    noHeroes: 'No heroes found.',
+  },
+  ru: {
+    search: 'Поиск по героям…',
+    filteredByRole: 'Фильтр по роли:',
+    count: (n: number, total: number, q: string) =>
+      `${n}${n !== total ? ` из ${total}` : ''} героев${q ? ` по запросу «${q}»` : ''}`,
+    noHeroes: 'Героев не найдено.',
+  },
+}
+
+export default function HeroesClient({ heroes, locale = 'en' }: { heroes: HeroData[]; locale?: string }) {
+  const prefix = locale === 'ru' ? '/ru' : ''
+  const t = locale === 'ru' ? L.ru : L.en
   const router = useRouter()
   const searchParams = useSearchParams()
   const activeAttr = searchParams.get('attr') ?? ''
@@ -50,13 +76,13 @@ export default function HeroesClient({ heroes }: { heroes: HeroData[] }) {
     if (attr) params.set('attr', attr)
     else params.delete('attr')
     params.delete('role')
-    router.push(`/heroes${params.toString() ? '?' + params.toString() : ''}`)
+    router.push(`${prefix}/heroes${params.toString() ? '?' + params.toString() : ''}`)
   }
 
   const clearRole = () => {
     const params = new URLSearchParams(searchParams.toString())
     params.delete('role')
-    router.push(`/heroes${params.toString() ? '?' + params.toString() : ''}`)
+    router.push(`${prefix}/heroes${params.toString() ? '?' + params.toString() : ''}`)
   }
 
   return (
@@ -70,7 +96,7 @@ export default function HeroesClient({ heroes }: { heroes: HeroData[] }) {
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Search heroes…"
+          placeholder={t.search}
           className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-secondary/60 border border-border/60 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 focus:bg-secondary/80 transition-colors"
         />
         {search && (
@@ -102,7 +128,7 @@ export default function HeroesClient({ heroes }: { heroes: HeroData[] }) {
               ].join(' ')}
             >
               {tab.icon && <img src={tab.icon} alt="" className="w-4 h-4 object-contain shrink-0" />}
-              {tab.label}
+              {locale === 'ru' ? tab.labelRu : tab.label}
               <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-black/20">{count}</span>
             </button>
           )
@@ -112,32 +138,31 @@ export default function HeroesClient({ heroes }: { heroes: HeroData[] }) {
       {/* Active role filter badge */}
       {role && (
         <div className="flex items-center gap-2 mb-4">
-          <span className="text-xs text-muted-foreground">Filtered by role:</span>
+          <span className="text-xs text-muted-foreground">{t.filteredByRole}</span>
           <button
             onClick={clearRole}
             className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border border-primary/40 text-primary bg-primary/10 hover:bg-primary/20 transition-colors"
           >
-            {role} ×
+            {(locale === 'ru' ? ROLES_RU[role] : null) ?? role} ×
           </button>
         </div>
       )}
 
       {/* Count */}
       <p className="text-sm text-muted-foreground mb-4">
-        {filtered.length}{filtered.length !== heroes.length ? ` of ${heroes.length}` : ''} heroes
-        {search ? ` matching "${search}"` : ''}
+        {t.count(filtered.length, heroes.length, search)}
       </p>
 
       {/* Hero grid */}
       {filtered.length === 0 ? (
-        <div className="text-center py-16 text-muted-foreground">No heroes found.</div>
+        <div className="text-center py-16 text-muted-foreground">{t.noHeroes}</div>
       ) : (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2.5">
           {filtered.map(hero => {
             const slug = heroSlug(hero.name)
             const cfg = ATTR_CONFIG[hero.primary_attr]
             return (
-              <Link key={hero.id} href={`/heroes/${slug}`}>
+              <Link key={hero.id} href={`${prefix}/heroes/${slug}`}>
                 <article className="group rounded-xl border border-border/60 bg-card/60 overflow-hidden hover:border-primary/40 hover:bg-card/80 transition-all duration-200 hover:-translate-y-0.5">
                   <div className="relative overflow-hidden bg-secondary/60" style={{ aspectRatio: '256/144' }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -146,7 +171,11 @@ export default function HeroesClient({ heroes }: { heroes: HeroData[] }) {
                   </div>
                   <div className="px-2 py-1.5">
                     <p className="font-display text-[11px] font-bold text-foreground leading-tight line-clamp-1">{hero.localized_name}</p>
-                    <p className="text-[10px] text-muted-foreground/60 truncate">{hero.attack_type} · {hero.roles[0]}</p>
+                    <p className="text-[10px] text-muted-foreground/60 truncate">
+                      {(locale === 'ru' ? ATTACK_RU[hero.attack_type] : null) ?? hero.attack_type}
+                      {' · '}
+                      {(locale === 'ru' ? ROLES_RU[hero.roles[0]] : null) ?? hero.roles[0]}
+                    </p>
                   </div>
                 </article>
               </Link>

@@ -2,13 +2,21 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 
-const ROLES = [
+const ROLES_EN = [
   { label: 'All',          value: '' },
   { label: 'Carry',        value: '1' },
   { label: 'Mid',          value: '2' },
   { label: 'Offlane',      value: '3' },
   { label: 'Soft Support', value: '4' },
   { label: 'Hard Support', value: '5' },
+]
+const ROLES_RU = [
+  { label: 'Все',          value: '' },
+  { label: 'Керри',        value: '1' },
+  { label: 'Мид',          value: '2' },
+  { label: 'Офлейн',       value: '3' },
+  { label: 'Саппорт',      value: '4' },
+  { label: 'Хард саппорт', value: '5' },
 ]
 
 const ROLE_STYLES: Record<string, { inactive: string; active: string }> = {
@@ -40,12 +48,15 @@ const ROLE_STYLES: Record<string, { inactive: string; active: string }> = {
 
 interface Props {
   counts: Record<string, number>
+  locale?: 'ru'
 }
 
-export default function PlayersFilter({ counts }: Props) {
+export default function PlayersFilter({ counts, locale }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const current = searchParams.get('pos') ?? ''
+  const ROLES = locale === 'ru' ? ROLES_RU : ROLES_EN
+  const base = locale === 'ru' ? '/ru/players' : '/players'
 
   return (
     <div className="flex flex-wrap gap-2 mb-8">
@@ -55,7 +66,7 @@ export default function PlayersFilter({ counts }: Props) {
         return (
           <button
             key={r.value}
-            onClick={() => router.push(r.value ? `/players?pos=${r.value}` : '/players')}
+            onClick={() => router.push(r.value ? `${base}?pos=${r.value}` : base)}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold border transition-all duration-200 ${isActive ? styles.active : styles.inactive}`}
           >
             {r.label}

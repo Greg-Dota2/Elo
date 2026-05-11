@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         ...(player.photo_url ? { images: [{ url: player.photo_url, alt: player.ign }] } : {}),
       },
       twitter: { card: player.photo_url ? 'summary_large_image' : 'summary', title, description, ...(player.photo_url ? { images: [player.photo_url] } : {}) },
-      alternates: { canonical: `/players/${slug}` },
+      alternates: { canonical: `/players/${slug}`, languages: { 'x-default': `/players/${slug}`, 'en': `/players/${slug}`, 'ru': `/ru/players/${slug}` } },
     }
   } catch {
     return { title: 'Player Not Found' }

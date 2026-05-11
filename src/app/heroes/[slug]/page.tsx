@@ -64,7 +64,7 @@ export async function generateMetadata({
         images: [{ url: heroPortraitUrl(slug), alt: hero.localized_name, width: 256, height: 144 }],
       },
       twitter: { card: 'summary_large_image', title, description, images: [heroPortraitUrl(slug)] },
-      alternates: { canonical: `/heroes/${slug}` },
+      alternates: { canonical: `/heroes/${slug}`, languages: { 'x-default': `/heroes/${slug}`, 'en': `/heroes/${slug}`, 'ru': `/ru/heroes/${slug}` } },
     }
   } catch {
     return { title: 'Hero Not Found' }
@@ -146,13 +146,13 @@ function AbilityCard({ ability }: { ability: ValveAbility }) {
         <div className="flex gap-4 shrink-0 text-right">
           {cd && (
             <div>
-              <p className="text-[10px] text-muted-foreground/75 mb-0.5">Cooldown</p>
+              <p className="text-[10px] text-muted-foreground/90 mb-0.5">Cooldown</p>
               <p className="font-display font-bold text-sm text-foreground tabular-nums">{cd}s</p>
             </div>
           )}
           {mc && (
             <div>
-              <p className="text-[10px] text-muted-foreground/75 mb-0.5">Mana</p>
+              <p className="text-[10px] text-muted-foreground/90 mb-0.5">Mana</p>
               <p className="font-display font-bold text-sm text-blue-400 tabular-nums">{mc}</p>
             </div>
           )}
@@ -162,7 +162,7 @@ function AbilityCard({ ability }: { ability: ValveAbility }) {
       {/* Description */}
       {ability.desc_loc && (
         <p
-          className="text-sm text-muted-foreground leading-relaxed mb-3"
+          className="text-sm text-foreground/80 leading-relaxed mb-3"
           dangerouslySetInnerHTML={{ __html: interpolateAbilityDesc(ability.desc_loc, ability.special_values) }}
         />
       )}
@@ -174,7 +174,7 @@ function AbilityCard({ ability }: { ability: ValveAbility }) {
             const color = specialValueColor(sv.heading_loc)
             return (
               <div key={i} className="rounded-lg bg-secondary/40 px-3 py-2">
-                <p className="text-[10px] text-muted-foreground/75 mb-0.5 leading-tight uppercase tracking-wide">{sv.heading_loc}</p>
+                <p className="text-[10px] text-muted-foreground/90 mb-0.5 leading-tight uppercase tracking-wide">{sv.heading_loc}</p>
                 <p className={`font-display font-bold text-xs tabular-nums ${color}`}>
                   {sv.is_percentage
                     ? formatLevelValues(sv.values_float.map(v => Math.round(v * 10) / 10)) + '%'
@@ -190,7 +190,7 @@ function AbilityCard({ ability }: { ability: ValveAbility }) {
       {ability.notes_loc && ability.notes_loc.length > 0 && (
         <ul className="space-y-1.5 mb-3">
           {ability.notes_loc.map((note, i) => (
-            <li key={i} className="text-xs text-muted-foreground/75 leading-5 pl-3 border-l-2 border-border/50">
+            <li key={i} className="text-xs text-muted-foreground leading-5 pl-3 border-l-2 border-border/50">
               <span dangerouslySetInnerHTML={{ __html: interpolateAbilityDesc(note.replace(/%(\w+)%%%/g, '$1'), ability.special_values) }} />
             </li>
           ))}
@@ -199,13 +199,15 @@ function AbilityCard({ ability }: { ability: ValveAbility }) {
 
       {/* Lore */}
       {ability.lore_loc && (
-        <div className="flex gap-2 pt-3 border-t border-border/40">
-          <span className="text-2xl leading-none shrink-0 mt-0.5 select-none" style={{ color: 'rgba(200, 170, 100, 0.35)', fontFamily: 'Georgia, serif' }}>&ldquo;</span>
-          <p
-            className="text-xs italic leading-relaxed"
-            style={{ color: 'rgba(200, 170, 100, 0.65)' }}
-            dangerouslySetInnerHTML={{ __html: ability.lore_loc }}
-          />
+        <div className="mt-4 pt-4 border-t border-border/40">
+          <div className="relative rounded-lg pl-4 pr-10 py-3 overflow-hidden border-l-2"
+            style={{ borderLeftColor: 'rgba(215,185,105,0.5)', background: 'rgba(215,185,105,0.05)' }}>
+            <span className="absolute bottom-0 right-2 text-7xl leading-none select-none pointer-events-none"
+              style={{ color: 'rgba(215,185,105,0.08)', fontFamily: 'Georgia, serif' }}>&rdquo;</span>
+            <p className="relative text-sm italic leading-7"
+              style={{ color: 'rgba(215,185,105,0.9)' }}
+              dangerouslySetInnerHTML={{ __html: ability.lore_loc }} />
+          </div>
         </div>
       )}
     </div>
@@ -228,7 +230,7 @@ function UpgradeCard({ ability, type }: { ability: ValveAbility; type: 'scepter'
           </h3>
           {upgradeDesc ? (
             <p
-              className="text-sm text-muted-foreground leading-relaxed"
+              className="text-sm text-foreground/80 leading-relaxed"
               dangerouslySetInnerHTML={{ __html: interpolateAbilityDesc(upgradeDesc, ability.special_values) }}
             />
           ) : (
@@ -288,11 +290,14 @@ export default async function HeroPage({
   const rawTalents = detail?.talents ?? []
   const talentValueMap = buildTalentValueMap(detail?.abilities ?? [])
   const TALENT_LEVELS = [25, 20, 15, 10]
-  const talentRows = TALENT_LEVELS.map((level, i) => ({
-    level,
-    left: rawTalents[i * 2] ? resolveTalentName(rawTalents[i * 2].name_loc, rawTalents[i * 2], talentValueMap) : '',
-    right: rawTalents[i * 2 + 1] ? resolveTalentName(rawTalents[i * 2 + 1].name_loc, rawTalents[i * 2 + 1], talentValueMap) : '',
-  }))
+  const talentRows = TALENT_LEVELS.map((level, i) => {
+    const j = TALENT_LEVELS.length - 1 - i
+    return {
+      level,
+      left: rawTalents[j * 2] ? resolveTalentName(rawTalents[j * 2].name_loc, rawTalents[j * 2], talentValueMap) : '',
+      right: rawTalents[j * 2 + 1] ? resolveTalentName(rawTalents[j * 2 + 1].name_loc, rawTalents[j * 2 + 1], talentValueMap) : '',
+    }
+  })
   const neutralItems = neutralItemIds
     .map(({ itemId }) => allItems.find(i => i.id === itemId))
     .filter(Boolean) as typeof allItems
@@ -716,20 +721,18 @@ export default async function HeroPage({
       {(bestAgainst.length > 0 || worstAgainst.length > 0) && (
         <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
           {bestAgainst.length > 0 && (
-            <div className="rounded-2xl border border-border/60 bg-card/60 p-5">
+            <div className="rounded-2xl border border-border/60 bg-card/60 p-4">
               <p className="section-label mb-3 text-green-400">Strong Against</p>
-              <div className="flex flex-col gap-2">
+              <div className="grid grid-cols-5 gap-2">
                 {bestAgainst.map(h => {
                   const hSlug = heroSlug(h.name)
-                  const hCfg = ATTR_CONFIG[h.primary_attr]
                   return (
-                    <Link key={h.id} href={`/heroes/${hSlug}`} className="flex items-center gap-3 rounded-xl hover:bg-secondary/40 transition-colors p-1.5 -mx-1.5">
-                      <div className="w-12 h-7 rounded-lg overflow-hidden shrink-0 border border-border/40">
+                    <Link key={h.id} href={`/heroes/${hSlug}`} className="group flex flex-col items-center gap-1.5 rounded-xl hover:bg-secondary/40 transition-colors p-1">
+                      <div className="w-full aspect-video rounded-lg overflow-hidden border border-border/40 bg-secondary/60">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={heroPortraitUrl(hSlug)} alt={h.localized_name} className="w-full h-full object-cover object-center" />
+                        <img src={heroPortraitUrl(hSlug)} alt={h.localized_name} className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-200" />
                       </div>
-                      <span className="text-sm font-semibold flex-1">{h.localized_name}</span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${hCfg.color} ${hCfg.bg} ${hCfg.border}`}>{hCfg.short}</span>
+                      <span className="text-[10px] font-semibold text-center leading-tight text-foreground/85 line-clamp-2 w-full">{h.localized_name}</span>
                     </Link>
                   )
                 })}
@@ -737,20 +740,18 @@ export default async function HeroPage({
             </div>
           )}
           {worstAgainst.length > 0 && (
-            <div className="rounded-2xl border border-border/60 bg-card/60 p-5">
+            <div className="rounded-2xl border border-border/60 bg-card/60 p-4">
               <p className="section-label mb-3 text-red-400">Weak Against</p>
-              <div className="flex flex-col gap-2">
+              <div className="grid grid-cols-5 gap-2">
                 {worstAgainst.map(h => {
                   const hSlug = heroSlug(h.name)
-                  const hCfg = ATTR_CONFIG[h.primary_attr]
                   return (
-                    <Link key={h.id} href={`/heroes/${hSlug}`} className="flex items-center gap-3 rounded-xl hover:bg-secondary/40 transition-colors p-1.5 -mx-1.5">
-                      <div className="w-12 h-7 rounded-lg overflow-hidden shrink-0 border border-border/40">
+                    <Link key={h.id} href={`/heroes/${hSlug}`} className="group flex flex-col items-center gap-1.5 rounded-xl hover:bg-secondary/40 transition-colors p-1">
+                      <div className="w-full aspect-video rounded-lg overflow-hidden border border-border/40 bg-secondary/60">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={heroPortraitUrl(hSlug)} alt={h.localized_name} className="w-full h-full object-cover object-center" />
+                        <img src={heroPortraitUrl(hSlug)} alt={h.localized_name} className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-200" />
                       </div>
-                      <span className="text-sm font-semibold flex-1">{h.localized_name}</span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${hCfg.color} ${hCfg.bg} ${hCfg.border}`}>{hCfg.short}</span>
+                      <span className="text-[10px] font-semibold text-center leading-tight text-foreground/85 line-clamp-2 w-full">{h.localized_name}</span>
                     </Link>
                   )
                 })}
@@ -766,16 +767,21 @@ export default async function HeroPage({
           <p className="section-label mb-3">Popular Items</p>
           <div className="rounded-2xl border border-border/60 bg-card/60 divide-y divide-border/40">
             {itemPhases.map(({ phase, label, items }) => (
-              <div key={phase} className="flex items-center gap-4 px-5 py-3">
-                <p className="text-xs font-semibold text-muted-foreground w-24 shrink-0">{label}</p>
+              <div key={phase} className="px-5 py-4">
+                <p className="text-xs font-semibold text-muted-foreground mb-3">{label}</p>
                 <div className="flex flex-wrap gap-2">
-                  {items.map(({ key }) => (
-                    <Link key={key} href={`/items/${key}`} title={key.replace(/_/g, ' ')}
-                      className="rounded-lg overflow-hidden border border-border/50 hover:border-primary/40 transition-colors">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={itemIconUrl(key)} alt={key} className="w-12 h-[35px] object-cover" />
-                    </Link>
-                  ))}
+                  {items.map(({ key }) => {
+                    const itemData = allItems.find(i => i.key === key)
+                    const name = itemData?.dname ?? key.replace(/_/g, ' ')
+                    return (
+                      <Link key={key} href={`/items/${key}`}
+                        className="group flex flex-col items-center gap-1 rounded-xl border border-border/50 bg-secondary/40 p-1.5 hover:border-primary/40 hover:bg-card/80 transition-all w-[60px]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={itemIconUrl(key)} alt={name} className="w-full h-[33px] object-cover rounded-lg" />
+                        <span className="text-[9px] text-muted-foreground text-center leading-tight line-clamp-2 w-full">{name}</span>
+                      </Link>
+                    )
+                  })}
                 </div>
               </div>
             ))}
@@ -790,10 +796,11 @@ export default async function HeroPage({
           <div className="rounded-2xl border border-border/60 bg-card/60 px-5 py-4">
             <div className="flex flex-wrap gap-2">
               {neutralItems.map(item => (
-                <Link key={item.key} href={`/items/${item.key}`} title={item.dname}
-                  className="rounded-lg overflow-hidden border border-border/50 hover:border-primary/40 transition-colors">
+                <Link key={item.key} href={`/items/${item.key}`}
+                  className="group flex flex-col items-center gap-1 rounded-xl border border-border/50 bg-secondary/40 p-1.5 hover:border-primary/40 hover:bg-card/80 transition-all w-[60px]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={itemIconUrl(item.key)} alt={item.dname} className="w-12 h-[35px] object-cover" />
+                  <img src={itemIconUrl(item.key)} alt={item.dname} className="w-full h-[33px] object-cover rounded-lg" />
+                  <span className="text-[9px] text-muted-foreground text-center leading-tight line-clamp-2 w-full">{item.dname}</span>
                 </Link>
               ))}
             </div>

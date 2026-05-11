@@ -5,13 +5,22 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { itemIconUrl, type ItemData } from '@/lib/items'
 
-const CATEGORIES = [
-  { key: 'all',        label: 'All' },
-  { key: 'upgrade',    label: 'Upgrades' },
-  { key: 'basic',      label: 'Basic' },
-  { key: 'neutral',    label: 'Neutral' },
-  { key: 'consumable', label: 'Consumables' },
-]
+const CATEGORIES = {
+  en: [
+    { key: 'all',        label: 'All' },
+    { key: 'upgrade',    label: 'Upgrades' },
+    { key: 'basic',      label: 'Basic' },
+    { key: 'neutral',    label: 'Neutral' },
+    { key: 'consumable', label: 'Consumables' },
+  ],
+  ru: [
+    { key: 'all',        label: 'Все' },
+    { key: 'upgrade',    label: 'Улучшения' },
+    { key: 'basic',      label: 'Базовые' },
+    { key: 'neutral',    label: 'Нейтральные' },
+    { key: 'consumable', label: 'Расходники' },
+  ],
+}
 
 const CATEGORY_STYLES: Record<string, { inactive: string; active: string }> = {
   all:        {
@@ -38,7 +47,24 @@ const CATEGORY_STYLES: Record<string, { inactive: string; active: string }> = {
 
 const CATEGORY_ORDER: Record<string, number> = { upgrade: 0, basic: 1, neutral: 2, consumable: 3 }
 
-export default function ItemsClient({ items: allItems }: { items: ItemData[] }) {
+const L = {
+  en: {
+    search: 'Search items…',
+    count: (n: number, total: number, q: string) =>
+      `${n}${n !== total ? ` of ${total}` : ''} items${q ? ` matching "${q}"` : ''}`,
+    noItems: 'No items found.',
+  },
+  ru: {
+    search: 'Поиск предмета…',
+    count: (n: number, total: number, q: string) =>
+      `${n}${n !== total ? ` из ${total}` : ''} предметов${q ? ` по запросу «${q}»` : ''}`,
+    noItems: 'Предметы не найдены.',
+  },
+}
+
+export default function ItemsClient({ items: allItems, locale = 'en' }: { items: ItemData[]; locale?: string }) {
+  const prefix = locale === 'ru' ? '/ru' : ''
+  const t = locale === 'ru' ? L.ru : L.en
   const router = useRouter()
   const searchParams = useSearchParams()
   const activeCategory = searchParams.get('cat') || 'all'
@@ -62,7 +88,7 @@ export default function ItemsClient({ items: allItems }: { items: ItemData[] }) 
     const params = new URLSearchParams(searchParams.toString())
     if (cat === 'all') params.delete('cat')
     else params.set('cat', cat)
-    router.push(`/items${params.toString() ? '?' + params.toString() : ''}`)
+    router.push(`${prefix}/items${params.toString() ? '?' + params.toString() : ''}`)
   }
 
   return (
@@ -76,7 +102,7 @@ export default function ItemsClient({ items: allItems }: { items: ItemData[] }) 
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Search items…"
+          placeholder={t.search}
           className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-secondary/60 border border-border/60 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 focus:bg-secondary/80 transition-colors"
         />
         {search && (
@@ -90,7 +116,7 @@ export default function ItemsClient({ items: allItems }: { items: ItemData[] }) 
 
       {/* Category filter */}
       <div className="flex flex-wrap gap-2 mb-6">
-        {CATEGORIES.map(({ key, label }) => {
+        {CATEGORIES[locale === 'ru' ? 'ru' : 'en'].map(({ key, label }) => {
           const isActive = activeCategory === key
           const styles = CATEGORY_STYLES[key]
           return (
@@ -107,20 +133,19 @@ export default function ItemsClient({ items: allItems }: { items: ItemData[] }) 
       </div>
 
       <p className="text-sm text-muted-foreground mb-4">
-        {filtered.length}{filtered.length !== allItems.length ? ` of ${allItems.length}` : ''} items
-        {search ? ` matching "${search}"` : ''}
+        {t.count(filtered.length, allItems.length, search)}
       </p>
 
       {filtered.length === 0 ? (
         <div className="rounded-2xl p-10 text-center border border-border/60 bg-card/60">
-          <p className="text-muted-foreground text-sm">No items found.</p>
+          <p className="text-muted-foreground text-sm">{t.noItems}</p>
         </div>
       ) : (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
           {filtered.map(item => (
             <Link
               key={item.key}
-              href={`/items/${item.key}`}
+              href={`${prefix}/items/${item.key}`}
               className="group relative rounded-xl border border-border/50 bg-card/60 overflow-hidden hover:border-primary/40 hover:bg-card/80 transition-all duration-200"
               title={item.dname}
             >
