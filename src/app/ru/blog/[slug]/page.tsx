@@ -149,7 +149,7 @@ export default async function RuBlogPostPage({ params }: { params: Promise<{ slu
     a: ({ href, children }: any) => <a href={href} className="underline hover:opacity-70 transition-opacity" style={{ color: 'hsl(var(--primary))' }}>{children}</a>,
     img: ({ src, alt }: any) => (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={src} alt={alt ?? ''} className="max-w-full h-auto rounded-xl my-6 block" loading="lazy" />
+      <img src={src} alt={alt ?? ''} className="max-w-full h-auto rounded-xl my-6 block mx-auto" loading="lazy" />
     ),
     table: ({ children }: any) => (
       <div className="overflow-x-auto mb-6">

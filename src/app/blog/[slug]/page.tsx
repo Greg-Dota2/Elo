@@ -290,7 +290,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     code: ({ children }: any) => <code className="px-1.5 py-0.5 rounded text-sm font-mono" style={{ background: 'var(--surface-2)', color: 'hsl(var(--primary))' }}>{children}</code>,
     img: ({ src, alt }: any) => (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={src} alt={alt ?? ''} className="max-w-full h-auto rounded-xl my-6 block" loading="lazy" />
+      <img src={src} alt={alt ?? ''} className="max-w-full h-auto rounded-xl my-6 block mx-auto" loading="lazy" />
     ),
     table: ({ children }: any) => (
       <div className="overflow-x-auto mb-6">

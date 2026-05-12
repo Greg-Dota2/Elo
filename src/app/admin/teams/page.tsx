@@ -10,13 +10,22 @@ export default async function AdminTeamsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Teams</h1>
-        <Link
-          href="/admin/teams/new"
-          className="px-4 py-2 rounded font-semibold text-sm"
-          style={{ background: 'var(--accent)', color: '#fff' }}
-        >
-          + New Team
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/teams/merge"
+            className="px-4 py-2 rounded font-semibold text-sm"
+            style={{ background: 'var(--surface-2)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+          >
+            Merge Teams
+          </Link>
+          <Link
+            href="/admin/teams/new"
+            className="px-4 py-2 rounded font-semibold text-sm"
+            style={{ background: 'var(--accent)', color: '#fff' }}
+          >
+            + New Team
+          </Link>
+        </div>
       </div>
 
       {teams.length === 0 ? (

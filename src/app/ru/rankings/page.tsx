@@ -31,12 +31,20 @@ const MEDAL_BORDER = ['var(--gold-border)', 'var(--silver-border)', 'var(--bronz
 export default async function RuRankingsPage() {
   const supabase = createAdminClient()
 
-  const { data: teams } = await supabase
-    .from('teams')
-    .select('id, name, region, logo_url, current_elo, slug')
-    .eq('is_active', true)
-    .not('current_elo', 'is', null)
-    .order('current_elo', { ascending: false })
+  const [{ data: teams }, { data: inactiveTeams }] = await Promise.all([
+    supabase
+      .from('teams')
+      .select('id, name, region, logo_url, current_elo, slug')
+      .eq('is_active', true)
+      .not('current_elo', 'is', null)
+      .order('current_elo', { ascending: false }),
+    supabase
+      .from('teams')
+      .select('id, name, region, logo_url, slug')
+      .eq('is_active', false)
+      .not('slug', 'is', null)
+      .order('name'),
+  ])
 
   const topElo = teams?.[0]?.current_elo ?? 1500
   const bottomElo = teams?.[teams.length - 1]?.current_elo ?? 1500
@@ -258,6 +266,46 @@ export default async function RuRankingsPage() {
             </div>
           )}
         </>
+      )}
+
+      {inactiveTeams && inactiveTeams.length > 0 && (
+        <div className="mt-10">
+          <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: 'var(--text-muted)', opacity: 0.5 }}>
+            Расформированы / Неактивны
+          </p>
+          <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid var(--border)', opacity: 0.5 }}>
+            {inactiveTeams.map((team, idx) => (
+              <Link
+                key={team.id}
+                href={team.slug ? `/teams/${team.slug}` : '/teams'}
+                className="flex items-center gap-4 px-4 py-3 hover:opacity-80 transition-opacity"
+                style={{
+                  background: idx % 2 === 0 ? 'var(--surface)' : 'var(--surface-2)',
+                  borderBottom: idx < inactiveTeams.length - 1 ? '1px solid var(--border)' : undefined,
+                }}
+              >
+                {team.logo_url ? (
+                  <Image src={team.logo_url} alt={team.name} width={28} height={28} className="w-7 h-7 object-contain rounded shrink-0" />
+                ) : (
+                  <div className="w-7 h-7 rounded flex items-center justify-center text-xs font-bold shrink-0" style={{ background: 'var(--surface-3)', color: 'var(--text-muted)' }}>
+                    {team.name.slice(0, 2).toUpperCase()}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-sm">{team.name}</div>
+                  {team.region && (
+                    <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                      {REGION_RU[team.region] ?? team.region}
+                    </div>
+                  )}
+                </div>
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: 'var(--surface-3)', color: 'var(--text-muted)' }}>
+                  Расформирована
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   )
