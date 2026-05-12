@@ -50,6 +50,18 @@ const PHASE_RU: Record<string, string> = {
   'Starting': 'Старт', 'Early': 'Ранний', 'Core': 'Кор', 'Late': 'Лейт',
 }
 
+function resolveAttrib(display: string, value: string | number | null | undefined): string {
+  const v = String(value ?? '').trim()
+  return display.replace(/\{value\}/g, v)
+}
+
+function cleanItemDesc(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .trim()
+}
+
 function statColor(display: string): string {
   const d = display.toLowerCase()
   if (/health|здоровье/.test(d)) return 'text-red-400'
@@ -136,8 +148,39 @@ export default async function RuItemPage({ params }: Props) {
     return paras
   }
 
+  const SITE_URL = 'https://www.dota2protips.com'
+
   return (
     <div className="fade-in-up">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([
+            {
+              '@context': 'https://schema.org',
+              '@type': 'Article',
+              headline: item.dname,
+              url: `${SITE_URL}/ru/items/${item.key}`,
+              image: { '@type': 'ImageObject', url: itemIconUrl(item.key) },
+              ...(item.lore ? { description: item.lore } : {}),
+              author: { '@type': 'Person', name: 'Greg Spencer', url: SITE_URL },
+              publisher: {
+                '@type': 'Organization',
+                name: 'Dota2ProTips',
+                logo: { '@type': 'ImageObject', url: `${SITE_URL}/1.png` },
+              },
+            },
+            {
+              '@context': 'https://schema.org',
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Предметы', item: `${SITE_URL}/ru/items` },
+                { '@type': 'ListItem', position: 2, name: item.dname, item: `${SITE_URL}/ru/items/${item.key}` },
+              ],
+            },
+          ]),
+        }}
+      />
       <Link href="/ru/items" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M19 12H5M12 5l-7 7 7 7"/>
@@ -166,8 +209,9 @@ export default async function RuItemPage({ params }: Props) {
         <div className="rounded-2xl border border-border/60 bg-card/60 p-5 mb-4">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Характеристики</p>
           <div className="grid grid-cols-2 gap-x-8 gap-y-2">
-            {item.attrib.filter(a => a.display && parseFloat(a.value) !== 0).map((a, i) => {
-              const text = a.display!.replace('{value}', a.value)
+            {item.attrib.filter(a => a.display && a.value != null && parseFloat(String(a.value)) !== 0).map((a, i) => {
+              const text = resolveAttrib(a.display!, a.value)
+              if (text.includes('{')) return null
               return (
                 <div key={i} className="flex items-center gap-2">
                   <span className={`text-sm font-bold tabular-nums ${statColor(text)}`}>{text}</span>
@@ -193,7 +237,7 @@ export default async function RuItemPage({ params }: Props) {
                     </span>
                   )}
                   {ab.title && <p className="text-sm font-bold text-foreground mb-1.5">{ab.title}</p>}
-                  {ab.description && <p className="text-sm text-foreground/80 leading-relaxed">{descRu ?? ab.description}</p>}
+                  {ab.description && <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{cleanItemDesc(descRu ?? ab.description)}</p>}
                 </div>
               )
             })}

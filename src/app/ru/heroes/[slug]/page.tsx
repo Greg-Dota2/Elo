@@ -358,14 +358,29 @@ export default async function RuHeroPage({ params }: { params: Promise<{ slug: s
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'BreadcrumbList',
-            itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Герои', item: `${SITE_URL}/ru/heroes` },
-              { '@type': 'ListItem', position: 2, name: hero.localized_name, item: `${SITE_URL}/ru/heroes/${slug}` },
-            ],
-          }),
+          __html: JSON.stringify([
+            {
+              '@context': 'https://schema.org',
+              '@type': 'Article',
+              headline: `${hero.localized_name} — Гайд по герою Dota 2`,
+              url: `${SITE_URL}/ru/heroes/${slug}`,
+              image: { '@type': 'ImageObject', url: heroPortraitUrl(slug), width: 256, height: 144 },
+              author: { '@type': 'Person', name: 'Greg Spencer', url: SITE_URL },
+              publisher: {
+                '@type': 'Organization',
+                name: 'Dota2ProTips',
+                logo: { '@type': 'ImageObject', url: `${SITE_URL}/1.png` },
+              },
+            },
+            {
+              '@context': 'https://schema.org',
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Герои', item: `${SITE_URL}/ru/heroes` },
+                { '@type': 'ListItem', position: 2, name: hero.localized_name, item: `${SITE_URL}/ru/heroes/${slug}` },
+              ],
+            },
+          ]),
         }}
       />
 

@@ -425,10 +425,16 @@ export default async function HeroPage({
           __html: JSON.stringify([
             {
               '@context': 'https://schema.org',
-              '@type': 'WebPage',
-              name: `${hero.localized_name} — Dota 2 Hero Guide`,
+              '@type': 'Article',
+              headline: `${hero.localized_name} — Dota 2 Hero Guide`,
               url: `${SITE_URL}/heroes/${slug}`,
               image: { '@type': 'ImageObject', url: heroPortraitUrl(slug), width: 256, height: 144 },
+              author: { '@type': 'Person', name: 'Greg Spencer', url: SITE_URL },
+              publisher: {
+                '@type': 'Organization',
+                name: 'Dota2ProTips',
+                logo: { '@type': 'ImageObject', url: `${SITE_URL}/1.png` },
+              },
             },
             {
               '@context': 'https://schema.org',

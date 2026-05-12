@@ -20,8 +20,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = `${item.dname} — Dota 2 Item Guide & Stats`
   const statSummary = item.attrib
     .slice(0, 2)
-    .map(a => a.display ? a.display.replace('{val}', a.value) : '')
-    .filter(Boolean)
+    .map(a => a.display ? resolveAttrib(a.display, a.value) : '')
+    .filter(s => s && !s.includes('{'))
     .join(', ')
   const costLine = item.cost > 0 ? `${item.dname} costs ${item.cost.toLocaleString()} gold.` : `${item.dname} —`
   const statPart = statSummary ? ` ${statSummary} —` : ' —'
@@ -44,6 +44,18 @@ const CATEGORY_LABEL: Record<string, string> = {
   basic: 'Basic',
   upgrade: 'Upgrade',
   neutral: 'Neutral',
+}
+
+function resolveAttrib(display: string, value: string | number | null | undefined): string {
+  const v = String(value ?? '').trim()
+  return display.replace(/\{value\}/g, v)
+}
+
+function cleanItemDesc(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .trim()
 }
 
 const ABILITY_TYPE_STYLES: Record<string, string> = {
@@ -155,11 +167,17 @@ export default async function ItemPage({ params }: Props) {
           __html: JSON.stringify([
             {
               '@context': 'https://schema.org',
-              '@type': 'Thing',
-              name: item.dname,
+              '@type': 'Article',
+              headline: item.dname,
               url: `${SITE_URL}/items/${key}`,
-              image: itemIconUrl(key),
+              image: { '@type': 'ImageObject', url: itemIconUrl(key) },
               ...(item.lore ? { description: item.lore } : {}),
+              author: { '@type': 'Person', name: 'Greg Spencer', url: SITE_URL },
+              publisher: {
+                '@type': 'Organization',
+                name: 'Dota2ProTips',
+                logo: { '@type': 'ImageObject', url: `${SITE_URL}/1.png` },
+              },
             },
             {
               '@context': 'https://schema.org',
@@ -212,8 +230,9 @@ export default async function ItemPage({ params }: Props) {
         <div className="rounded-2xl border border-border/60 bg-card/60 p-5 mb-4">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Stats</p>
           <div className="grid grid-cols-2 gap-x-8 gap-y-2">
-            {item.attrib.filter(a => a.display && parseFloat(a.value) !== 0).map((a, i) => {
-              const text = a.display!.replace('{value}', a.value)
+            {item.attrib.filter(a => a.display && a.value != null && parseFloat(String(a.value)) !== 0).map((a, i) => {
+              const text = resolveAttrib(a.display!, a.value)
+              if (text.includes('{')) return null
               return (
                 <div key={i} className="flex items-center gap-2">
                   <span className={`text-sm font-bold tabular-nums ${statColor(text)}`}>{text}</span>
@@ -240,7 +259,7 @@ export default async function ItemPage({ params }: Props) {
                   <p className="text-sm font-bold text-foreground mb-1.5">{ab.title}</p>
                 )}
                 {ab.description && (
-                  <p className="text-sm text-foreground/80 leading-relaxed">{ab.description}</p>
+                  <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{cleanItemDesc(ab.description)}</p>
                 )}
               </div>
             ))}
