@@ -8,7 +8,7 @@ const POSITION_LABELS: Record<number, string> = {
   5: 'Hard Support',
 }
 
-export default async function PlayerCard({ slug }: { slug: string }) {
+export default async function PlayerCard({ slug, locale = 'en' }: { slug: string; locale?: 'en' | 'ru' }) {
   const admin = createAdminClient()
   const { data: player } = await admin
     .from('players')
@@ -24,7 +24,7 @@ export default async function PlayerCard({ slug }: { slug: string }) {
 
   return (
     <a
-      href={`/players/${slug}`}
+      href={`${locale === 'ru' ? '/ru/players' : '/players'}/${slug}`}
       className="flex items-center gap-4 rounded-2xl px-5 py-4 my-6 transition-opacity hover:opacity-80 no-underline"
       style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', textDecoration: 'none' }}
     >

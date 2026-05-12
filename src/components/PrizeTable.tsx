@@ -9,6 +9,7 @@ interface TeamInfo {
 interface Props {
   placements: PrizePlacement[]
   teamMap: Map<string, TeamInfo>
+  locale?: 'en' | 'ru'
 }
 
 const MEDAL: Record<string, string> = {
@@ -31,7 +32,7 @@ function formatUSD(n: number) {
   return `$${n.toLocaleString()}`
 }
 
-export default function PrizeTable({ placements, teamMap }: Props) {
+export default function PrizeTable({ placements, teamMap, locale = 'en' }: Props) {
   if (!placements || placements.length === 0) return null
 
   const hasEPT = placements.some(p => p.ept_points != null)
@@ -101,7 +102,7 @@ export default function PrizeTable({ placements, teamMap }: Props) {
           )}
           {team?.slug ? (
             <Link
-              href={`/teams/${team.slug}`}
+              href={`${locale === 'ru' ? '/ru/teams' : '/teams'}/${team.slug}`}
               className="font-semibold text-sm truncate hover:underline"
               style={{ color: 'var(--text)' }}
             >

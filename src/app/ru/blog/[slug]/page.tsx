@@ -111,9 +111,9 @@ export default async function RuBlogPostPage({ params }: { params: Promise<{ slu
 
   const useAutoLink = new Date(post.created_at) < new Date('2026-04-20')
   const allEntities = useAutoLink ? [
-    ...(teams ?? []).filter(t => t.slug).map(t => ({ name: t.name, url: `/teams/${t.slug}` })),
-    ...(players ?? []).filter(p => p.slug).map(p => ({ name: p.ign, url: `/players/${p.slug}` })),
-    ...(tournaments ?? []).filter(t => t.slug).map(t => ({ name: t.name, url: `/tournaments/${t.slug}` })),
+    ...(teams ?? []).filter(t => t.slug).map(t => ({ name: t.name, url: `/ru/teams/${t.slug}` })),
+    ...(players ?? []).filter(p => p.slug).map(p => ({ name: p.ign, url: `/ru/players/${p.slug}` })),
+    ...(tournaments ?? []).filter(t => t.slug).map(t => ({ name: t.name, url: `/ru/tournaments/${t.slug}` })),
   ] : []
 
   const title = post.title_ru ?? post.title
@@ -121,7 +121,9 @@ export default async function RuBlogPostPage({ params }: { params: Promise<{ slu
   const content = post.content_ru ?? post.content ?? ''
   const isTranslated = !!post.content_ru
 
-  const rawContent = content.replace(/^(#{1,6})([^\s#])/gm, '$1 $2')
+  const rawContent = content
+    .replace(/^(#{1,6})([^\s#])/gm, '$1 $2')
+    .replace(/\]\(\/(?!ru\/)/g, '](/ru/')
   const segments = parseSegments(rawContent)
 
   // Load DB group stage data for any group-stage/playoff-bracket shortcodes (no PandaScore calls)
@@ -146,7 +148,12 @@ export default async function RuBlogPostPage({ params }: { params: Promise<{ slu
     li: ({ children }: any) => <li className="text-base leading-7">{children}</li>,
     blockquote: ({ children }: any) => <blockquote className="border-l-4 pl-4 my-5 italic" style={{ borderColor: 'hsl(var(--primary))', color: 'var(--text-muted)' }}>{children}</blockquote>,
     hr: () => <hr className="my-8" style={{ borderColor: 'var(--border)' }} />,
-    a: ({ href, children }: any) => <a href={href} className="underline hover:opacity-70 transition-opacity" style={{ color: 'hsl(var(--primary))' }}>{children}</a>,
+    a: ({ href, children }: any) => {
+      const finalHref = href && href.startsWith('/') && !href.startsWith('/ru/')
+        ? `/ru${href}`
+        : href
+      return <a href={finalHref} className="underline hover:opacity-70 transition-opacity" style={{ color: 'hsl(var(--primary))' }}>{children}</a>
+    },
     img: ({ src, alt }: any) => (
       // eslint-disable-next-line @next/next/no-img-element
       <img src={src} alt={alt ?? ''} className="max-w-full h-auto rounded-xl my-6 block mx-auto" loading="lazy" />
@@ -237,25 +244,25 @@ export default async function RuBlogPostPage({ params }: { params: Promise<{ slu
         const groups = groupsDataMap[(seg as any).slug] ?? []
         if (seg.type === 'group-stage') {
           const groupOnly = groups.filter(g => !/upper|lower|bracket|playoff|elimination|grand.?final/i.test(g.name) || /group/i.test(g.name))
-          return <GroupStageView key={i} groups={groupOnly} />
+          return <GroupStageView key={i} groups={groupOnly} locale="ru" />
         }
         if (seg.type === 'playoff-bracket') {
-          return <PSBracketView key={i} groups={groups} />
+          return <PSBracketView key={i} groups={groups} locale="ru" />
         }
         if (seg.type === 'tweet') {
           return <TweetEmbed key={i} url={(seg as { type: 'tweet'; url: string }).url} />
         }
         if (seg.type === 'hero') {
-          return <HeroCard key={i} slug={(seg as { type: 'hero'; slug: string }).slug} />
+          return <HeroCard key={i} slug={(seg as { type: 'hero'; slug: string }).slug} locale="ru" />
         }
         if (seg.type === 'team') {
-          return <TeamCard key={i} slug={(seg as { type: 'team'; slug: string }).slug} />
+          return <TeamCard key={i} slug={(seg as { type: 'team'; slug: string }).slug} locale="ru" />
         }
         if (seg.type === 'player') {
-          return <PlayerCard key={i} slug={(seg as { type: 'player'; slug: string }).slug} />
+          return <PlayerCard key={i} slug={(seg as { type: 'player'; slug: string }).slug} locale="ru" />
         }
         if (seg.type === 'item') {
-          return <ItemCard key={i} itemKey={(seg as { type: 'item'; key: string }).key} />
+          return <ItemCard key={i} itemKey={(seg as { type: 'item'; key: string }).key} locale="ru" />
         }
         return null
       })}

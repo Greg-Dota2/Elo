@@ -61,7 +61,7 @@ function roundOrderKey(name: string): number {
 }
 
 // ── Match card ────────────────────────────────────────────────────────────────
-function PSBracketCard({ match }: { match: PSMatch }) {
+function PSBracketCard({ match, teamPrefix = '/teams' }: { match: PSMatch; teamPrefix?: string }) {
   const teamA = match.opponents[0]?.opponent
   const teamB = match.opponents[1]?.opponent
   const scoreA = match.results.find(r => r.team_id === teamA?.id)?.score
@@ -104,7 +104,7 @@ function PSBracketCard({ match }: { match: PSMatch }) {
         }
       </div>
       {team ? (
-        <Link href={`/teams/${toTeamSlug(team.name)}`} style={{
+        <Link href={`${teamPrefix}/${toTeamSlug(team.name)}`} style={{
           flex: 1, minWidth: 0,
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           fontSize: 14, fontWeight: 700, letterSpacing: '-0.02em',
@@ -182,12 +182,13 @@ function PSBracketCard({ match }: { match: PSMatch }) {
 
 // ── Bracket section (upper or lower) ─────────────────────────────────────────
 function PSBracketSection({
-  rounds, firstCount, connectorW = CONNECTOR_W, labelColor = UB_COLOR,
+  rounds, firstCount, connectorW = CONNECTOR_W, labelColor = UB_COLOR, teamPrefix = '/teams',
 }: {
   rounds: Round[]
   firstCount: number
   connectorW?: number
   labelColor?: string
+  teamPrefix?: string
 }) {
   const sorted = [...rounds].sort((a, b) => a.order - b.order)
   if (!sorted.length) return null
@@ -218,7 +219,7 @@ function PSBracketSection({
               </div>
               {round.matches.map(match => (
                 <div key={match.id} style={{ height: slotH, width: MATCH_W, display: 'flex', alignItems: 'center' }}>
-                  <PSBracketCard match={match} />
+                  <PSBracketCard match={match} teamPrefix={teamPrefix} />
                 </div>
               ))}
             </div>
@@ -271,7 +272,7 @@ function PSBracketSection({
 }
 
 // ── Main export ───────────────────────────────────────────────────────────────
-export default function PSBracketView({ groups }: { groups: { name: string; matches: PSMatch[] }[] }) {
+export default function PSBracketView({ groups, locale = 'en' }: { groups: { name: string; matches: PSMatch[] }[]; locale?: 'en' | 'ru' }) {
   const seen = new Set<number>()
   const tagged = groups
     .filter(g => isBracketPhase(g.name))
@@ -359,7 +360,7 @@ export default function PSBracketView({ groups }: { groups: { name: string; matc
               <div style={{ marginLeft: ubOffset }}>
                 {hasUL && sectionLabel('Upper Bracket', UB_COLOR)}
                 <div style={{ background: UB_TINT, borderRadius: 12 }}>
-                  <PSBracketSection rounds={upper} firstCount={ubFirst} connectorW={ubConnW} labelColor={UB_COLOR} />
+                  <PSBracketSection rounds={upper} firstCount={ubFirst} connectorW={ubConnW} labelColor={UB_COLOR} teamPrefix={locale === 'ru' ? '/ru/teams' : '/teams'} />
                 </div>
               </div>
             )}
@@ -367,7 +368,7 @@ export default function PSBracketView({ groups }: { groups: { name: string; matc
               <div style={{ marginTop: SECTION_GAP, marginLeft: lbOffset }}>
                 {hasUL && sectionLabel('Lower Bracket', LB_COLOR)}
                 <div style={{ background: LB_TINT, borderRadius: 12 }}>
-                  <PSBracketSection rounds={lower} firstCount={lbFirst} labelColor={LB_COLOR} />
+                  <PSBracketSection rounds={lower} firstCount={lbFirst} labelColor={LB_COLOR} teamPrefix={locale === 'ru' ? '/ru/teams' : '/teams'} />
                 </div>
               </div>
             )}
@@ -401,7 +402,7 @@ export default function PSBracketView({ groups }: { groups: { name: string; matc
               }}>
                 Grand Final
               </div>
-              <PSBracketCard match={gfMatch} />
+              <PSBracketCard match={gfMatch} teamPrefix={locale === 'ru' ? '/ru/teams' : '/teams'} />
             </div>
           )}
 

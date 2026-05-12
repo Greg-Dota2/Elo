@@ -70,7 +70,7 @@ function MatchCell({ match, rowTeamId }: { match: PSMatch | undefined; rowTeamId
   )
 }
 
-function GroupCard({ group }: { group: GroupData }) {
+function GroupCard({ group, teamPrefix = '/teams' }: { group: GroupData; teamPrefix?: string }) {
   const teams = group.standings.map(s => s.team)
 
   // Build match lookup map: matchMap[rowTeamId][colTeamId] = match
@@ -134,7 +134,7 @@ function GroupCard({ group }: { group: GroupData }) {
                         <div className="w-5 h-5 rounded shrink-0" style={{ background: 'var(--surface-3)' }} />
                       )}
                       <Link
-                        href={`/teams/${teamSlug(s.team.name)}`}
+                        href={`${teamPrefix}/${teamSlug(s.team.name)}`}
                         className="font-semibold whitespace-nowrap hover:text-primary transition-colors"
                         style={{ color: 'var(--text)' }}
                       >
@@ -216,7 +216,7 @@ function GroupCard({ group }: { group: GroupData }) {
   )
 }
 
-export default function GroupStageView({ groups }: { groups: GroupData[] }) {
+export default function GroupStageView({ groups, locale = 'en' }: { groups: GroupData[]; locale?: 'en' | 'ru' }) {
   if (groups.length === 0) return null
 
   return (
@@ -224,7 +224,7 @@ export default function GroupStageView({ groups }: { groups: GroupData[] }) {
       <h2 className="section-label mb-4">Group Stage</h2>
       <div className="grid gap-4">
         {groups.map(group => (
-          <GroupCard key={group.id} group={group} />
+          <GroupCard key={group.id} group={group} teamPrefix={locale === 'ru' ? '/ru/teams' : '/teams'} />
         ))}
       </div>
     </div>

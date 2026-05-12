@@ -1,6 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 
-export default async function TeamCard({ slug }: { slug: string }) {
+export default async function TeamCard({ slug, locale = 'en' }: { slug: string; locale?: 'en' | 'ru' }) {
   const admin = createAdminClient()
   const { data: team } = await admin
     .from('teams')
@@ -12,7 +12,7 @@ export default async function TeamCard({ slug }: { slug: string }) {
 
   return (
     <a
-      href={`/teams/${slug}`}
+      href={`${locale === 'ru' ? '/ru/teams' : '/teams'}/${slug}`}
       className="flex items-center gap-4 rounded-2xl px-5 py-4 my-6 transition-opacity hover:opacity-80 no-underline"
       style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', textDecoration: 'none' }}
     >

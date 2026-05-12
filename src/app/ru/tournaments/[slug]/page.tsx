@@ -258,12 +258,12 @@ export default async function RuTournamentPage({ params }: { params: Promise<{ s
 
       {/* Participants */}
       {participantsWithRosters.length > 0 && (
-        <ParticipantsGrid participants={participantsWithRosters} />
+        <ParticipantsGrid participants={participantsWithRosters} locale="ru" />
       )}
 
       {/* Prize table */}
       {tournament.prize_distribution && tournament.prize_distribution.length > 0 && (
-        <PrizeTable placements={tournament.prize_distribution} teamMap={teamNameMap} />
+        <PrizeTable placements={tournament.prize_distribution} teamMap={teamNameMap} locale="ru" />
       )}
 
       {/* Archived group stage + bracket (Supabase only, no API calls) */}
@@ -274,8 +274,8 @@ export default async function RuTournamentPage({ params }: { params: Promise<{ s
         )
         return (
           <>
-            <GroupStageView groups={groupOnly} />
-            <PSBracketView groups={archivedGroups} />
+            <GroupStageView groups={groupOnly} locale="ru" />
+            <PSBracketView groups={archivedGroups} locale="ru" />
           </>
         )
       })()}

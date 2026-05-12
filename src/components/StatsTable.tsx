@@ -9,9 +9,10 @@ function teamSlug(name: string) {
 interface Props {
   stats: TournamentStats
   teamAccuracy: TeamAccuracy[]
+  locale?: 'en' | 'ru'
 }
 
-export default function StatsTable({ stats, teamAccuracy }: Props) {
+export default function StatsTable({ stats, teamAccuracy, locale = 'en' }: Props) {
   const accuracy = stats.accuracy_pct ?? 0
   const correctPct = stats.total_predictions > 0
     ? parseFloat(((stats.correct / stats.total_predictions) * 100).toFixed(1))
@@ -136,7 +137,7 @@ export default function StatsTable({ stats, teamAccuracy }: Props) {
                 {/* Name + bar */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <Link href={`/teams/${row.team_slug ?? teamSlug(row.team_name)}`} className="text-xs font-semibold truncate hover:text-primary transition-colors" style={{ color: 'var(--text)' }}>
+                    <Link href={`${locale === 'ru' ? '/ru/teams' : '/teams'}/${row.team_slug ?? teamSlug(row.team_name)}`} className="text-xs font-semibold truncate hover:text-primary transition-colors" style={{ color: 'var(--text)' }}>
                       {row.team_name}
                     </Link>
                     <span

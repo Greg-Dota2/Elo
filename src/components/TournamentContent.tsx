@@ -140,7 +140,9 @@ export default function TournamentContent({ tournament, stages, stats, teamAccur
                     pre_analysis: match.pre_analysis ? truncateAtWord(match.pre_analysis, ANALYSIS_PREVIEW) : null,
                     post_commentary: match.post_commentary ? truncateAtWord(match.post_commentary, ANALYSIS_PREVIEW) : null,
                   } : match
-                  return <MatchCard key={match.id} match={cardMatch} tournament={tournament} h2h={h2hMap?.[match.id]} liveScore={resolveLiveScore(match)} locale={locale} />
+                  const teamPrefix = locale === 'ru' ? '/ru/teams' : '/teams'
+                  const tournamentPrefix = locale === 'ru' ? '/ru/tournaments' : '/tournaments'
+                  return <MatchCard key={match.id} match={cardMatch} tournament={tournament} h2h={h2hMap?.[match.id]} liveScore={resolveLiveScore(match)} locale={locale} teamPrefix={teamPrefix} tournamentPrefix={tournamentPrefix} />
                 })}
               </div>
             </div>
@@ -167,7 +169,7 @@ export default function TournamentContent({ tournament, stages, stats, teamAccur
       {stats && stats.total_predictions > 0 && (
         <div className="mb-6">
           <h2 className="section-label mb-4">Statistics</h2>
-          <StatsTable stats={stats} teamAccuracy={teamAccuracy} />
+          <StatsTable stats={stats} teamAccuracy={teamAccuracy} locale={locale} />
         </div>
       )}
 

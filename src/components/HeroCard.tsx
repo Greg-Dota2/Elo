@@ -1,6 +1,6 @@
 import { fetchAllHeroes, heroSlug, heroPortraitUrl, ATTR_CONFIG } from '@/lib/heroes'
 
-export default async function HeroCard({ slug }: { slug: string }) {
+export default async function HeroCard({ slug, locale = 'en' }: { slug: string; locale?: 'en' | 'ru' }) {
   const heroes = await fetchAllHeroes()
   const hero = heroes.find(h => heroSlug(h.name) === slug)
   if (!hero) return null
@@ -10,7 +10,7 @@ export default async function HeroCard({ slug }: { slug: string }) {
 
   return (
     <a
-      href={`/heroes/${slug}`}
+      href={`${locale === 'ru' ? '/ru/heroes' : '/heroes'}/${slug}`}
       className="flex items-center gap-4 rounded-2xl px-5 py-4 my-6 transition-opacity hover:opacity-80 no-underline"
       style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', textDecoration: 'none' }}
     >

@@ -7,13 +7,13 @@ const CATEGORY_LABELS: Record<string, string> = {
   neutral: 'Neutral',
 }
 
-export default async function ItemCard({ itemKey }: { itemKey: string }) {
+export default async function ItemCard({ itemKey, locale = 'en' }: { itemKey: string; locale?: 'en' | 'ru' }) {
   const item = await fetchItemByKey(itemKey)
   if (!item) return null
 
   return (
     <a
-      href={`/items/${itemKey}`}
+      href={`${locale === 'ru' ? '/ru/items' : '/items'}/${itemKey}`}
       className="flex items-center gap-4 rounded-2xl px-5 py-4 my-6 transition-opacity hover:opacity-80 no-underline"
       style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', textDecoration: 'none' }}
     >

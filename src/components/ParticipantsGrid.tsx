@@ -16,6 +16,7 @@ export interface ParticipantWithRoster extends Participant {
 
 interface Props {
   participants: ParticipantWithRoster[]
+  locale?: 'en' | 'ru'
 }
 
 const POS_LABEL: Record<number, string> = {
@@ -30,7 +31,7 @@ const POS_COLOR: Record<number, string> = {
   5: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
 }
 
-export default function ParticipantsGrid({ participants }: Props) {
+export default function ParticipantsGrid({ participants, locale = 'en' }: Props) {
   if (!participants || participants.length === 0) return null
 
   const hasTypes = participants.some(p => p.type != null)
@@ -44,6 +45,9 @@ export default function ParticipantsGrid({ participants }: Props) {
         ...(qualifiers.length > 0 ? [{ label: 'Qualifier', items: qualifiers }] : []),
       ]
     : [{ label: null, items: ungrouped }]
+
+  const teamPrefix = locale === 'ru' ? '/ru/teams' : '/teams'
+  const playerPrefix = locale === 'ru' ? '/ru/players' : '/players'
 
   const TeamCard = ({ p }: { p: ParticipantWithRoster }) => (
     <details className="group/team" style={{ background: 'var(--surface)' }}>
@@ -65,7 +69,7 @@ export default function ParticipantsGrid({ participants }: Props) {
         <div className="flex-1 min-w-0">
           {p.slug ? (
             <Link
-              href={`/teams/${p.slug}`}
+              href={`${teamPrefix}/${p.slug}`}
               className="text-sm font-semibold truncate block hover:text-primary transition-colors"
               style={{ color: 'var(--text)' }}
             >
@@ -96,7 +100,7 @@ export default function ParticipantsGrid({ participants }: Props) {
           {p.players.map(player => (
             <Link
               key={player.slug}
-              href={`/players/${player.slug}`}
+              href={`${playerPrefix}/${player.slug}`}
               className="flex items-center gap-2.5 px-4 py-2 hover:bg-primary/5 transition-colors"
               style={{ borderTop: '1px solid hsl(var(--border) / 0.3)' }}
             >
