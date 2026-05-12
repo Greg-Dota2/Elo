@@ -254,6 +254,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, translated, total: toTranslate.length })
   }
 
+  // ── Single blog post ──────────────────────────────────────────────────────
+  if (body.type === 'blog') {
+    const { data: post } = await supabase.from('blog_posts').select('title, excerpt, content').eq('id', body.post_id).single()
+    if (!post) return NextResponse.json({ error: 'Post not found' }, { status: 404 })
+    const [title_ru, excerpt_ru, content_ru] = await Promise.all([
+      post.title ? translate(client, post.title) : Promise.resolve(null),
+      post.excerpt ? translate(client, post.excerpt) : Promise.resolve(null),
+      post.content ? translate(client, post.content) : Promise.resolve(null),
+    ])
+    await supabase.from('blog_posts').update({ title_ru, excerpt_ru, content_ru }).eq('id', body.post_id)
+    return NextResponse.json({ ok: true, title_ru, excerpt_ru, content_ru })
+  }
+
   // ── Single transfer note ──────────────────────────────────────────────────
   if (body.type === 'transfer-notes') {
     if (!body.notes) return NextResponse.json({ error: 'No notes text provided' }, { status: 400 })

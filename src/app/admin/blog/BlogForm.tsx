@@ -32,6 +32,10 @@ interface BlogPost {
   cover_image_url: string
   is_published: boolean
   tags: string[]
+  title_ru?: string | null
+  excerpt_ru?: string | null
+  content_ru?: string | null
+  ru_synced_at?: string | null
 }
 
 interface Props {
@@ -86,10 +90,18 @@ export default function BlogForm({ initial }: Props) {
   const [coverImageUrl, setCoverImageUrl] = useState(initial?.cover_image_url ?? '')
   const [isPublished, setIsPublished] = useState(initial?.is_published ?? false)
   const [tags, setTags] = useState<string[]>(initial?.tags ?? [])
+  const [titleRu, setTitleRu] = useState(initial?.title_ru ?? '')
+  const [excerptRu, setExcerptRu] = useState(initial?.excerpt_ru ?? '')
+  const [contentRu, setContentRu] = useState(initial?.content_ru ?? '')
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [deleting, setDeleting] = useState(false)
   const [isDirty, setIsDirty] = useState(false)
+  const [translating, setTranslating] = useState(false)
+  const [translateMsg, setTranslateMsg] = useState('')
   const guard = useGuardedNav(isDirty)
+
+  const hasRu = !!(initial?.title_ru || initial?.content_ru)
+  const isStale = hasRu && (title !== (initial?.title ?? '') || excerpt !== (initial?.excerpt ?? '') || content !== (initial?.content ?? ''))
 
   // Toolbar insert state
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -178,10 +190,36 @@ export default function BlogForm({ initial }: Props) {
     }
   }
 
+  async function handleTranslate() {
+    if (!initial?.id) return
+    setTranslating(true)
+    setTranslateMsg('')
+    try {
+      const res = await fetch('/api/admin/guides/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'blog', post_id: initial.id }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setTitleRu(data.title_ru ?? '')
+        setExcerptRu(data.excerpt_ru ?? '')
+        setContentRu(data.content_ru ?? '')
+        setTranslateMsg('✓ Translated')
+      } else {
+        setTranslateMsg(`✗ ${data.error ?? 'Error'}`)
+      }
+    } catch {
+      setTranslateMsg('✗ Network error')
+    }
+    setTranslating(false)
+  }
+
   async function handleSave() {
     setStatus('saving')
+    const ruFields = isEdit ? { title_ru: titleRu || null, excerpt_ru: excerptRu || null, content_ru: contentRu || null } : {}
     const body = isEdit
-      ? { id: initial!.id, title, slug, excerpt, content, cover_image_url: coverImageUrl, is_published: isPublished, tags }
+      ? { id: initial!.id, title, slug, excerpt, content, cover_image_url: coverImageUrl, is_published: isPublished, tags, ...ruFields }
       : { title, slug, excerpt, content, cover_image_url: coverImageUrl, is_published: isPublished, tags }
 
     const res = await fetch('/api/admin/blog', {
@@ -236,6 +274,24 @@ export default function BlogForm({ initial }: Props) {
             >
               Preview
             </a>
+          )}
+          {isEdit && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleTranslate}
+                disabled={translating}
+                className="px-4 py-2 rounded-xl text-sm font-semibold transition-opacity hover:opacity-70 disabled:opacity-40"
+                style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}
+              >
+                {translating ? 'Translating…' : '🌐 Translate to RU'}
+              </button>
+              {isStale && !translateMsg && (
+                <span className="text-xs text-amber-400">⚠ EN changed</span>
+              )}
+              {translateMsg && (
+                <span className={`text-xs ${translateMsg.startsWith('✓') ? 'text-green-400' : 'text-red-400'}`}>{translateMsg}</span>
+              )}
+            </div>
           )}
           {isEdit && (
             <button
@@ -544,6 +600,46 @@ export default function BlogForm({ initial }: Props) {
             })}
           </div>
         </div>
+
+        {/* Russian Translation */}
+        {isEdit && (
+          <div
+            className="rounded-xl px-5 py-4 flex flex-col gap-4"
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+          >
+            <p className="font-semibold text-sm">Russian Translation</p>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-muted)' }}>Title (RU)</label>
+              <input
+                className={inputClass}
+                style={inputStyle}
+                value={titleRu}
+                onChange={e => setTitleRu(e.target.value)}
+                placeholder="Заголовок на русском…"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-muted)' }}>Excerpt (RU)</label>
+              <textarea
+                className={inputClass}
+                style={{ ...inputStyle, resize: 'vertical', minHeight: 80 }}
+                value={excerptRu}
+                onChange={e => setExcerptRu(e.target.value)}
+                placeholder="Краткое описание на русском…"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-muted)' }}>Content (RU)</label>
+              <textarea
+                className={inputClass}
+                style={{ ...inputStyle, resize: 'vertical', minHeight: 300, fontFamily: 'monospace' }}
+                value={contentRu}
+                onChange={e => setContentRu(e.target.value)}
+                placeholder="Текст статьи на русском…"
+              />
+            </div>
+          </div>
+        )}
 
         {/* Publish toggle */}
         <div

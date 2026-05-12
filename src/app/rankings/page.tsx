@@ -40,8 +40,36 @@ export default async function RankingsPage() {
   const topElo = teams?.[0]?.current_elo ?? 1500
   const bottomElo = teams?.[teams.length - 1]?.current_elo ?? 1500
 
+  const SITE_URL = 'https://www.dota2protips.com'
+
   return (
     <div className="fade-in-up">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([
+            {
+              '@context': 'https://schema.org',
+              '@type': 'Dataset',
+              name: 'Dota 2 ELO Team Rankings',
+              description: 'Dota 2 ELO team rankings updated after every Tier 1 series, weighted by opponent strength.',
+              url: `${SITE_URL}/rankings`,
+              creator: {
+                '@type': 'Organization',
+                name: 'Dota2ProTips',
+                url: SITE_URL,
+              },
+            },
+            {
+              '@context': 'https://schema.org',
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Rankings', item: `${SITE_URL}/rankings` },
+              ],
+            },
+          ]),
+        }}
+      />
       {/* Page header */}
       <div className="mb-8">
         <p className="section-label mb-2">Dota 2 Tier 1</p>
