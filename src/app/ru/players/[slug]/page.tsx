@@ -303,7 +303,7 @@ export default async function RuPlayerPage({ params }: Props) {
                       <div className="w-7 h-7 rounded shrink-0" style={{ background: 'hsl(var(--secondary))' }} />
                     )}
                     <div className="flex-1 min-w-0">
-                      <Link href={`/tournaments/${p.tournament.slug}`} className="text-sm font-semibold hover:text-primary transition-colors truncate block" style={{ color: 'var(--text)' }}>
+                      <Link href={`/ru/tournaments/${p.tournament.slug}`} className="text-sm font-semibold hover:text-primary transition-colors truncate block" style={{ color: 'var(--text)' }}>
                         {p.tournament.name}
                       </Link>
                       <div className="flex items-center gap-2 mt-0.5">
@@ -360,7 +360,7 @@ export default async function RuPlayerPage({ params }: Props) {
                         <Link href={`/ru/teams/${resolveTeamLink(tB?.id, tB?.name ?? '')}`} className="hover:text-primary transition-colors">{tB?.name ?? 'TBD'}</Link>
                       </div>
                       {known?.slug
-                        ? <Link href={`/tournaments/${known.slug}`} className="text-xs text-muted-foreground hover:text-primary transition-colors truncate">{tournamentLabel}</Link>
+                        ? <Link href={`/ru/tournaments/${known.slug}`} className="text-xs text-muted-foreground hover:text-primary transition-colors truncate">{tournamentLabel}</Link>
                         : <div className="text-xs text-muted-foreground truncate">{tournamentLabel}</div>
                       }
                     </div>
@@ -407,7 +407,7 @@ export default async function RuPlayerPage({ params }: Props) {
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {m.tournament?.slug ? (
-                          <Link href={`/tournaments/${m.tournament.slug}`} className="hover:text-primary transition-colors">{m.tournament.name}</Link>
+                          <Link href={`/ru/tournaments/${m.tournament.slug}`} className="hover:text-primary transition-colors">{m.tournament.name}</Link>
                         ) : m.tournament?.name}
                       </div>
                     </div>

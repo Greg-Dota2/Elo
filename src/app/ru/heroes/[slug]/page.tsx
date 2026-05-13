@@ -688,7 +688,7 @@ export default async function RuHeroPage({ params }: { params: Promise<{ slug: s
             {signaturePlayers.map(p => {
               const posLabel: Record<number, string> = { 1: 'Керри', 2: 'Мид', 3: 'Офлейн', 4: 'Саппорт', 5: 'Хард саппорт' }
               return (
-                <Link key={p.slug} href={`/players/${p.slug}`}
+                <Link key={p.slug} href={`/ru/players/${p.slug}`}
                   className="flex items-center gap-3 rounded-xl border border-border/60 bg-card/60 px-4 py-3 hover:bg-secondary/40 transition-colors">
                   {p.photo_url ? (
                     // eslint-disable-next-line @next/next/no-img-element

@@ -328,7 +328,7 @@ export default async function RuTeamDetailPage({ params }: { params: Promise<{ s
                         <div className="w-7 h-7 rounded shrink-0" style={{ background: 'hsl(var(--secondary))' }} />
                       )}
                       <div className="flex-1 min-w-0">
-                        <Link href={`/tournaments/${p.tournament.slug}`} className="text-sm font-semibold hover:text-primary transition-colors truncate block" style={{ color: 'var(--text)' }}>
+                        <Link href={`/ru/tournaments/${p.tournament.slug}`} className="text-sm font-semibold hover:text-primary transition-colors truncate block" style={{ color: 'var(--text)' }}>
                           {p.tournament.name}
                         </Link>
                         <div className="flex items-center gap-2 mt-0.5">
@@ -393,7 +393,7 @@ export default async function RuTeamDetailPage({ params }: { params: Promise<{ s
                           ) : undefined
                           const label = known?.name ?? `${m.league.name} · ${m.tournament.name}`
                           return known?.slug
-                            ? <Link href={`/tournaments/${known.slug}`} className="text-xs text-muted-foreground hover:text-primary transition-colors truncate">{label}</Link>
+                            ? <Link href={`/ru/tournaments/${known.slug}`} className="text-xs text-muted-foreground hover:text-primary transition-colors truncate">{label}</Link>
                             : <div className="text-xs text-muted-foreground truncate">{label}</div>
                         })()}
                       </div>
@@ -445,7 +445,7 @@ export default async function RuTeamDetailPage({ params }: { params: Promise<{ s
                         </div>
                         <div className="text-xs text-muted-foreground truncate">
                           {m.tournament?.slug ? (
-                            <Link href={`/tournaments/${m.tournament.slug}`} className="hover:text-primary transition-colors">
+                            <Link href={`/ru/tournaments/${m.tournament.slug}`} className="hover:text-primary transition-colors">
                               {m.tournament.name}
                             </Link>
                           ) : m.tournament?.name}
