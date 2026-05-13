@@ -12,7 +12,7 @@ interface Props {
 export default function RecordResultPage({ params }: Props) {
   const router = useRouter()
   const [match, setMatch] = useState<MatchPrediction | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [status, setStatus] = useState<'idle' | 'saving' | 'translating'>('idle')
   const [error, setError] = useState('')
   const [matchId, setMatchId] = useState('')
 
@@ -26,12 +26,13 @@ export default function RecordResultPage({ params }: Props) {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setLoading(true)
+    setStatus('saving')
     setError('')
 
     const form = new FormData(e.currentTarget)
     const score1 = Number(form.get('score_team_1'))
     const score2 = Number(form.get('score_team_2'))
+    const commentary = (form.get('post_commentary') as string | null) || null
 
     // Draw (e.g. 1-1 in BO2) → no winner
     const isDraw = score1 === score2
@@ -58,7 +59,7 @@ export default function RecordResultPage({ params }: Props) {
         actual_winner_id: actualWinnerId ?? null,
         predicted_winner_id: match?.predicted_winner_id,
         predicted_draw: match?.predicted_draw ?? false,
-        post_commentary: form.get('post_commentary') || null,
+        post_commentary: commentary,
         dotabuff_game_ids: gameIds.length > 0 ? gameIds : null,
       }),
     })
@@ -66,8 +67,17 @@ export default function RecordResultPage({ params }: Props) {
     if (!res.ok) {
       const d = await res.json()
       setError(d.error)
-      setLoading(false)
+      setStatus('idle')
       return
+    }
+
+    if (commentary) {
+      setStatus('translating')
+      await fetch('/api/admin/guides/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'match', match_id: matchId, commentary }),
+      })
     }
 
     router.push('/admin')
@@ -156,11 +166,11 @@ export default function RecordResultPage({ params }: Props) {
         <div className="flex gap-3 pt-2">
           <button
             type="submit"
-            disabled={loading}
+            disabled={status !== 'idle'}
             className="px-5 py-2 rounded font-semibold text-sm disabled:opacity-50"
             style={{ background: 'var(--accent)', color: '#fff' }}
           >
-            {loading ? 'Saving...' : 'Save Result'}
+            {status === 'saving' ? 'Saving...' : status === 'translating' ? 'Translating to RU...' : 'Save Result'}
           </button>
           <button
             type="button"

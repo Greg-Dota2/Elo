@@ -25,7 +25,6 @@ import PrizeTable from '@/components/PrizeTable'
 import ParticipantsGrid, { type ParticipantWithRoster } from '@/components/ParticipantsGrid'
 import { createAdminClient } from '@/lib/supabase/admin'
 import PSBracketView from '@/components/PSBracketView'
-import SwissStandings from '@/components/SwissStandings'
 import { fetchGroupsFromDB } from '@/lib/groupStageDB'
 import { TIER1_TOURNAMENTS } from '@/lib/tier1tournaments'
 import { format } from 'date-fns'
@@ -775,13 +774,9 @@ export default async function TournamentPage({ params }: Props) {
         liveScoreMap={liveScoreMap}
         bracketExtra={
           <>
-            {swissMatches.length > 0 && (
-              <SwissStandings matches={swissMatches} advanceCount={8} groupStageName="Swiss Group Stage" />
-            )}
-            <GroupStageView groups={groupsData.filter(g => {
-              if (swissMatches.length > 0 && tier1Entry?.ps_group_stage_id && g.id === tier1Entry.ps_group_stage_id) return false
-              return !/upper|lower|bracket|playoff|elimination|grand.?final/i.test(g.name) || /group/i.test(g.name)
-            })} />
+            <GroupStageView groups={groupsData.filter(g =>
+              !/upper|lower|bracket|playoff|elimination|grand.?final/i.test(g.name) || /group/i.test(g.name)
+            )} />
             <PSBracketView groups={groupsData} />
           </>
         }

@@ -13,11 +13,30 @@ Rules:
 - Match the original tone exactly
 - Return ONLY the translated text, no explanations or notes`
 
+const COMMENTARY_PROMPT = `You are a professional translator specializing in Dota 2 esports content. Translate English text to Russian.
+
+Rules:
+1. KEEP AS-IS: team names, player IGNs, tournament names, hero names, item names, esports terms (carry, mid, offlane, support, stand-in, ELO, BO1, BO3, BO5).
+2. MARKDOWN LINKS: [visible text](url) → [translated text](url). Keep brackets, parentheses, and URL exactly. Only translate the visible text inside [].
+3. VOICE: casual, opinionated, passionate — match the original tone exactly. Russian esports style.
+4. FORMATTING: preserve all markdown, line breaks, bold, italics exactly.
+5. OUTPUT: return ONLY the translated text. No explanations, no notes.`
+
 async function translate(client: Anthropic, text: string): Promise<string> {
   const msg = await client.messages.create({
     model: 'claude-sonnet-4-6',
     max_tokens: 1024,
     system: SYSTEM_PROMPT,
+    messages: [{ role: 'user', content: text }],
+  })
+  return (msg.content[0] as { type: 'text'; text: string }).text.trim()
+}
+
+async function translateCommentary(client: Anthropic, text: string): Promise<string> {
+  const msg = await client.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 2048,
+    system: COMMENTARY_PROMPT,
     messages: [{ role: 'user', content: text }],
   })
   return (msg.content[0] as { type: 'text'; text: string }).text.trim()
@@ -272,6 +291,14 @@ export async function POST(req: NextRequest) {
     if (!body.notes) return NextResponse.json({ error: 'No notes text provided' }, { status: 400 })
     const notes_ru = await translate(client, body.notes)
     return NextResponse.json({ notes_ru })
+  }
+
+  // ── Match post-commentary ─────────────────────────────────────────────────
+  if (body.type === 'match') {
+    if (!body.commentary) return NextResponse.json({ ok: true, post_commentary_ru: null })
+    const post_commentary_ru = await translateCommentary(client, body.commentary)
+    await supabase.from('match_predictions').update({ post_commentary_ru }).eq('id', body.match_id)
+    return NextResponse.json({ ok: true, post_commentary_ru })
   }
 
   return NextResponse.json({ error: 'Invalid type' }, { status: 400 })

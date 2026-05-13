@@ -216,12 +216,12 @@ function GroupCard({ group, teamPrefix = '/teams' }: { group: GroupData; teamPre
   )
 }
 
-export default function GroupStageView({ groups, locale = 'en' }: { groups: GroupData[]; locale?: 'en' | 'ru' }) {
+export default function GroupStageView({ groups, locale = 'en', showSectionLabel = true }: { groups: GroupData[]; locale?: 'en' | 'ru'; showSectionLabel?: boolean }) {
   if (groups.length === 0) return null
 
   return (
     <div className="mb-8">
-      <h2 className="section-label mb-4">Group Stage</h2>
+      {showSectionLabel && <h2 className="section-label mb-4">Group Stage</h2>}
       <div className="grid gap-4">
         {groups.map(group => (
           <GroupCard key={group.id} group={group} teamPrefix={locale === 'ru' ? '/ru/teams' : '/teams'} />

@@ -35,10 +35,11 @@ interface SwissRow {
   status: 'advanced' | 'eliminated' | 'playing'
 }
 
-export default function SwissStandings({ matches, advanceCount = 8, groupStageName = 'Swiss Group Stage' }: {
+export default function SwissStandings({ matches, advanceCount = 8, groupStageName = 'Swiss Group Stage', showSectionLabel = true }: {
   matches: PSMatch[]
   advanceCount?: number
   groupStageName?: string
+  showSectionLabel?: boolean
 }) {
   if (matches.length === 0) return null
 
@@ -148,11 +149,11 @@ export default function SwissStandings({ matches, advanceCount = 8, groupStageNa
 
   return (
     <div className="mb-8">
-      <h2 className="section-label mb-4">{groupStageName}</h2>
+      {showSectionLabel && <h2 className="section-label mb-4">{groupStageName}</h2>}
       <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid var(--border)' }}>
         {/* Header */}
         <div className="px-5 py-3 flex items-center gap-3" style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
-          <h3 className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Swiss Stage</h3>
+          <h3 className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>{groupStageName}</h3>
           <span className="text-xs" style={{ color: 'var(--text-subtle)' }}>— Top {advanceCount} advance to Playoffs</span>
         </div>
 
