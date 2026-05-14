@@ -301,5 +301,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, post_commentary_ru })
   }
 
+  // ── Match pre-analysis ────────────────────────────────────────────────────
+  if (body.type === 'pre_analysis') {
+    if (!body.analysis) return NextResponse.json({ ok: true, pre_analysis_ru: null })
+    const pre_analysis_ru = await translateCommentary(client, body.analysis)
+    await supabase.from('match_predictions').update({ pre_analysis_ru }).eq('id', body.match_id)
+    return NextResponse.json({ ok: true, pre_analysis_ru })
+  }
+
   return NextResponse.json({ error: 'Invalid type' }, { status: 400 })
 }

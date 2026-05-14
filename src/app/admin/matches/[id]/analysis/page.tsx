@@ -36,7 +36,7 @@ export default function WriteAnalysisPage({ params }: Props) {
   const [match, setMatch] = useState<MatchPrediction & { team_1?: Team; team_2?: Team } | null>(null)
   const [matchId, setMatchId] = useState('')
   const [teams, setTeams] = useState<Team[]>([])
-  const [loading, setLoading] = useState(false)
+  const [status, setStatus] = useState<'idle' | 'saving' | 'translating'>('idle')
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -53,11 +53,12 @@ export default function WriteAnalysisPage({ params }: Props) {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setLoading(true)
+    setStatus('saving')
     setError('')
 
     const form = new FormData(e.currentTarget)
     const pickValue = form.get('predicted_winner_id') as string
+    const analysis = (form.get('pre_analysis') as string | null) || null
 
     // "draw" is a special value — no predicted winner, mark as predicted_draw
     const predictedWinnerId = pickValue === 'draw' ? null : (pickValue || null)
@@ -74,7 +75,7 @@ export default function WriteAnalysisPage({ params }: Props) {
         id: matchId,
         match_date: matchDate,
         match_time: matchTime,
-        pre_analysis: form.get('pre_analysis') || null,
+        pre_analysis: analysis,
         twitch_url: form.get('twitch_url') || null,
         predicted_winner_id: predictedWinnerId,
         predicted_draw: predictedDraw,
@@ -85,8 +86,17 @@ export default function WriteAnalysisPage({ params }: Props) {
     if (!res.ok) {
       const d = await res.json()
       setError(d.error)
-      setLoading(false)
+      setStatus('idle')
       return
+    }
+
+    if (analysis) {
+      setStatus('translating')
+      await fetch('/api/admin/guides/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'pre_analysis', match_id: matchId, analysis }),
+      })
     }
 
     router.back()
@@ -174,11 +184,11 @@ export default function WriteAnalysisPage({ params }: Props) {
         <div className="flex gap-3 pt-2">
           <button
             type="submit"
-            disabled={loading}
+            disabled={status !== 'idle'}
             className="px-5 py-2 rounded font-semibold text-sm disabled:opacity-50"
             style={{ background: 'var(--accent)', color: '#fff' }}
           >
-            {loading ? 'Saving...' : 'Save Prediction'}
+            {status === 'saving' ? 'Saving...' : status === 'translating' ? 'Translating to RU...' : 'Save Prediction'}
           </button>
           <button
             type="button"
