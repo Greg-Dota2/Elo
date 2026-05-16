@@ -43,3 +43,12 @@ export async function setCachedHeroes(heroes: HeroData[]): Promise<void> {
 export async function setCachedItems(items: ItemData[]): Promise<void> {
   await writeCache('items', items)
 }
+
+export async function setCachedHeroDetail(heroId: number, detail: unknown): Promise<void> {
+  const supabase = createAdminClient()
+  await supabase.from('opendota_cache').upsert({
+    key: `hero_detail_${heroId}`,
+    data: detail,
+    fetched_at: new Date().toISOString(),
+  })
+}

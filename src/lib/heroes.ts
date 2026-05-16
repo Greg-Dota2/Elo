@@ -173,6 +173,14 @@ export function interpolateAbilityDesc(
 }
 
 export async function fetchAllHeroes(opts?: { revalidate?: number }): Promise<HeroData[]> {
+  if (!opts?.revalidate) {
+    try {
+      const { getCachedHeroes } = await import('./game-cache')
+      const cached = await getCachedHeroes()
+      if (cached && cached.length > 0) return cached
+    } catch { /* fall through */ }
+  }
+
   const res = await fetch(`${OPENDOTA_BASE}/heroes`, {
     next: { revalidate: opts?.revalidate ?? 86400 },
   })
@@ -437,6 +445,13 @@ export function resolveTalentName(
 }
 
 export async function fetchHeroDetail(heroId: number, language = 'english'): Promise<ValveHeroDetail> {
+  try {
+    const { createAdminClient } = await import('@/lib/supabase/admin')
+    const { data } = await createAdminClient()
+      .from('opendota_cache').select('data').eq('key', `hero_detail_${heroId}`).single()
+    if (data?.data) return data.data as ValveHeroDetail
+  } catch { /* fall through */ }
+
   const res = await fetch(`${VALVE_BASE}/herodata?language=${language}&hero_id=${heroId}`, {
     next: { revalidate: 86400 },
   })

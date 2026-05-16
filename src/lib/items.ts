@@ -29,6 +29,14 @@ const REMOVED_ITEMS = new Set([
 ])
 
 export async function fetchAllItems(opts?: { revalidate?: number }): Promise<ItemData[]> {
+  if (!opts?.revalidate) {
+    try {
+      const { getCachedItems } = await import('@/lib/game-cache')
+      const cached = await getCachedItems()
+      if (cached && cached.length > 0) return cached
+    } catch { /* fall through */ }
+  }
+
   const res = await fetch(`${OPENDOTA_BASE}/items`, { next: { revalidate: opts?.revalidate ?? 86400 } })
   if (!res.ok) throw new Error('Failed to fetch items')
   const raw: Record<string, {
@@ -114,6 +122,13 @@ export async function fetchComponentMap(): Promise<Map<string, { key: string; dn
 }
 
 export async function fetchItemIdMap(): Promise<Map<number, string>> {
+  try {
+    const cached = await fetchAllItems()
+    if (cached.length > 0) {
+      return new Map(cached.filter(i => i.id).map(i => [i.id, i.key]))
+    }
+  } catch { /* fall through */ }
+
   const res = await fetch(`${OPENDOTA_BASE}/item_ids`, { next: { revalidate: 86400 } })
   if (!res.ok) return new Map()
   const raw: Record<string, string> = await res.json()
