@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description,
       openGraph: { title, description, url: `/ru/teams/${slug}`, ...(team.logo_url ? { images: [{ url: team.logo_url, alt: team.name }] } : {}) },
       twitter: { card: team.logo_url ? 'summary_large_image' : 'summary', title, description, ...(team.logo_url ? { images: [team.logo_url] } : {}) },
-      alternates: { canonical: `/teams/${slug}`, languages: { 'x-default': `/teams/${slug}`, 'en': `/teams/${slug}`, 'ru': `/ru/teams/${slug}` } },
+      alternates: { canonical: `/ru/teams/${slug}`, languages: { 'x-default': `/teams/${slug}`, 'en': `/teams/${slug}`, 'ru': `/ru/teams/${slug}` } },
     }
   } catch {
     return { title: 'Команда не найдена' }

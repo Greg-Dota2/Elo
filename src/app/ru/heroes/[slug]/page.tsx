@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     return {
       title,
       description,
-      alternates: { canonical: `/heroes/${slug}`, languages: { 'x-default': `/heroes/${slug}`, 'en': `/heroes/${slug}`, 'ru': `/ru/heroes/${slug}` } },
+      alternates: { canonical: `/ru/heroes/${slug}`, languages: { 'x-default': `/heroes/${slug}`, 'en': `/heroes/${slug}`, 'ru': `/ru/heroes/${slug}` } },
       openGraph: { title, description, url: `/ru/heroes/${slug}`, images: [{ url: heroPortraitUrl(slug), alt: hero.localized_name }] },
       twitter: { card: 'summary_large_image', title, description, images: [heroPortraitUrl(slug)] },
     }
