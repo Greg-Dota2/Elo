@@ -44,12 +44,16 @@ export async function POST() {
 
   // 5. Process each match in order
   const historyRows: object[] = []
+  const teamsWithMatches = new Set<string>()
   let processed = 0
 
   for (const match of matches) {
     const { team_1_id, team_2_id, actual_winner_id, score_team_1, score_team_2 } = match
 
     if (!team_1_id || !team_2_id) continue
+
+    teamsWithMatches.add(team_1_id)
+    teamsWithMatches.add(team_2_id)
 
     const s1 = score_team_1 ?? 0
     const s2 = score_team_2 ?? 0
@@ -105,9 +109,10 @@ export async function POST() {
     await supabase.from('team_elo_history').insert(historyRows)
   }
 
-  // 7. Update current_elo on all teams
+  // 7. Update current_elo on all teams; null out teams that never played (hides them from rankings)
   for (const [teamId, elo] of eloMap) {
-    await supabase.from('teams').update({ current_elo: elo }).eq('id', teamId)
+    const value = teamsWithMatches.has(teamId) ? elo : null
+    await supabase.from('teams').update({ current_elo: value }).eq('id', teamId)
   }
 
   return NextResponse.json({ ok: true, processed, teams: eloMap.size })
