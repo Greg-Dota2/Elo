@@ -119,11 +119,11 @@ export const heroPortraitUrl = (slug: string) =>
 export const abilityIconUrl = (abilityName: string) =>
   `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/abilities/${abilityName}.png`
 
-export const ATTR_CONFIG: Record<HeroPrimaryAttr, { label: string; short: string; color: string; bg: string; border: string }> = {
-  str: { label: 'Strength', short: 'STR', color: 'text-red-400', bg: 'bg-red-400/10', border: 'border-red-400/20' },
-  agi: { label: 'Agility', short: 'AGI', color: 'text-green-400', bg: 'bg-green-400/10', border: 'border-green-400/20' },
-  int: { label: 'Intelligence', short: 'INT', color: 'text-blue-400', bg: 'bg-blue-400/10', border: 'border-blue-400/20' },
-  all: { label: 'Universal', short: 'UNI', color: 'text-purple-400', bg: 'bg-purple-400/10', border: 'border-purple-400/20' },
+export const ATTR_CONFIG: Record<HeroPrimaryAttr, { label: string; labelRu: string; short: string; color: string; bg: string; border: string }> = {
+  str: { label: 'Strength',     labelRu: 'Сила',       short: 'STR', color: 'text-red-400',    bg: 'bg-red-400/10',    border: 'border-red-400/20' },
+  agi: { label: 'Agility',      labelRu: 'Ловкость',   short: 'AGI', color: 'text-green-400',  bg: 'bg-green-400/10',  border: 'border-green-400/20' },
+  int: { label: 'Intelligence', labelRu: 'Разум',      short: 'INT', color: 'text-blue-400',   bg: 'bg-blue-400/10',   border: 'border-blue-400/20' },
+  all: { label: 'Universal',    labelRu: 'Универсал',  short: 'UNI', color: 'text-purple-400', bg: 'bg-purple-400/10', border: 'border-purple-400/20' },
 }
 
 // Behavior bitmask decoder (Dota 2 DOTA_ABILITY_BEHAVIOR flags)
@@ -445,10 +445,11 @@ export function resolveTalentName(
 }
 
 export async function fetchHeroDetail(heroId: number, language = 'english'): Promise<ValveHeroDetail> {
+  const cacheKey = language === 'english' ? `hero_detail_${heroId}` : `hero_detail_${heroId}_${language}`
   try {
     const { createAdminClient } = await import('@/lib/supabase/admin')
     const { data } = await createAdminClient()
-      .from('opendota_cache').select('data').eq('key', `hero_detail_${heroId}`).single()
+      .from('opendota_cache').select('data').eq('key', cacheKey).single()
     if (data?.data) return data.data as ValveHeroDetail
   } catch { /* fall through */ }
 

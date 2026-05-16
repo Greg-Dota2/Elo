@@ -23,18 +23,20 @@ export async function POST() {
       setCachedItems(items),
     ])
 
-    // Fetch and cache Valve hero detail (abilities, facets, talents) for every hero
+    // Fetch and cache Valve hero detail (abilities, facets, talents) in EN + RU for every hero
     let detailErrors = 0
     for (const hero of heroes) {
-      try {
-        const res = await fetch(`${VALVE_BASE}/herodata?language=english&hero_id=${hero.id}`, { cache: 'no-store' })
-        if (res.ok) {
-          const json = await res.json()
-          const detail = json.result?.data?.heroes?.[0]
-          if (detail) await setCachedHeroDetail(hero.id, detail)
-        }
-      } catch { detailErrors++ }
-      await sleep(150)
+      for (const lang of ['english', 'russian'] as const) {
+        try {
+          const res = await fetch(`${VALVE_BASE}/herodata?language=${lang}&hero_id=${hero.id}`, { cache: 'no-store' })
+          if (res.ok) {
+            const json = await res.json()
+            const detail = json.result?.data?.heroes?.[0]
+            if (detail) await setCachedHeroDetail(hero.id, detail, lang)
+          }
+        } catch { detailErrors++ }
+        await sleep(150)
+      }
     }
 
     return NextResponse.json({

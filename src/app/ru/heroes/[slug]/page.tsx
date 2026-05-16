@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     if (!hero) return { title: 'Герой не найден' }
     const cfg = ATTR_CONFIG[hero.primary_attr]
     const title = `${hero.localized_name} — Гайд и Способности | Dota 2`
-    const description = `Способности, характеристики и дерево талантов ${hero.localized_name}. ${cfg.label} герой — полный гайд для игроков Dota 2.`
+    const description = `Способности, характеристики и дерево талантов ${hero.localized_name}. ${cfg.labelRu} герой — полный гайд для игроков Dota 2.`
     return {
       title,
       description,
@@ -399,7 +399,7 @@ export default async function RuHeroPage({ params }: { params: Promise<{ slug: s
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, hsl(var(--card)) 0%, hsl(var(--card) / 0.4) 50%, transparent 100%)' }} />
           <div className="absolute bottom-0 left-0 right-0 p-6">
             <div className="flex flex-wrap items-center gap-2 mb-2">
-              <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${cfg.color} ${cfg.bg} ${cfg.border}`}>{cfg.label}</span>
+              <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${cfg.color} ${cfg.bg} ${cfg.border}`}>{cfg.labelRu}</span>
               <span className="text-xs font-semibold px-2.5 py-1 rounded-full border border-border/60 bg-card/60 text-muted-foreground">{attackTypeRu}</span>
             </div>
             <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-foreground drop-shadow-lg">{hero.localized_name}</h1>

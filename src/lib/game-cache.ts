@@ -44,10 +44,11 @@ export async function setCachedItems(items: ItemData[]): Promise<void> {
   await writeCache('items', items)
 }
 
-export async function setCachedHeroDetail(heroId: number, detail: unknown): Promise<void> {
+export async function setCachedHeroDetail(heroId: number, detail: unknown, language = 'english'): Promise<void> {
   const supabase = createAdminClient()
+  const key = language === 'english' ? `hero_detail_${heroId}` : `hero_detail_${heroId}_${language}`
   await supabase.from('opendota_cache').upsert({
-    key: `hero_detail_${heroId}`,
+    key,
     data: detail,
     fetched_at: new Date().toISOString(),
   })
