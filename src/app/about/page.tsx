@@ -20,6 +20,7 @@ export const metadata: Metadata = {
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Person',
+  '@id': 'https://www.dota2protips.com/about',
   name: 'Greg Spencer',
   url: 'https://www.dota2protips.com/about',
   image: 'https://www.dota2protips.com/Greg.jpg',

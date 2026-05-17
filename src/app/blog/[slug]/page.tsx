@@ -339,7 +339,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               image: post.cover_image_url ?? undefined,
               datePublished: post.published_at ?? post.created_at,
               dateModified: post.updated_at ?? post.published_at ?? post.created_at,
-              author: { '@type': 'Person', name: 'Greg Spencer', url: SITE_URL },
+              author: { '@type': 'Person', '@id': `${SITE_URL}/about`, name: 'Greg Spencer', url: `${SITE_URL}/about` },
               publisher: {
                 '@type': 'Organization',
                 name: 'Dota2ProTips',

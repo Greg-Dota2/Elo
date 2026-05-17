@@ -347,6 +347,15 @@ export default async function TournamentPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify([
+            {
+              '@context': 'https://schema.org',
+              '@type': 'WebPage',
+              '@id': `https://www.dota2protips.com/tournaments/${slug}`,
+              url: `https://www.dota2protips.com/tournaments/${slug}`,
+              name: `${tournament.name} — Predictions, Schedule & Teams`,
+              author: { '@type': 'Person', '@id': 'https://www.dota2protips.com/about', name: 'Greg Spencer' },
+              isPartOf: { '@id': 'https://www.dota2protips.com/#website' },
+            },
             ...(tournament.start_date ? [{
               '@context': 'https://schema.org',
               '@type': 'Event',

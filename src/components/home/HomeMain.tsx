@@ -72,10 +72,10 @@ export default async function HomeMain({ locale = 'en' }: { locale?: 'en' | 'ru'
   const now = new Date()
   const isLatestOver = latest?.end_date ? new Date(latest.end_date + 'T23:59:59Z') < now : false
 
-  const restLive     = tournaments.filter(t => tournamentStatus(t) === 'live')
-  const restUpcoming = tournaments.filter(t => tournamentStatus(t) === 'upcoming')
+  const restLive     = tournaments.filter(t => t.id !== latest?.id && tournamentStatus(t) === 'live')
+  const restUpcoming = tournaments.filter(t => t.id !== latest?.id && tournamentStatus(t) === 'upcoming')
     .sort((a, b) => (a.start_date ?? '').localeCompare(b.start_date ?? ''))
-  const restFinished = tournaments.filter(t => tournamentStatus(t) === 'finished' || tournamentStatus(t) === 'unknown')
+  const restFinished = tournaments.filter(t => t.id !== latest?.id && (tournamentStatus(t) === 'finished' || tournamentStatus(t) === 'unknown'))
     .sort((a, b) => (b.start_date ?? '').localeCompare(a.start_date ?? ''))
 
   const tier1Entry = latest

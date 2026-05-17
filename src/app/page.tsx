@@ -21,9 +21,42 @@ export const metadata: Metadata = {
   twitter: { card: 'summary', title: 'Dota 2 Pro Match Predictions & Analysis', description: 'Expert Dota 2 match predictions for every Tier 1 tournament — written before the draft, tracked publicly, with honest aftermath on every call. ~70% accuracy.' },
 }
 
+const SITE_URL = 'https://www.dota2protips.com'
+
+const homepageSchema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      '@id': `${SITE_URL}/#website`,
+      url: SITE_URL,
+      name: 'Dota2ProTips',
+      description: 'Expert Dota 2 match predictions for every Tier 1 tournament — written before the draft, tracked publicly, with honest aftermath on every call.',
+      inLanguage: ['en', 'ru'],
+      author: { '@id': `${SITE_URL}/about` },
+    },
+    {
+      '@type': 'Person',
+      '@id': `${SITE_URL}/about`,
+      name: 'Greg Spencer',
+      url: `${SITE_URL}/about`,
+      image: `${SITE_URL}/Greg.jpg`,
+      jobTitle: 'Dota 2 Analyst',
+      description: 'Greg Spencer — Dota 2 enthusiast, ex semi-pro, and the sole analyst behind every prediction and breakdown on Dota2ProTips.',
+      knowsAbout: ['Dota 2', 'Esports', 'Pro Dota 2', 'Match predictions'],
+      sameAs: [
+        'https://www.facebook.com/Dota2ProTips',
+        'https://x.com/Dota2ProTips',
+        'https://t.me/dota2protips',
+      ],
+    },
+  ],
+}
+
 export default function HomePage() {
   return (
     <div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(homepageSchema) }} />
 
       {/* ── Hero ── */}
       <section className="relative overflow-hidden pb-16 pt-20 md:pb-20 md:pt-28 mb-12">
