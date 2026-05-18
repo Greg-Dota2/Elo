@@ -33,6 +33,7 @@ export async function POST(req: Request) {
       if (error) return NextResponse.json({ error: error.message }, { status: 400 })
 
       revalidatePath('/transfers', 'layout')
+      revalidatePath('/ru/transfers', 'layout')
       if (body.is_published) submitToIndexNow(['https://www.dota2protips.com/transfers'])
       return NextResponse.json(data, { status: 201 })
     }

@@ -41,6 +41,7 @@ export async function POST(req: Request) {
     if (error) return NextResponse.json({ error: error.message }, { status: 400 })
 
     revalidatePath('/players', 'layout')
+    revalidatePath('/ru/players', 'layout')
     if (data.is_published) {
       submitToIndexNow([`https://www.dota2protips.com/players/${data.slug}`, 'https://www.dota2protips.com/players'])
     }
@@ -87,7 +88,9 @@ export async function PATCH(req: Request) {
     if (error) return NextResponse.json({ error: error.message }, { status: 400 })
 
     revalidatePath('/players', 'layout')
+    revalidatePath('/ru/players', 'layout')
     revalidatePath(`/players/${data.slug}`, 'layout')
+    revalidatePath(`/ru/players/${data.slug}`, 'layout')
     if (data.is_published) {
       submitToIndexNow([`https://www.dota2protips.com/players/${data.slug}`, 'https://www.dota2protips.com/players'])
     }
@@ -104,6 +107,7 @@ export async function DELETE(req: Request) {
     const { error } = await supabase.from('players').delete().eq('id', id)
     if (error) return NextResponse.json({ error: error.message }, { status: 400 })
     revalidatePath('/players', 'layout')
+    revalidatePath('/ru/players', 'layout')
     return NextResponse.json({ ok: true })
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 })

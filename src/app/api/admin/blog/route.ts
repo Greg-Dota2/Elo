@@ -1,5 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { submitToIndexNow } from '@/lib/indexnow'
 
 function toSlug(title: string) {
@@ -35,7 +36,11 @@ export async function POST(req: NextRequest) {
     .select('id')
     .single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  revalidatePath('/blog', 'layout')
+  revalidatePath('/ru/blog', 'layout')
   if (body.is_published) {
+    revalidatePath(`/blog/${slug}`)
+    revalidatePath(`/ru/blog/${slug}`)
     submitToIndexNow([`https://www.dota2protips.com/blog/${slug}`, 'https://www.dota2protips.com/blog'])
   }
   return NextResponse.json(data)
@@ -55,6 +60,12 @@ export async function PATCH(req: NextRequest) {
     .update({ ...fields, updated_at: new Date().toISOString() })
     .eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  revalidatePath('/blog', 'layout')
+  revalidatePath('/ru/blog', 'layout')
+  if (fields.slug) {
+    revalidatePath(`/blog/${fields.slug}`)
+    revalidatePath(`/ru/blog/${fields.slug}`)
+  }
   if (fields.is_published && fields.slug) {
     submitToIndexNow([`https://www.dota2protips.com/blog/${fields.slug}`, 'https://www.dota2protips.com/blog'])
   }

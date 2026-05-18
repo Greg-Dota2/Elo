@@ -19,6 +19,7 @@ export async function POST(req: Request) {
     const slug = hero_name ? heroSlug(hero_name) : null
     if (slug) {
       revalidatePath(`/heroes/${slug}`)
+      revalidatePath(`/ru/heroes/${slug}`)
       submitToIndexNow([`https://www.dota2protips.com/heroes/${slug}`])
     }
     return NextResponse.json({ ok: true })
