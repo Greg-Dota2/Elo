@@ -1,29 +1,29 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-export const revalidate = 300
+export const revalidate = 3600
 
 export const metadata: Metadata = {
-  title: 'ELO Рейтинг команд Dota 2 2026',
-  description: 'ELO рейтинг команд Dota 2, обновляемый после каждой серии Tier 1. Взвешен по силе соперника — актуальный снапшот того, кто реально показывает результат прямо сейчас.',
+  title: 'ELO Ð ÐµÐ¹Ñ‚Ð¸Ð½Ð³ ÐºÐ¾Ð¼Ð°Ð½Ð´ Dota 2 2026',
+  description: 'ELO Ñ€ÐµÐ¹Ñ‚Ð¸Ð½Ð³ ÐºÐ¾Ð¼Ð°Ð½Ð´ Dota 2, Ð¾Ð±Ð½Ð¾Ð²Ð»ÑÐµÐ¼Ñ‹Ð¹ Ð¿Ð¾ÑÐ»Ðµ ÐºÐ°Ð¶Ð´Ð¾Ð¹ ÑÐµÑ€Ð¸Ð¸ Tier 1. Ð’Ð·Ð²ÐµÑˆÐµÐ½ Ð¿Ð¾ ÑÐ¸Ð»Ðµ ÑÐ¾Ð¿ÐµÑ€Ð½Ð¸ÐºÐ° â€” Ð°ÐºÑ‚ÑƒÐ°Ð»ÑŒÐ½Ñ‹Ð¹ ÑÐ½Ð°Ð¿ÑˆÐ¾Ñ‚ Ñ‚Ð¾Ð³Ð¾, ÐºÑ‚Ð¾ Ñ€ÐµÐ°Ð»ÑŒÐ½Ð¾ Ð¿Ð¾ÐºÐ°Ð·Ñ‹Ð²Ð°ÐµÑ‚ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚ Ð¿Ñ€ÑÐ¼Ð¾ ÑÐµÐ¹Ñ‡Ð°Ñ.',
   alternates: { canonical: '/ru/rankings', languages: { 'x-default': '/rankings', 'en': '/rankings', 'ru': '/ru/rankings' } },
-  openGraph: { title: 'ELO Рейтинг команд Dota 2 2026', description: 'ELO рейтинг команд Dota 2, обновляемый после каждой серии Tier 1. Взвешен по силе соперника.', url: '/ru/rankings' },
-  twitter: { card: 'summary', title: 'ELO Рейтинг команд Dota 2 2026', description: 'ELO рейтинг команд Dota 2, обновляемый после каждой серии Tier 1. Взвешен по силе соперника.' },
+  openGraph: { title: 'ELO Ð ÐµÐ¹Ñ‚Ð¸Ð½Ð³ ÐºÐ¾Ð¼Ð°Ð½Ð´ Dota 2 2026', description: 'ELO Ñ€ÐµÐ¹Ñ‚Ð¸Ð½Ð³ ÐºÐ¾Ð¼Ð°Ð½Ð´ Dota 2, Ð¾Ð±Ð½Ð¾Ð²Ð»ÑÐµÐ¼Ñ‹Ð¹ Ð¿Ð¾ÑÐ»Ðµ ÐºÐ°Ð¶Ð´Ð¾Ð¹ ÑÐµÑ€Ð¸Ð¸ Tier 1. Ð’Ð·Ð²ÐµÑˆÐµÐ½ Ð¿Ð¾ ÑÐ¸Ð»Ðµ ÑÐ¾Ð¿ÐµÑ€Ð½Ð¸ÐºÐ°.', url: '/ru/rankings' },
+  twitter: { card: 'summary', title: 'ELO Ð ÐµÐ¹Ñ‚Ð¸Ð½Ð³ ÐºÐ¾Ð¼Ð°Ð½Ð´ Dota 2 2026', description: 'ELO Ñ€ÐµÐ¹Ñ‚Ð¸Ð½Ð³ ÐºÐ¾Ð¼Ð°Ð½Ð´ Dota 2, Ð¾Ð±Ð½Ð¾Ð²Ð»ÑÐµÐ¼Ñ‹Ð¹ Ð¿Ð¾ÑÐ»Ðµ ÐºÐ°Ð¶Ð´Ð¾Ð¹ ÑÐµÑ€Ð¸Ð¸ Tier 1. Ð’Ð·Ð²ÐµÑˆÐµÐ½ Ð¿Ð¾ ÑÐ¸Ð»Ðµ ÑÐ¾Ð¿ÐµÑ€Ð½Ð¸ÐºÐ°.' },
 }
 
 const REGION_RU: Record<string, string> = {
-  'Western Europe': 'Западная Европа',
-  'Eastern Europe': 'Восточная Европа',
-  'China': 'Китай',
-  'Southeast Asia': 'Юго-Восточная Азия',
-  'North America': 'Северная Америка',
-  'South America': 'Южная Америка',
-  'CIS': 'СНГ',
+  'Western Europe': 'Ð—Ð°Ð¿Ð°Ð´Ð½Ð°Ñ Ð•Ð²Ñ€Ð¾Ð¿Ð°',
+  'Eastern Europe': 'Ð’Ð¾ÑÑ‚Ð¾Ñ‡Ð½Ð°Ñ Ð•Ð²Ñ€Ð¾Ð¿Ð°',
+  'China': 'ÐšÐ¸Ñ‚Ð°Ð¹',
+  'Southeast Asia': 'Ð®Ð³Ð¾-Ð’Ð¾ÑÑ‚Ð¾Ñ‡Ð½Ð°Ñ ÐÐ·Ð¸Ñ',
+  'North America': 'Ð¡ÐµÐ²ÐµÑ€Ð½Ð°Ñ ÐÐ¼ÐµÑ€Ð¸ÐºÐ°',
+  'South America': 'Ð®Ð¶Ð½Ð°Ñ ÐÐ¼ÐµÑ€Ð¸ÐºÐ°',
+  'CIS': 'Ð¡ÐÐ“',
 }
 
-const MEDAL = ['🥇', '🥈', '🥉']
+const MEDAL = ['ðŸ¥‡', 'ðŸ¥ˆ', 'ðŸ¥‰']
 const MEDAL_COLOR = ['var(--gold)', 'var(--silver)', 'var(--bronze)']
 const MEDAL_BG = ['var(--gold-dim)', 'var(--silver-dim)', 'var(--bronze-dim)']
 const MEDAL_BORDER = ['var(--gold-border)', 'var(--silver-border)', 'var(--bronze-border)']
@@ -60,8 +60,8 @@ export default async function RuRankingsPage() {
             {
               '@context': 'https://schema.org',
               '@type': 'Dataset',
-              name: 'ELO Рейтинг команд Dota 2',
-              description: 'ELO рейтинг команд Dota 2, обновляемый после каждой серии Tier 1, взвешенный по силе соперника.',
+              name: 'ELO Ð ÐµÐ¹Ñ‚Ð¸Ð½Ð³ ÐºÐ¾Ð¼Ð°Ð½Ð´ Dota 2',
+              description: 'ELO Ñ€ÐµÐ¹Ñ‚Ð¸Ð½Ð³ ÐºÐ¾Ð¼Ð°Ð½Ð´ Dota 2, Ð¾Ð±Ð½Ð¾Ð²Ð»ÑÐµÐ¼Ñ‹Ð¹ Ð¿Ð¾ÑÐ»Ðµ ÐºÐ°Ð¶Ð´Ð¾Ð¹ ÑÐµÑ€Ð¸Ð¸ Tier 1, Ð²Ð·Ð²ÐµÑˆÐµÐ½Ð½Ñ‹Ð¹ Ð¿Ð¾ ÑÐ¸Ð»Ðµ ÑÐ¾Ð¿ÐµÑ€Ð½Ð¸ÐºÐ°.',
               url: `${SITE_URL}/ru/rankings`,
               creator: {
                 '@type': 'Organization',
@@ -73,7 +73,7 @@ export default async function RuRankingsPage() {
               '@context': 'https://schema.org',
               '@type': 'BreadcrumbList',
               itemListElement: [
-                { '@type': 'ListItem', position: 1, name: 'Рейтинг', item: `${SITE_URL}/ru/rankings` },
+                { '@type': 'ListItem', position: 1, name: 'Ð ÐµÐ¹Ñ‚Ð¸Ð½Ð³', item: `${SITE_URL}/ru/rankings` },
               ],
             },
           ]),
@@ -82,9 +82,9 @@ export default async function RuRankingsPage() {
       {/* Page header */}
       <div className="mb-8">
         <p className="section-label mb-2">Dota 2 Tier 1</p>
-        <h1 className="text-3xl font-black tracking-tight mb-1">ELO Рейтинг</h1>
+        <h1 className="text-3xl font-black tracking-tight mb-1">ELO Ð ÐµÐ¹Ñ‚Ð¸Ð½Ð³</h1>
         <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-          Обновляется после каждого результата серии
+          ÐžÐ±Ð½Ð¾Ð²Ð»ÑÐµÑ‚ÑÑ Ð¿Ð¾ÑÐ»Ðµ ÐºÐ°Ð¶Ð´Ð¾Ð³Ð¾ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚Ð° ÑÐµÑ€Ð¸Ð¸
         </p>
       </div>
 
@@ -94,29 +94,29 @@ export default async function RuRankingsPage() {
         style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}
       >
         <h2 className="font-display text-base font-black tracking-tight" style={{ color: 'var(--text)' }}>
-          Как работает рейтинг
+          ÐšÐ°Ðº Ñ€Ð°Ð±Ð¾Ñ‚Ð°ÐµÑ‚ Ñ€ÐµÐ¹Ñ‚Ð¸Ð½Ð³
         </h2>
         <p>
-          Каждая команда начинает с 1500. Всё. Никаких бонусов за репутацию, никаких исторических очков.
-          Рейтинг зарабатывается победами — и теряется поражениями.
+          ÐšÐ°Ð¶Ð´Ð°Ñ ÐºÐ¾Ð¼Ð°Ð½Ð´Ð° Ð½Ð°Ñ‡Ð¸Ð½Ð°ÐµÑ‚ Ñ 1500. Ð’ÑÑ‘. ÐÐ¸ÐºÐ°ÐºÐ¸Ñ… Ð±Ð¾Ð½ÑƒÑÐ¾Ð² Ð·Ð° Ñ€ÐµÐ¿ÑƒÑ‚Ð°Ñ†Ð¸ÑŽ, Ð½Ð¸ÐºÐ°ÐºÐ¸Ñ… Ð¸ÑÑ‚Ð¾Ñ€Ð¸Ñ‡ÐµÑÐºÐ¸Ñ… Ð¾Ñ‡ÐºÐ¾Ð².
+          Ð ÐµÐ¹Ñ‚Ð¸Ð½Ð³ Ð·Ð°Ñ€Ð°Ð±Ð°Ñ‚Ñ‹Ð²Ð°ÐµÑ‚ÑÑ Ð¿Ð¾Ð±ÐµÐ´Ð°Ð¼Ð¸ â€” Ð¸ Ñ‚ÐµÑ€ÑÐµÑ‚ÑÑ Ð¿Ð¾Ñ€Ð°Ð¶ÐµÐ½Ð¸ÑÐ¼Ð¸.
         </p>
         <p>
-          Единственное, что имеет значение — <span className="font-semibold" style={{ color: 'var(--text)' }}>кого ты обыграл</span>.
-          Победил топ-команду — получил много. Победил аутсайдера — почти ничего.
-          Проиграл — обратная история. Bo3 и Bo5 считаются одинаково — серия есть серия.
-          В зачёт идут только результаты Tier 1. Квалификации, менее значимые ивенты, шоуматчи — ничего этого здесь нет.
-          Не важно, как ты доминировал в закрытом квале.{' '}
-          <span className="font-semibold" style={{ color: 'var(--text)' }}>Покажи результат в Tier 1.</span>
+          Ð•Ð´Ð¸Ð½ÑÑ‚Ð²ÐµÐ½Ð½Ð¾Ðµ, Ñ‡Ñ‚Ð¾ Ð¸Ð¼ÐµÐµÑ‚ Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ðµ â€” <span className="font-semibold" style={{ color: 'var(--text)' }}>ÐºÐ¾Ð³Ð¾ Ñ‚Ñ‹ Ð¾Ð±Ñ‹Ð³Ñ€Ð°Ð»</span>.
+          ÐŸÐ¾Ð±ÐµÐ´Ð¸Ð» Ñ‚Ð¾Ð¿-ÐºÐ¾Ð¼Ð°Ð½Ð´Ñƒ â€” Ð¿Ð¾Ð»ÑƒÑ‡Ð¸Ð» Ð¼Ð½Ð¾Ð³Ð¾. ÐŸÐ¾Ð±ÐµÐ´Ð¸Ð» Ð°ÑƒÑ‚ÑÐ°Ð¹Ð´ÐµÑ€Ð° â€” Ð¿Ð¾Ñ‡Ñ‚Ð¸ Ð½Ð¸Ñ‡ÐµÐ³Ð¾.
+          ÐŸÑ€Ð¾Ð¸Ð³Ñ€Ð°Ð» â€” Ð¾Ð±Ñ€Ð°Ñ‚Ð½Ð°Ñ Ð¸ÑÑ‚Ð¾Ñ€Ð¸Ñ. Bo3 Ð¸ Bo5 ÑÑ‡Ð¸Ñ‚Ð°ÑŽÑ‚ÑÑ Ð¾Ð´Ð¸Ð½Ð°ÐºÐ¾Ð²Ð¾ â€” ÑÐµÑ€Ð¸Ñ ÐµÑÑ‚ÑŒ ÑÐµÑ€Ð¸Ñ.
+          Ð’ Ð·Ð°Ñ‡Ñ‘Ñ‚ Ð¸Ð´ÑƒÑ‚ Ñ‚Ð¾Ð»ÑŒÐºÐ¾ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚Ñ‹ Tier 1. ÐšÐ²Ð°Ð»Ð¸Ñ„Ð¸ÐºÐ°Ñ†Ð¸Ð¸, Ð¼ÐµÐ½ÐµÐµ Ð·Ð½Ð°Ñ‡Ð¸Ð¼Ñ‹Ðµ Ð¸Ð²ÐµÐ½Ñ‚Ñ‹, ÑˆÐ¾ÑƒÐ¼Ð°Ñ‚Ñ‡Ð¸ â€” Ð½Ð¸Ñ‡ÐµÐ³Ð¾ ÑÑ‚Ð¾Ð³Ð¾ Ð·Ð´ÐµÑÑŒ Ð½ÐµÑ‚.
+          ÐÐµ Ð²Ð°Ð¶Ð½Ð¾, ÐºÐ°Ðº Ñ‚Ñ‹ Ð´Ð¾Ð¼Ð¸Ð½Ð¸Ñ€Ð¾Ð²Ð°Ð» Ð² Ð·Ð°ÐºÑ€Ñ‹Ñ‚Ð¾Ð¼ ÐºÐ²Ð°Ð»Ðµ.{' '}
+          <span className="font-semibold" style={{ color: 'var(--text)' }}>ÐŸÐ¾ÐºÐ°Ð¶Ð¸ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚ Ð² Tier 1.</span>
         </p>
         <p>
-          На практике это означает: если ты был лучшей командой полгода назад, но последнее время проигрываешь —
-          ты упадёшь. Если от тебя ничего не ожидали, но ты побеждаешь — поднимешься.
-          Рейтинг не помнит прошлого. Он помнит только то, что ты сделал недавно.
+          ÐÐ° Ð¿Ñ€Ð°ÐºÑ‚Ð¸ÐºÐµ ÑÑ‚Ð¾ Ð¾Ð·Ð½Ð°Ñ‡Ð°ÐµÑ‚: ÐµÑÐ»Ð¸ Ñ‚Ñ‹ Ð±Ñ‹Ð» Ð»ÑƒÑ‡ÑˆÐµÐ¹ ÐºÐ¾Ð¼Ð°Ð½Ð´Ð¾Ð¹ Ð¿Ð¾Ð»Ð³Ð¾Ð´Ð° Ð½Ð°Ð·Ð°Ð´, Ð½Ð¾ Ð¿Ð¾ÑÐ»ÐµÐ´Ð½ÐµÐµ Ð²Ñ€ÐµÐ¼Ñ Ð¿Ñ€Ð¾Ð¸Ð³Ñ€Ñ‹Ð²Ð°ÐµÑˆÑŒ â€”
+          Ñ‚Ñ‹ ÑƒÐ¿Ð°Ð´Ñ‘ÑˆÑŒ. Ð•ÑÐ»Ð¸ Ð¾Ñ‚ Ñ‚ÐµÐ±Ñ Ð½Ð¸Ñ‡ÐµÐ³Ð¾ Ð½Ðµ Ð¾Ð¶Ð¸Ð´Ð°Ð»Ð¸, Ð½Ð¾ Ñ‚Ñ‹ Ð¿Ð¾Ð±ÐµÐ¶Ð´Ð°ÐµÑˆÑŒ â€” Ð¿Ð¾Ð´Ð½Ð¸Ð¼ÐµÑˆÑŒÑÑ.
+          Ð ÐµÐ¹Ñ‚Ð¸Ð½Ð³ Ð½Ðµ Ð¿Ð¾Ð¼Ð½Ð¸Ñ‚ Ð¿Ñ€Ð¾ÑˆÐ»Ð¾Ð³Ð¾. ÐžÐ½ Ð¿Ð¾Ð¼Ð½Ð¸Ñ‚ Ñ‚Ð¾Ð»ÑŒÐºÐ¾ Ñ‚Ð¾, Ñ‡Ñ‚Ð¾ Ñ‚Ñ‹ ÑÐ´ÐµÐ»Ð°Ð» Ð½ÐµÐ´Ð°Ð²Ð½Ð¾.
         </p>
         <p>
-          Число <span className="font-semibold" style={{ color: 'var(--text)' }}>+/−</span> рядом с рейтингом —
-          это движение от базового значения 1500. +225 означает, что команда заработала 225 очков выше базы.
-          −57 означает, что команда потеряла 57 от стартовой точки. Всё просто.
+          Ð§Ð¸ÑÐ»Ð¾ <span className="font-semibold" style={{ color: 'var(--text)' }}>+/âˆ’</span> Ñ€ÑÐ´Ð¾Ð¼ Ñ Ñ€ÐµÐ¹Ñ‚Ð¸Ð½Ð³Ð¾Ð¼ â€”
+          ÑÑ‚Ð¾ Ð´Ð²Ð¸Ð¶ÐµÐ½Ð¸Ðµ Ð¾Ñ‚ Ð±Ð°Ð·Ð¾Ð²Ð¾Ð³Ð¾ Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ñ 1500. +225 Ð¾Ð·Ð½Ð°Ñ‡Ð°ÐµÑ‚, Ñ‡Ñ‚Ð¾ ÐºÐ¾Ð¼Ð°Ð½Ð´Ð° Ð·Ð°Ñ€Ð°Ð±Ð¾Ñ‚Ð°Ð»Ð° 225 Ð¾Ñ‡ÐºÐ¾Ð² Ð²Ñ‹ÑˆÐµ Ð±Ð°Ð·Ñ‹.
+          âˆ’57 Ð¾Ð·Ð½Ð°Ñ‡Ð°ÐµÑ‚, Ñ‡Ñ‚Ð¾ ÐºÐ¾Ð¼Ð°Ð½Ð´Ð° Ð¿Ð¾Ñ‚ÐµÑ€ÑÐ»Ð° 57 Ð¾Ñ‚ ÑÑ‚Ð°Ñ€Ñ‚Ð¾Ð²Ð¾Ð¹ Ñ‚Ð¾Ñ‡ÐºÐ¸. Ð’ÑÑ‘ Ð¿Ñ€Ð¾ÑÑ‚Ð¾.
         </p>
       </div>
 
@@ -125,15 +125,15 @@ export default async function RuRankingsPage() {
           className="rounded-2xl p-10 text-center"
           style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
         >
-          <p className="text-4xl mb-3">📊</p>
-          <p className="font-semibold mb-1">ELO данных пока нет</p>
+          <p className="text-4xl mb-3">ðŸ“Š</p>
+          <p className="font-semibold mb-1">ELO Ð´Ð°Ð½Ð½Ñ‹Ñ… Ð¿Ð¾ÐºÐ° Ð½ÐµÑ‚</p>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            Импортируйте турнир и пересчитайте рейтинг.
+            Ð˜Ð¼Ð¿Ð¾Ñ€Ñ‚Ð¸Ñ€ÑƒÐ¹Ñ‚Ðµ Ñ‚ÑƒÑ€Ð½Ð¸Ñ€ Ð¸ Ð¿ÐµÑ€ÐµÑÑ‡Ð¸Ñ‚Ð°Ð¹Ñ‚Ðµ Ñ€ÐµÐ¹Ñ‚Ð¸Ð½Ð³.
           </p>
         </div>
       ) : (
         <>
-          {/* ── Top 3 podium ── */}
+          {/* â”€â”€ Top 3 podium â”€â”€ */}
           {teams.length >= 1 && (
             <div className="grid gap-3 md:grid-cols-3 mb-6">
               {teams.slice(0, Math.min(3, teams.length)).map((team, i) => {
@@ -202,7 +202,7 @@ export default async function RuRankingsPage() {
                           {elo}
                         </div>
                         <div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-                          ELO рейтинг
+                          ELO Ñ€ÐµÐ¹Ñ‚Ð¸Ð½Ð³
                         </div>
                       </div>
                       <span
@@ -218,7 +218,7 @@ export default async function RuRankingsPage() {
             </div>
           )}
 
-          {/* ── Rest of rankings ── */}
+          {/* â”€â”€ Rest of rankings â”€â”€ */}
           {teams.length > 3 && (
             <div
               className="rounded-2xl overflow-hidden"
@@ -299,7 +299,7 @@ export default async function RuRankingsPage() {
       {inactiveTeams && inactiveTeams.length > 0 && (
         <div className="mt-10">
           <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: 'var(--text-muted)', opacity: 0.5 }}>
-            Расформированы / Неактивны
+            Ð Ð°ÑÑ„Ð¾Ñ€Ð¼Ð¸Ñ€Ð¾Ð²Ð°Ð½Ñ‹ / ÐÐµÐ°ÐºÑ‚Ð¸Ð²Ð½Ñ‹
           </p>
           <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid var(--border)', opacity: 0.5 }}>
             {inactiveTeams.map((team, idx) => (
@@ -328,7 +328,7 @@ export default async function RuRankingsPage() {
                   )}
                 </div>
                 <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: 'var(--surface-3)', color: 'var(--text-muted)' }}>
-                  Расформирована
+                  Ð Ð°ÑÑ„Ð¾Ñ€Ð¼Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð°
                 </span>
               </Link>
             ))}

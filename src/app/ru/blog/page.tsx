@@ -1,14 +1,14 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-export const revalidate = 300
+export const revalidate = 86400
 
 const SITE_URL = 'https://www.dota2protips.com'
 
 export const metadata: Metadata = {
-  title: 'Аналитика Dota 2 — Блог | Dota2ProTips',
-  description: 'Разборы матчей, аналитика меты и обзоры турниров от человека, который смотрит каждую игру. Честная аналитика Dota 2 от Грега.',
+  title: 'ÐÐ½Ð°Ð»Ð¸Ñ‚Ð¸ÐºÐ° Dota 2 â€” Ð‘Ð»Ð¾Ð³ | Dota2ProTips',
+  description: 'Ð Ð°Ð·Ð±Ð¾Ñ€Ñ‹ Ð¼Ð°Ñ‚Ñ‡ÐµÐ¹, Ð°Ð½Ð°Ð»Ð¸Ñ‚Ð¸ÐºÐ° Ð¼ÐµÑ‚Ñ‹ Ð¸ Ð¾Ð±Ð·Ð¾Ñ€Ñ‹ Ñ‚ÑƒÑ€Ð½Ð¸Ñ€Ð¾Ð² Ð¾Ñ‚ Ñ‡ÐµÐ»Ð¾Ð²ÐµÐºÐ°, ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ð¹ ÑÐ¼Ð¾Ñ‚Ñ€Ð¸Ñ‚ ÐºÐ°Ð¶Ð´ÑƒÑŽ Ð¸Ð³Ñ€Ñƒ. Ð§ÐµÑÑ‚Ð½Ð°Ñ Ð°Ð½Ð°Ð»Ð¸Ñ‚Ð¸ÐºÐ° Dota 2 Ð¾Ñ‚ Ð“Ñ€ÐµÐ³Ð°.',
   alternates: {
     canonical: `${SITE_URL}/ru/blog`,
     languages: {
@@ -18,8 +18,8 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: 'Аналитика Dota 2 — Блог',
-    description: 'Разборы матчей, аналитика меты и обзоры турниров от человека, который смотрит каждую игру.',
+    title: 'ÐÐ½Ð°Ð»Ð¸Ñ‚Ð¸ÐºÐ° Dota 2 â€” Ð‘Ð»Ð¾Ð³',
+    description: 'Ð Ð°Ð·Ð±Ð¾Ñ€Ñ‹ Ð¼Ð°Ñ‚Ñ‡ÐµÐ¹, Ð°Ð½Ð°Ð»Ð¸Ñ‚Ð¸ÐºÐ° Ð¼ÐµÑ‚Ñ‹ Ð¸ Ð¾Ð±Ð·Ð¾Ñ€Ñ‹ Ñ‚ÑƒÑ€Ð½Ð¸Ñ€Ð¾Ð² Ð¾Ñ‚ Ñ‡ÐµÐ»Ð¾Ð²ÐµÐºÐ°, ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ð¹ ÑÐ¼Ð¾Ñ‚Ñ€Ð¸Ñ‚ ÐºÐ°Ð¶Ð´ÑƒÑŽ Ð¸Ð³Ñ€Ñƒ.',
     url: `${SITE_URL}/ru/blog`,
   },
 }
@@ -38,10 +38,10 @@ export default async function RuBlogPage() {
 
       <div className="flex items-start justify-between mb-6 gap-4">
         <div>
-          <p className="section-label mb-3">Статьи</p>
-          <h1 className="font-display text-4xl font-black tracking-tight mb-2">Блог</h1>
+          <p className="section-label mb-3">Ð¡Ñ‚Ð°Ñ‚ÑŒÐ¸</p>
+          <h1 className="font-display text-4xl font-black tracking-tight mb-2">Ð‘Ð»Ð¾Ð³</h1>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            Аналитика Dota 2, разборы турниров и мысли о мете.
+            ÐÐ½Ð°Ð»Ð¸Ñ‚Ð¸ÐºÐ° Dota 2, Ñ€Ð°Ð·Ð±Ð¾Ñ€Ñ‹ Ñ‚ÑƒÑ€Ð½Ð¸Ñ€Ð¾Ð² Ð¸ Ð¼Ñ‹ÑÐ»Ð¸ Ð¾ Ð¼ÐµÑ‚Ðµ.
           </p>
         </div>
         <Link
@@ -49,13 +49,13 @@ export default async function RuBlogPage() {
           className="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all hover:opacity-90 mt-1"
           style={{ background: 'hsl(var(--primary) / 0.12)', border: '1px solid hsl(var(--primary) / 0.3)', color: 'hsl(var(--primary))' }}
         >
-          <span>🇬🇧</span>
+          <span>ðŸ‡¬ðŸ‡§</span>
           <span>English</span>
         </Link>
       </div>
 
       {!posts || posts.length === 0 ? (
-        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Статей пока нет — заходите позже.</p>
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Ð¡Ñ‚Ð°Ñ‚ÐµÐ¹ Ð¿Ð¾ÐºÐ° Ð½ÐµÑ‚ â€” Ð·Ð°Ñ…Ð¾Ð´Ð¸Ñ‚Ðµ Ð¿Ð¾Ð·Ð¶Ðµ.</p>
       ) : (
         <div className="flex flex-col gap-6">
           {posts.map(post => {
@@ -109,7 +109,7 @@ export default async function RuBlogPage() {
                       <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>Greg Spencer</span>
                     </div>
                     <p className="text-xs font-semibold" style={{ color: 'hsl(var(--primary))' }}>
-                      Читать →
+                      Ð§Ð¸Ñ‚Ð°Ñ‚ÑŒ â†’
                     </p>
                   </div>
                 </div>

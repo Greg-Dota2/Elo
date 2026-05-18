@@ -109,7 +109,7 @@ export async function fetchSubTournamentsForSerie(serieId: number): Promise<Arra
   url.searchParams.set('token', TOKEN)
   url.searchParams.set('filter[serie_id]', String(serieId))
   url.searchParams.set('per_page', '20')
-  const res = await fetch(url.toString(), { cache: 'no-store' })
+  const res = await fetch(url.toString(), { next: { revalidate: 3600 } })
   if (!res.ok) return []
   return res.json()
 }
@@ -143,7 +143,7 @@ export async function fetchGamesForMatch(psMatchId: number): Promise<PSGame[]> {
   return res.json()
 }
 
-export async function fetchRecentTier1Matches(perPage = 50): Promise<PSMatch[]> {
+export async function fetchRecentTier1Matches(perPage = 50, noCache = false): Promise<PSMatch[]> {
   const url = new URL(`${BASE}/dota2/matches`)
   url.searchParams.set('token', TOKEN)
   url.searchParams.set('per_page', String(perPage))
@@ -151,7 +151,7 @@ export async function fetchRecentTier1Matches(perPage = 50): Promise<PSMatch[]> 
   url.searchParams.set('filter[status]', 'finished')
   url.searchParams.set('sort', '-begin_at')
 
-  const res = await fetch(url.toString(), { cache: 'no-store' })
+  const res = await fetch(url.toString(), noCache ? { cache: 'no-store' } : { next: { revalidate: 300 } })
   if (!res.ok) throw new Error(`PandaScore error ${res.status}: ${await res.text()}`)
   return res.json()
 }

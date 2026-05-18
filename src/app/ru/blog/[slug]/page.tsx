@@ -23,7 +23,7 @@ function autoLink(content: string, entities: Array<{ name: string; url: string }
   return content
 }
 
-export const revalidate = 300
+export const revalidate = 86400
 
 const SITE_URL = 'https://www.dota2protips.com'
 

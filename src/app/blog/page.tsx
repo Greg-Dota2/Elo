@@ -1,22 +1,22 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import BlogListClient from './BlogListClient'
 
-export const revalidate = 300
+export const revalidate = 86400
 
 export const metadata: Metadata = {
   title: 'Dota 2 Analysis & Tournament Breakdowns',
-  description: 'Match breakdowns, meta analysis, and tournament recaps from someone who watches every single game. No generic takes — just honest Dota 2 writing from Greg at Dota2ProTips.',
+  description: 'Match breakdowns, meta analysis, and tournament recaps from someone who watches every single game. No generic takes â€” just honest Dota 2 writing from Greg at Dota2ProTips.',
   keywords: ['Dota 2 analysis', 'Dota 2 blog', 'Dota 2 tournament breakdown', 'Dota 2 meta', 'pro Dota 2 predictions'],
   openGraph: {
     title: 'Dota 2 Analysis & Tournament Breakdowns',
-    description: 'Match breakdowns, meta analysis, and tournament recaps from someone who watches every single game. No generic takes — just honest Dota 2 writing from Greg at Dota2ProTips.',
+    description: 'Match breakdowns, meta analysis, and tournament recaps from someone who watches every single game. No generic takes â€” just honest Dota 2 writing from Greg at Dota2ProTips.',
     url: '/blog',
   },
   twitter: {
     card: 'summary',
     title: 'Dota 2 Analysis & Tournament Breakdowns',
-    description: 'Match breakdowns, meta analysis, and tournament recaps from someone who watches every single game. No generic takes — just honest Dota 2 writing from Greg.',
+    description: 'Match breakdowns, meta analysis, and tournament recaps from someone who watches every single game. No generic takes â€” just honest Dota 2 writing from Greg.',
   },
   alternates: {
     canonical: 'https://www.dota2protips.com/blog',

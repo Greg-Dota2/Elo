@@ -1,19 +1,19 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { getTransfers, getAllTeams } from '@/lib/queries'
 import type { Transfer } from '@/lib/types'
 
-export const revalidate = 300
+export const revalidate = 86400
 
 export const metadata: Metadata = {
   title: 'Dota 2 Roster Moves & Player Transfers',
-  description: 'The latest Dota 2 roster changes and player transfers — tracked as they happen. Who\'s joining, who\'s leaving, and what it means for the teams heading into the next tournament.',
+  description: 'The latest Dota 2 roster changes and player transfers â€” tracked as they happen. Who\'s joining, who\'s leaving, and what it means for the teams heading into the next tournament.',
   keywords: ['Dota 2 transfers', 'Dota 2 roster changes', 'Dota 2 signings', 'pro Dota 2 roster', 'Dota 2 free agents'],
   alternates: { canonical: '/transfers', languages: { 'x-default': '/transfers', 'en': '/transfers', 'ru': '/ru/transfers' } },
   openGraph: {
     title: 'Dota 2 Roster Moves & Player Transfers',
-    description: 'The latest Dota 2 roster changes and player transfers — tracked as they happen.',
+    description: 'The latest Dota 2 roster changes and player transfers â€” tracked as they happen.',
     url: '/transfers',
   },
 }
@@ -47,7 +47,7 @@ function TeamChip({ name, logo, slug, fallback }: {
   if (!name) {
     return (
       <span className="flex items-center gap-1.5">
-        <span className="text-sm italic font-medium" style={{ color: 'var(--text-muted)' }}>{fallback ?? '—'}</span>
+        <span className="text-sm italic font-medium" style={{ color: 'var(--text-muted)' }}>{fallback ?? 'â€”'}</span>
       </span>
     )
   }
@@ -84,7 +84,7 @@ function TransferRow({ t, teamMap, hideNotes = false }: { t: Transfer; teamMap: 
   return (
     <div className="px-5 py-4" style={{ borderBottom: '1px solid hsl(var(--border) / 0.5)' }}>
 
-      {/* Player row — always visible */}
+      {/* Player row â€” always visible */}
       <div className="flex items-center justify-between gap-3 mb-2">
         <div className="flex items-center gap-3 min-w-0">
           {t.player_photo_url ? (
@@ -112,7 +112,7 @@ function TransferRow({ t, teamMap, hideNotes = false }: { t: Transfer; teamMap: 
         </div>
       </div>
 
-      {/* Teams row — centered */}
+      {/* Teams row â€” centered */}
       <div className="flex items-center justify-center gap-2 mt-2">
         <TeamChip name={t.from_team} logo={t.from_team_logo_url} slug={fromSlug} fallback="Unknown" />
         <svg width="16" height="10" viewBox="0 0 20 12" fill="none" className="shrink-0" style={{ color: 'var(--text-muted)' }}>
@@ -177,19 +177,19 @@ export default async function TransfersPage() {
   return (
     <div className="max-w-3xl mx-auto">
 
-      {/* Header — centered */}
+      {/* Header â€” centered */}
       <div className="text-center mb-12">
         <p className="section-label mb-3">Roster moves</p>
         <h1 className="font-display text-4xl font-black tracking-tight mb-4">Transfer News</h1>
         <p className="text-base leading-7 max-w-xl mx-auto" style={{ color: 'var(--text-muted)' }}>
-          Every notable roster move in the Dota 2 pro scene — signings, releases, loans, and retirements.
+          Every notable roster move in the Dota 2 pro scene â€” signings, releases, loans, and retirements.
           Updated as moves are announced.
         </p>
       </div>
 
       {transfers.length === 0 ? (
         <div className="rounded-2xl p-10 text-center" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-          <p className="text-4xl mb-3">🔄</p>
+          <p className="text-4xl mb-3">ðŸ”„</p>
           <p className="font-semibold mb-1">No transfers yet</p>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Check back when the next roster shuffle hits.</p>
         </div>
@@ -211,7 +211,7 @@ export default async function TransfersPage() {
                       </div>
                     )
                   }
-                  // Bulk batch — each player as a normal row, shared note once at bottom
+                  // Bulk batch â€” each player as a normal row, shared note once at bottom
                   return (
                     <div key={`batch-${bi}`} style={borderStyle}>
                       {batch.transfers.map(t => (

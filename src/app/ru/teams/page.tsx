@@ -1,16 +1,16 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { createAdminClient } from '@/lib/supabase/admin'
 import TeamsClient from '@/components/TeamsClient'
 
-export const revalidate = 300
+export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: 'Команды Dota 2 — Профили и результаты',
-  description: 'Профили, составы, рейтинги ELO и результаты турниров всех отслеживаемых команд Dota 2 Tier 1.',
+  title: 'ÐšÐ¾Ð¼Ð°Ð½Ð´Ñ‹ Dota 2 â€” ÐŸÑ€Ð¾Ñ„Ð¸Ð»Ð¸ Ð¸ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚Ñ‹',
+  description: 'ÐŸÑ€Ð¾Ñ„Ð¸Ð»Ð¸, ÑÐ¾ÑÑ‚Ð°Ð²Ñ‹, Ñ€ÐµÐ¹Ñ‚Ð¸Ð½Ð³Ð¸ ELO Ð¸ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚Ñ‹ Ñ‚ÑƒÑ€Ð½Ð¸Ñ€Ð¾Ð² Ð²ÑÐµÑ… Ð¾Ñ‚ÑÐ»ÐµÐ¶Ð¸Ð²Ð°ÐµÐ¼Ñ‹Ñ… ÐºÐ¾Ð¼Ð°Ð½Ð´ Dota 2 Tier 1.',
   alternates: { canonical: '/ru/teams', languages: { 'x-default': '/teams', 'en': '/teams', 'ru': '/ru/teams' } },
-  openGraph: { title: 'Команды Dota 2 — Профили и результаты', description: 'Профили, составы, рейтинги ELO и результаты турниров всех отслеживаемых команд Dota 2 Tier 1.', url: '/ru/teams' },
-  twitter: { card: 'summary', title: 'Команды Dota 2 — Профили и результаты', description: 'Профили, составы, рейтинги ELO и результаты турниров всех отслеживаемых команд Dota 2 Tier 1.' },
+  openGraph: { title: 'ÐšÐ¾Ð¼Ð°Ð½Ð´Ñ‹ Dota 2 â€” ÐŸÑ€Ð¾Ñ„Ð¸Ð»Ð¸ Ð¸ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚Ñ‹', description: 'ÐŸÑ€Ð¾Ñ„Ð¸Ð»Ð¸, ÑÐ¾ÑÑ‚Ð°Ð²Ñ‹, Ñ€ÐµÐ¹Ñ‚Ð¸Ð½Ð³Ð¸ ELO Ð¸ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚Ñ‹ Ñ‚ÑƒÑ€Ð½Ð¸Ñ€Ð¾Ð² Ð²ÑÐµÑ… Ð¾Ñ‚ÑÐ»ÐµÐ¶Ð¸Ð²Ð°ÐµÐ¼Ñ‹Ñ… ÐºÐ¾Ð¼Ð°Ð½Ð´ Dota 2 Tier 1.', url: '/ru/teams' },
+  twitter: { card: 'summary', title: 'ÐšÐ¾Ð¼Ð°Ð½Ð´Ñ‹ Dota 2 â€” ÐŸÑ€Ð¾Ñ„Ð¸Ð»Ð¸ Ð¸ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚Ñ‹', description: 'ÐŸÑ€Ð¾Ñ„Ð¸Ð»Ð¸, ÑÐ¾ÑÑ‚Ð°Ð²Ñ‹, Ñ€ÐµÐ¹Ñ‚Ð¸Ð½Ð³Ð¸ ELO Ð¸ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚Ñ‹ Ñ‚ÑƒÑ€Ð½Ð¸Ñ€Ð¾Ð² Ð²ÑÐµÑ… Ð¾Ñ‚ÑÐ»ÐµÐ¶Ð¸Ð²Ð°ÐµÐ¼Ñ‹Ñ… ÐºÐ¾Ð¼Ð°Ð½Ð´ Dota 2 Tier 1.' },
 }
 
 export default async function RuTeamsPage() {
@@ -54,17 +54,17 @@ export default async function RuTeamsPage() {
   return (
     <div className="fade-in-up">
       <div className="mb-6">
-        <p className="section-label mb-2">Сцена Tier 1</p>
-        <h1 className="text-3xl font-black tracking-tight mb-3">Команды Dota 2</h1>
+        <p className="section-label mb-2">Ð¡Ñ†ÐµÐ½Ð° Tier 1</p>
+        <h1 className="text-3xl font-black tracking-tight mb-3">ÐšÐ¾Ð¼Ð°Ð½Ð´Ñ‹ Dota 2</h1>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Все команды Tier 1, ранжированные по ELO — обновляется после каждой серии. Нажмите на команду чтобы увидеть полный профиль: состав, историю турниров и статистику.
+          Ð’ÑÐµ ÐºÐ¾Ð¼Ð°Ð½Ð´Ñ‹ Tier 1, Ñ€Ð°Ð½Ð¶Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð½Ñ‹Ðµ Ð¿Ð¾ ELO â€” Ð¾Ð±Ð½Ð¾Ð²Ð»ÑÐµÑ‚ÑÑ Ð¿Ð¾ÑÐ»Ðµ ÐºÐ°Ð¶Ð´Ð¾Ð¹ ÑÐµÑ€Ð¸Ð¸. ÐÐ°Ð¶Ð¼Ð¸Ñ‚Ðµ Ð½Ð° ÐºÐ¾Ð¼Ð°Ð½Ð´Ñƒ Ñ‡Ñ‚Ð¾Ð±Ñ‹ ÑƒÐ²Ð¸Ð´ÐµÑ‚ÑŒ Ð¿Ð¾Ð»Ð½Ñ‹Ð¹ Ð¿Ñ€Ð¾Ñ„Ð¸Ð»ÑŒ: ÑÐ¾ÑÑ‚Ð°Ð², Ð¸ÑÑ‚Ð¾Ñ€Ð¸ÑŽ Ñ‚ÑƒÑ€Ð½Ð¸Ñ€Ð¾Ð² Ð¸ ÑÑ‚Ð°Ñ‚Ð¸ÑÑ‚Ð¸ÐºÑƒ.
         </p>
       </div>
 
       {!teams?.length ? (
         <div className="rounded-2xl p-10 text-center border border-border/60 bg-card/60">
-          <p className="font-semibold mb-1">Команды не добавлены</p>
-          <p className="text-sm text-muted-foreground">Добавьте команды через панель администратора.</p>
+          <p className="font-semibold mb-1">ÐšÐ¾Ð¼Ð°Ð½Ð´Ñ‹ Ð½Ðµ Ð´Ð¾Ð±Ð°Ð²Ð»ÐµÐ½Ñ‹</p>
+          <p className="text-sm text-muted-foreground">Ð”Ð¾Ð±Ð°Ð²ÑŒÑ‚Ðµ ÐºÐ¾Ð¼Ð°Ð½Ð´Ñ‹ Ñ‡ÐµÑ€ÐµÐ· Ð¿Ð°Ð½ÐµÐ»ÑŒ Ð°Ð´Ð¼Ð¸Ð½Ð¸ÑÑ‚Ñ€Ð°Ñ‚Ð¾Ñ€Ð°.</p>
         </div>
       ) : (
         <Suspense>

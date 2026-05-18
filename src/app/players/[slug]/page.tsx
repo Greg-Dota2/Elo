@@ -10,7 +10,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { fetchUpcomingTier1Matches, fetchRunningTier1Matches, type PSMatch } from '@/lib/pandascore'
 import { TIER1_TOURNAMENTS } from '@/lib/tier1tournaments'
 
-export const revalidate = 300
+export const revalidate = 3600
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
