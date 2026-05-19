@@ -1,4 +1,4 @@
-﻿import type { Metadata } from 'next'
+import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { createAdminClient } from '@/lib/supabase/admin'
 import TeamsClient from '@/components/TeamsClient'
@@ -6,12 +6,12 @@ import TeamsClient from '@/components/TeamsClient'
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: 'Dota 2 Pro Teams â€” Profiles & Results',
+  title: 'Dota 2 Pro Teams — Profiles & Results',
   description: 'Profiles, rosters, ELO ratings, and tournament results for every tracked Dota 2 pro team. Find out who\'s hot, who\'s struggling, and who I\'m picking in the next series.',
   keywords: ['Dota 2 teams', 'pro Dota 2 teams', 'Dota 2 team ELO', 'Dota 2 rosters', 'Team Spirit', 'Team Liquid', 'Gaimin Gladiators', 'Tundra Esports'],
   alternates: { canonical: '/teams', languages: { 'x-default': '/teams', 'en': '/teams', 'ru': '/ru/teams' } },
-  openGraph: { title: 'Dota 2 Pro Teams â€” Profiles & Results', description: 'Profiles, rosters, ELO ratings, and tournament results for every tracked Dota 2 pro team.', url: '/teams' },
-  twitter: { card: 'summary', title: 'Dota 2 Pro Teams â€” Profiles & Results', description: 'Profiles, rosters, ELO ratings, and tournament results for every tracked Dota 2 pro team.' },
+  openGraph: { title: 'Dota 2 Pro Teams — Profiles & Results', description: 'Profiles, rosters, ELO ratings, and tournament results for every tracked Dota 2 pro team.', url: '/teams' },
+  twitter: { card: 'summary', title: 'Dota 2 Pro Teams — Profiles & Results', description: 'Profiles, rosters, ELO ratings, and tournament results for every tracked Dota 2 pro team.' },
 }
 
 export default async function TeamsPage() {
@@ -60,8 +60,8 @@ export default async function TeamsPage() {
           __html: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'CollectionPage',
-            name: 'Dota 2 Teams â€” Profiles & ELO Ratings',
-            description: 'Profiles for pro Dota 2 teams â€” ELO ratings, rosters, region, and prediction accuracy.',
+            name: 'Dota 2 Teams — Profiles & ELO Ratings',
+            description: 'Profiles for pro Dota 2 teams — ELO ratings, rosters, region, and prediction accuracy.',
             url: 'https://www.dota2protips.com/teams',
             mainEntity: {
               '@type': 'ItemList',
@@ -81,7 +81,7 @@ export default async function TeamsPage() {
         <p className="section-label mb-2">Tier 1 Scene</p>
         <h1 className="text-3xl font-black tracking-tight mb-3">Dota 2 Teams</h1>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Every Tier 1 team ranked by ELO â€” updated after each tracked series. Click any team for their full
+          Every Tier 1 team ranked by ELO — updated after each tracked series. Click any team for their full
           profile: roster, tournament history, head-to-head record, and my prediction track record against them.
         </p>
       </div>

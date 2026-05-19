@@ -1,4 +1,4 @@
-﻿import type { Metadata } from 'next'
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -7,14 +7,14 @@ export const revalidate = 3600
 
 export const metadata: Metadata = {
   title: 'Dota 2 ELO Team Rankings 2026',
-  description: 'Dota 2 ELO team rankings updated after every Tier 1 series. Weighted by opponent strength â€” a live snapshot of which teams are actually performing right now, not six months ago.',
+  description: 'Dota 2 ELO team rankings updated after every Tier 1 series. Weighted by opponent strength — a live snapshot of which teams are actually performing right now, not six months ago.',
   keywords: ['Dota 2 ELO rankings', 'Dota 2 power rankings', 'best Dota 2 teams', 'Dota 2 team ratings', 'Dota 2 standings'],
   alternates: { canonical: '/rankings', languages: { 'x-default': '/rankings', 'en': '/rankings', 'ru': '/ru/rankings' } },
-  openGraph: { title: 'Dota 2 ELO Team Rankings 2026', description: 'Dota 2 ELO team rankings updated after every Tier 1 series. Weighted by opponent strength â€” a live snapshot of which teams are actually performing right now.', url: '/rankings' },
+  openGraph: { title: 'Dota 2 ELO Team Rankings 2026', description: 'Dota 2 ELO team rankings updated after every Tier 1 series. Weighted by opponent strength — a live snapshot of which teams are actually performing right now.', url: '/rankings' },
   twitter: { card: 'summary', title: 'Dota 2 ELO Team Rankings 2026', description: 'Dota 2 ELO team rankings updated after every Tier 1 series. Weighted by opponent strength.' },
 }
 
-const MEDAL = ['ðŸ¥‡', 'ðŸ¥ˆ', 'ðŸ¥‰']
+const MEDAL = ['🥇', '🥈', '🥉']
 const MEDAL_COLOR = ['var(--gold)', 'var(--silver)', 'var(--bronze)']
 const MEDAL_BG = ['var(--gold-dim)', 'var(--silver-dim)', 'var(--bronze-dim)']
 const MEDAL_BORDER = ['var(--gold-border)', 'var(--silver-border)', 'var(--bronze-border)']
@@ -89,13 +89,13 @@ export default async function RankingsPage() {
         </h2>
         <p>
           Every team starts at 1500. That&apos;s it. No reputation bonus, no legacy points, nothing.
-          You earn your rating by winning â€” and losing it by losing.
+          You earn your rating by winning — and losing it by losing.
         </p>
         <p>
           The only thing that matters is <span className="font-semibold" style={{ color: 'var(--text)' }}>who you beat</span>.
           Beat a top-ranked team and you gain a lot. Beat a bottom-ranked team and you gain almost nothing.
-          Lose to anyone and the opposite happens. A Bo3 and a Bo5 count the same â€” a series is a series.
-          And only Tier 1 results count. Qualifiers, lower-tier events, showmatches â€” none of that is in here.
+          Lose to anyone and the opposite happens. A Bo3 and a Bo5 count the same — a series is a series.
+          And only Tier 1 results count. Qualifiers, lower-tier events, showmatches — none of that is in here.
           I don&apos;t care how dominant you looked in a closed qualifier.{' '}
           <span className="font-semibold" style={{ color: 'var(--text)' }}>Show me a Tier 1 result.</span>
         </p>
@@ -105,8 +105,8 @@ export default async function RankingsPage() {
           climb. The rating doesn&apos;t care about your history. It only cares about what you&apos;ve done recently.
         </p>
         <p>
-          The <span className="font-semibold" style={{ color: 'var(--text)' }}>+/âˆ’ number</span> next to each rating
-          is the movement from that 1500 base. +225 means Tundra has earned 225 points above baseline. âˆ’57 means
+          The <span className="font-semibold" style={{ color: 'var(--text)' }}>+/− number</span> next to each rating
+          is the movement from that 1500 base. +225 means Tundra has earned 225 points above baseline. −57 means
           REKONIX has lost 57 from where they started. Simple as that.
         </p>
       </div>
@@ -116,7 +116,7 @@ export default async function RankingsPage() {
           className="rounded-2xl p-10 text-center"
           style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
         >
-          <p className="text-4xl mb-3">ðŸ“Š</p>
+          <p className="text-4xl mb-3">📊</p>
           <p className="font-semibold mb-1">No ELO data yet</p>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
             Import a tournament and recalculate to generate ratings.
@@ -124,7 +124,7 @@ export default async function RankingsPage() {
         </div>
       ) : (
         <>
-          {/* â”€â”€ Top 3 podium â”€â”€ */}
+          {/* ── Top 3 podium ── */}
           {teams.length >= 1 && (
             <div className="grid gap-3 md:grid-cols-3 mb-6">
               {teams.slice(0, Math.min(3, teams.length)).map((team, i) => {
@@ -212,7 +212,7 @@ export default async function RankingsPage() {
             </div>
           )}
 
-          {/* â”€â”€ Rest of rankings â”€â”€ */}
+          {/* ── Rest of rankings ── */}
           {teams.length > 3 && (
             <div
               className="rounded-2xl overflow-hidden"
