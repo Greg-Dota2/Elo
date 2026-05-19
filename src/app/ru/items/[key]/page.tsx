@@ -305,7 +305,7 @@ export default async function RuItemPage({ params }: Props) {
             <div className="space-y-6">
               {guideLang.why_buy && (
                 <div>
-                  <p className="text-sm font-bold text-foreground mb-3">Зачем покупать {item.dname}?</p>
+                  <p className="text-sm font-bold text-foreground mb-3">{item.category === 'neutral' ? `Зачем брать ${item.dname}?` : `Зачем покупать ${item.dname}?`}</p>
                   <div className="space-y-3">
                     {splitGuideText(guideLang.why_buy).map((para, i) => (
                       <p key={i} className="text-sm text-muted-foreground leading-7">{linkEntities(para, linkBudget, linkedEntities)}</p>
@@ -315,7 +315,7 @@ export default async function RuItemPage({ params }: Props) {
               )}
               {guideLang.when_to_buy && (
                 <div>
-                  <p className="text-sm font-bold text-foreground mb-3">Когда покупать {item.dname}?</p>
+                  <p className="text-sm font-bold text-foreground mb-3">{item.category === 'neutral' ? `Когда брать ${item.dname}?` : `Когда покупать ${item.dname}?`}</p>
                   <div className="space-y-3">
                     {splitGuideText(guideLang.when_to_buy).map((para, i) => (
                       <p key={i} className="text-sm text-muted-foreground leading-7">{linkEntities(para, linkBudget, linkedEntities)}</p>

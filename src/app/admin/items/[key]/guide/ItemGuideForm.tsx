@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { ItemGuide } from '@/lib/guides'
+import type { ItemCategory } from '@/lib/items'
 import RichTextarea from '@/components/admin/RichTextarea'
 import { useGuardedNav } from '@/components/UnsavedChangesGuard'
 
@@ -11,9 +12,11 @@ const inputClass = 'w-full rounded px-3 py-2 text-sm outline-none focus:ring-1 f
 interface Props {
   itemKey: string
   initial: ItemGuide | null
+  category?: ItemCategory
 }
 
-export default function ItemGuideForm({ itemKey, initial }: Props) {
+export default function ItemGuideForm({ itemKey, initial, category }: Props) {
+  const isNeutral = category === 'neutral'
   const router = useRouter()
   const [whyBuy, setWhyBuy] = useState(initial?.why_buy ?? '')
   const [whenToBuy, setWhenToBuy] = useState(initial?.when_to_buy ?? '')
@@ -68,8 +71,8 @@ export default function ItemGuideForm({ itemKey, initial }: Props) {
   return (
     <form onSubmit={handleSubmit} onChange={() => setIsDirty(true)} className="grid gap-5">
       <div className="grid gap-1">
-        <label className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Why buy</label>
-        <p className="text-xs mb-1" style={{ color: 'var(--text-subtle)' }}>What problem does this item solve? What&apos;s the core reason to purchase it?</p>
+        <label className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>{isNeutral ? 'Why pick up' : 'Why buy'}</label>
+        <p className="text-xs mb-1" style={{ color: 'var(--text-subtle)' }}>{isNeutral ? 'Why is this neutral worth keeping? What does it do for the hero that has it?' : "What problem does this item solve? What's the core reason to purchase it?"}</p>
         <RichTextarea
           className={inputClass}
           rows={3}
@@ -80,8 +83,8 @@ export default function ItemGuideForm({ itemKey, initial }: Props) {
       </div>
 
       <div className="grid gap-1">
-        <label className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>When to buy</label>
-        <p className="text-xs mb-1" style={{ color: 'var(--text-subtle)' }}>Timing, draft triggers, and situations that call for it (or don&apos;t).</p>
+        <label className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>{isNeutral ? 'When to grab' : 'When to buy'}</label>
+        <p className="text-xs mb-1" style={{ color: 'var(--text-subtle)' }}>{isNeutral ? 'Which heroes want this? What team compositions or situations make it worth grabbing?' : "Timing, draft triggers, and situations that call for it (or don't)."}</p>
         <RichTextarea
           className={inputClass}
           rows={4}

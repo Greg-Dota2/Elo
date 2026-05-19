@@ -25,7 +25,7 @@ export default async function ItemGuidePage({ params }: Props) {
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Item guide · <a href={`/items/${key}`} target="_blank" className="underline">View page</a></p>
         </div>
       </div>
-      <ItemGuideForm itemKey={key} initial={guide} />
+      <ItemGuideForm itemKey={key} initial={guide} category={item.category} />
     </div>
   )
 }

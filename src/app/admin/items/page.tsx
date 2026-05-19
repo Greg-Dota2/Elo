@@ -14,6 +14,40 @@ export default async function AdminItemsPage() {
   const hasGuide = new Set((guides ?? []).map(g => g.item_key))
 
   const upgradeItems = items.filter(i => i.category === 'upgrade')
+  const basicItems = items.filter(i => i.category === 'basic' && i.cost >= 1000)
+  const neutralItems = items.filter(i => i.category === 'neutral').sort((a, b) => (a.tier ?? 0) - (b.tier ?? 0) || a.dname.localeCompare(b.dname))
+
+  const ItemRow = ({ item }: { item: (typeof items)[number] }) => (
+    <div
+      className="flex items-center justify-between rounded-lg px-4 py-3"
+      style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
+    >
+      <div className="flex items-center gap-3">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={itemIconUrl(item.key)} alt={item.dname} className="w-10 h-[29px] rounded object-cover" />
+        <div>
+          <span className="font-medium text-sm">{item.dname}</span>
+          {item.cost > 0 && (
+            <span className="ml-2 text-xs" style={{ color: 'var(--text-muted)' }}>{item.cost.toLocaleString()}g</span>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
+        {hasGuide.has(item.key) && (
+          <span className="text-xs px-2 py-0.5 rounded" style={{ background: 'rgba(34,197,94,0.1)', color: 'var(--correct)' }}>
+            Has guide
+          </span>
+        )}
+        <Link
+          href={`/admin/items/${item.key}/guide`}
+          className="text-xs px-3 py-1.5 rounded"
+          style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}
+        >
+          Edit guide
+        </Link>
+      </div>
+    </div>
+  )
 
   return (
     <div>
@@ -30,40 +64,48 @@ export default async function AdminItemsPage() {
         <TranslateGuidesButton type="all-items" label="Translate Guides → RU" emoji="📖" />
       </div>
 
-      <div className="grid gap-2">
-        {upgradeItems.map(item => (
-          <div
-            key={item.key}
-            className="flex items-center justify-between rounded-lg px-4 py-3"
-            style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
-          >
-            <div className="flex items-center gap-3">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={itemIconUrl(item.key)} alt={item.dname} className="w-10 h-[29px] rounded object-cover" />
-              <div>
-                <span className="font-medium text-sm">{item.dname}</span>
-                {item.cost > 0 && (
-                  <span className="ml-2 text-xs" style={{ color: 'var(--text-muted)' }}>{item.cost.toLocaleString()}g</span>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              {hasGuide.has(item.key) && (
-                <span className="text-xs px-2 py-0.5 rounded" style={{ background: 'rgba(34,197,94,0.1)', color: 'var(--correct)' }}>
-                  Has guide
-                </span>
-              )}
-              <Link
-                href={`/admin/items/${item.key}/guide`}
-                className="text-xs px-3 py-1.5 rounded"
-                style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}
-              >
-                Edit guide
-              </Link>
-            </div>
-          </div>
-        ))}
+      <div className="grid gap-2 mb-8">
+        {upgradeItems.map(item => <ItemRow key={item.key} item={item} />)}
       </div>
+
+      {basicItems.length > 0 && (
+        <>
+          <h2 className="text-base font-semibold mb-3" style={{ color: 'var(--text-muted)' }}>Notable Basic Items</h2>
+          <div className="grid gap-2 mb-8">
+            {basicItems.map(item => <ItemRow key={item.key} item={item} />)}
+          </div>
+        </>
+      )}
+
+      {neutralItems.length > 0 && (
+        <>
+          <h2 className="text-base font-semibold mb-3" style={{ color: 'var(--text-muted)' }}>Neutral Items</h2>
+          <div className="grid gap-2">
+            {neutralItems.map(item => (
+              <div key={item.key} className="flex items-center justify-between rounded-lg px-4 py-3" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+                <div className="flex items-center gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={itemIconUrl(item.key)} alt={item.dname} className="w-10 h-[29px] rounded object-cover" />
+                  <div>
+                    <span className="font-medium text-sm">{item.dname}</span>
+                    {item.tier && (
+                      <span className="ml-2 text-xs" style={{ color: 'var(--text-muted)' }}>Tier {item.tier}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  {hasGuide.has(item.key) && (
+                    <span className="text-xs px-2 py-0.5 rounded" style={{ background: 'rgba(34,197,94,0.1)', color: 'var(--correct)' }}>Has guide</span>
+                  )}
+                  <Link href={`/admin/items/${item.key}/guide`} className="text-xs px-3 py-1.5 rounded" style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}>
+                    Edit guide
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   )
 }

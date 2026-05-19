@@ -348,7 +348,7 @@ export default async function ItemPage({ params }: Props) {
             <div className="space-y-6">
               {guide.why_buy && (
                 <div>
-                  <p className="text-sm font-bold text-foreground mb-3">Why Buy {item.dname}?</p>
+                  <p className="text-sm font-bold text-foreground mb-3">{item.category === 'neutral' ? `Why Pick Up ${item.dname}?` : `Why Buy ${item.dname}?`}</p>
                   <div className="space-y-3">
                     {splitGuideText(guide.why_buy).map((para: string, i: number) => (
                       <p key={i} className="text-sm text-muted-foreground leading-7">{linkEntities(para, linkBudget, linkedEntities)}</p>
@@ -358,7 +358,7 @@ export default async function ItemPage({ params }: Props) {
               )}
               {guide.when_to_buy && (
                 <div>
-                  <p className="text-sm font-bold text-foreground mb-3">When to Buy {item.dname}?</p>
+                  <p className="text-sm font-bold text-foreground mb-3">{item.category === 'neutral' ? `When to Grab ${item.dname}?` : `When to Buy ${item.dname}?`}</p>
                   <div className="space-y-3">
                     {splitGuideText(guide.when_to_buy).map((para: string, i: number) => (
                       <p key={i} className="text-sm text-muted-foreground leading-7">{linkEntities(para, linkBudget, linkedEntities)}</p>
