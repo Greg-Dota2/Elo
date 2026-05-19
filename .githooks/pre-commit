@@ -1,0 +1,36 @@
+#!/bin/sh
+# Detect UTF-8 mojibake in staged source files.
+# Catches corruption caused by PowerShell Set-Content re-encoding UTF-8 as Windows-1252.
+#
+# Known patterns:
+#   â€  = mojibake of em dash (—), curly quotes (" " ' '), ellipsis (…)
+#   ðŸ  = mojibake of emoji in the U+1F___ range (🥇🥈🥉 etc.)
+#   Ã   = mojibake of accented Latin / common Unicode symbols (×, −, etc.)
+#   Ð   = mojibake of Cyrillic (UTF-8 D0 xx sequences read as Windows-1252)
+#   Ñ   = mojibake of Cyrillic (UTF-8 D1 xx sequences read as Windows-1252)
+
+FAIL=0
+
+FILES=$(git diff --cached --name-only | grep -E '\.(tsx?|ts|css|json|md)$')
+
+for file in $FILES; do
+  content=$(git show ":${file}" 2>/dev/null) || continue
+
+  if printf '%s' "$content" | grep -qP 'â€|ðŸ|Ã\x82|Ã\x83|Ð[°-¿]|Ñ[\x80-\x9F]'; then
+    echo "  ✗ Encoding corruption detected: $file"
+    FAIL=1
+  fi
+done
+
+if [ $FAIL -eq 1 ]; then
+  echo ""
+  echo "Commit blocked: mojibake detected in staged files."
+  echo "Files were likely written with wrong encoding (PowerShell Set-Content without UTF-8)."
+  echo ""
+  echo "Fix: restore the file from git, then use the Bash sed tool for any replacements:"
+  echo "  git checkout HEAD -- <file>"
+  echo "  sed -i 's/old/new/' <file>"
+  exit 1
+fi
+
+exit 0

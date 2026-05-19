@@ -42,6 +42,35 @@ async function translateCommentary(client: Anthropic, text: string): Promise<str
   return (msg.content[0] as { type: 'text'; text: string }).text.trim()
 }
 
+async function translateLongText(client: Anthropic, text: string): Promise<string> {
+  const CHUNK_SIZE = 3000
+  const paragraphs = text.split('\n\n')
+  const chunks: string[] = []
+  let current = ''
+
+  for (const para of paragraphs) {
+    if (current && (current.length + para.length + 2) > CHUNK_SIZE) {
+      chunks.push(current)
+      current = para
+    } else {
+      current = current ? current + '\n\n' + para : para
+    }
+  }
+  if (current) chunks.push(current)
+
+  const translated = await Promise.all(chunks.map(async chunk => {
+    const msg = await client.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 4096,
+      system: COMMENTARY_PROMPT,
+      messages: [{ role: 'user', content: chunk }],
+    })
+    return (msg.content[0] as { type: 'text'; text: string }).text.trim()
+  }))
+
+  return translated.join('\n\n')
+}
+
 async function translateHeroGuide(client: Anthropic, supabase: ReturnType<typeof createAdminClient>, guide: Record<string, unknown>) {
   const [when_to_pick_ru, tips_ru, summary_ru] = await Promise.all([
     guide.when_to_pick ? translate(client, guide.when_to_pick as string) : Promise.resolve(null),
@@ -280,7 +309,7 @@ export async function POST(req: NextRequest) {
     const [title_ru, excerpt_ru, content_ru] = await Promise.all([
       post.title ? translate(client, post.title) : Promise.resolve(null),
       post.excerpt ? translate(client, post.excerpt) : Promise.resolve(null),
-      post.content ? translate(client, post.content) : Promise.resolve(null),
+      post.content ? translateLongText(client, post.content) : Promise.resolve(null),
     ])
     await supabase.from('blog_posts').update({ title_ru, excerpt_ru, content_ru }).eq('id', body.post_id)
     return NextResponse.json({ ok: true, title_ru, excerpt_ru, content_ru })
