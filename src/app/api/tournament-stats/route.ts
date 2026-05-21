@@ -11,5 +11,7 @@ export async function GET(req: NextRequest) {
     getTeamAccuracy(tournamentId, 3),
   ])
 
-  return NextResponse.json({ stats, teamAccuracy })
+  return NextResponse.json({ stats, teamAccuracy }, {
+    headers: { 'Cache-Control': 's-maxage=300, stale-while-revalidate=600' },
+  })
 }

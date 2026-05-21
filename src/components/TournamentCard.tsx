@@ -46,6 +46,7 @@ function formatDateRange(start?: string | null, end?: string | null): string | n
 interface Props {
   tournament: Tournament
   stats?: TournamentStats | null
+  teamAccuracy?: TeamAccuracy[]
   status?: TournamentStatus
   linkPrefix?: string
   locale?: 'en' | 'ru'
@@ -88,17 +89,17 @@ const L10N = {
   },
 }
 
-export default function TournamentCard({ tournament, status, linkPrefix = '/tournaments', locale = 'en' }: Props) {
+export default function TournamentCard({ tournament, stats: initialStats, teamAccuracy: initialTeamAccuracy, status, linkPrefix = '/tournaments', locale = 'en' }: Props) {
   const T = L10N[locale]
   const [open, setOpen] = useState(false)
   const [matches, setMatches] = useState<MatchPrediction[]>([])
   const [loading, setLoading] = useState(false)
-  const [stats, setStats] = useState<TournamentStats | null>(null)
-  const [teamAccuracy, setTeamAccuracy] = useState<TeamAccuracy[]>([])
-  const [statsLoaded, setStatsLoaded] = useState(false)
+  const [stats, setStats] = useState<TournamentStats | null>(initialStats ?? null)
+  const [teamAccuracy, setTeamAccuracy] = useState<TeamAccuracy[]>(initialTeamAccuracy ?? [])
+  const [statsLoaded, setStatsLoaded] = useState(initialStats !== undefined)
 
   useEffect(() => {
-    // Fetch stats eagerly so they show under the banner without needing a click
+    if (initialStats !== undefined) return
     fetch(`/api/tournament-stats?tournament_id=${tournament.id}`)
       .then(r => r.json())
       .then(d => {
@@ -106,7 +107,7 @@ export default function TournamentCard({ tournament, status, linkPrefix = '/tour
         setTeamAccuracy(d.teamAccuracy ?? [])
         setStatsLoaded(true)
       })
-  }, [tournament.id])
+  }, [tournament.id, initialStats])
 
   async function handleToggle() {
     if (!open && matches.length === 0) {

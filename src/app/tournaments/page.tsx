@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { getTournaments, getTournamentStats } from '@/lib/queries'
+import { getTournaments, getTournamentStats, getTeamAccuracy } from '@/lib/queries'
 import TournamentCard from '@/components/TournamentCard'
 import type { TournamentStatus } from '@/components/TournamentCard'
 
@@ -49,6 +49,7 @@ export default async function TournamentsPage() {
     tournaments.map(async (t) => ({
       tournament: t,
       stats: await getTournamentStats(t.id).catch(() => null),
+      teamAccuracy: await getTeamAccuracy(t.id, 3).catch(() => []),
     }))
   )
 
@@ -135,9 +136,9 @@ export default async function TournamentsPage() {
                 <div className="h-px flex-1 bg-border/40" />
               </div>
               <div className="grid gap-3">
-                {items.map(({ tournament, stats }, i) => (
+                {items.map(({ tournament, stats, teamAccuracy }, i) => (
                   <div key={tournament.id} className="fade-in-up" style={{ animationDelay: `${i * 0.05}s` }}>
-                    <TournamentCard tournament={tournament} stats={stats} status={status} />
+                    <TournamentCard tournament={tournament} stats={stats} teamAccuracy={teamAccuracy} status={status} />
                   </div>
                 ))}
               </div>
