@@ -102,8 +102,7 @@ export default async function AdminPage() {
         <TranslateGuidesButton type="all-heroes" label="Translate Hero Guides RU" emoji="🦸🌐" />
         <TranslateGuidesButton type="all-items" label="Translate Item Guides RU" emoji="⚗️🌐" />
         <TranslateGuidesButton type="all-items-lore" label="Translate Item Lore & Abilities RU" emoji="📜🌐" />
-        <TranslateGuidesButton type="all-players" label="Translate Players RU" emoji="🎮🌐" />
-        <TranslateGuidesButton type="all-teams" label="Translate Teams RU" emoji="🛡️🌐" />
+
         <RefreshOpenDotaButton />
       </div>
 

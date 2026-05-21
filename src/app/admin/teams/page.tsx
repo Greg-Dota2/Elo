@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { getAllTeamsAdmin } from '@/lib/queries'
+import TranslateRowButton from '@/app/admin/TranslateRowButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -89,6 +90,7 @@ export default async function AdminTeamsPage() {
                 )}
               </div>
 
+              <TranslateRowButton type="team" id={team.id} hasContent={!!(team.bio || team.achievements)} />
               <Link
                 href={`/admin/teams/${team.id}/edit`}
                 className="text-xs px-3 py-1.5 rounded font-medium shrink-0"

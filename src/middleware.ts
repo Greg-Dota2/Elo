@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+const BLOCKED_BOTS = /meta-externalagent|meta-webindexer|amazonbot|gptbot|seranking/i
+
 export function middleware(req: NextRequest) {
+  const ua = req.headers.get('user-agent') ?? ''
+  if (BLOCKED_BOTS.test(ua)) {
+    return new NextResponse(null, { status: 403 })
+  }
+
   const { pathname } = req.nextUrl
 
   // Protect all /admin UI routes and /api/admin/* API routes

@@ -1,6 +1,7 @@
 import { getAllPlayersAdmin } from '@/lib/queries'
 import { getAllTeams } from '@/lib/queries'
 import Link from 'next/link'
+import TranslateRowButton from '@/app/admin/TranslateRowButton'
 
 const POSITION_LABEL: Record<number, string> = { 1: 'Carry', 2: 'Mid', 3: 'Offlane', 4: 'Soft Sup', 5: 'Hard Sup' }
 
@@ -65,6 +66,7 @@ export default async function AdminPlayersPage() {
                 >
                   {p.is_published ? 'Live' : 'Draft'}
                 </span>
+                <TranslateRowButton type="player" id={p.id} hasContent={!!(p.bio || p.achievements)} />
                 <Link
                   href={`/admin/players/${p.id}/edit`}
                   className="text-xs px-3 py-1 rounded shrink-0"
