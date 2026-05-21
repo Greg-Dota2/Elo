@@ -48,9 +48,14 @@ function setLocaleCookie(lang: 'en' | 'ru') {
   document.cookie = `locale=${lang}; path=/; max-age=31536000; SameSite=Lax`
 }
 
-export default function Navbar({ isAdmin }: { isAdmin?: boolean }) {
+export default function Navbar() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    setIsAdmin(document.cookie.includes('admin_token='))
+  }, [])
 
   // Close menu on route change
   useEffect(() => { setOpen(false) }, [pathname])

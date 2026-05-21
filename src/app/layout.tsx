@@ -7,7 +7,6 @@ import GoogleAnalytics from '@/components/GoogleAnalytics'
 import { Analytics } from '@vercel/analytics/next'
 import Footer from '@/components/Footer'
 import { Suspense } from 'react'
-import { cookies, headers } from 'next/headers'
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -65,14 +64,9 @@ export const metadata: Metadata = {
   alternates: { canonical: SITE_URL },
 }
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const cookieStore = await cookies()
-  const adminPwd = process.env.ADMIN_PASSWORD
-  const isAdmin = !!adminPwd && cookieStore.get('admin_token')?.value === adminPwd
-  const headersList = await headers()
-  const locale = headersList.get('x-locale') ?? 'en'
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang={locale} className={`dark ${manrope.variable} ${oxanium.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`dark ${manrope.variable} ${oxanium.variable}`}>
       <head>
         <script
           type="application/ld+json"
@@ -109,7 +103,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body suppressHydrationWarning>
         <Suspense fallback={null}><GoogleAnalytics /></Suspense>
-        <Navbar isAdmin={isAdmin} />
+        <Navbar />
         <main className="max-w-7xl mx-auto px-4 py-8">{children}</main>
         <Analytics />
         <CookieBanner />
