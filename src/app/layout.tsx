@@ -68,6 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning className={`dark ${manrope.variable} ${oxanium.variable}`}>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: `try{if(localStorage.getItem('cookie_consent'))document.documentElement.setAttribute('data-cookie-ok','')}catch(e){}` }} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

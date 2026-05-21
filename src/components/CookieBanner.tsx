@@ -11,19 +11,21 @@ function setConsentCookie(value: string) {
 }
 
 export default function CookieBanner() {
-  const [visible, setVisible] = useState(false)
+  const [visible, setVisible] = useState(true)
 
   useEffect(() => {
-    if (!localStorage.getItem('cookie_consent')) setVisible(true)
+    if (localStorage.getItem('cookie_consent')) setVisible(false)
   }, [])
 
   function accept() {
     setConsentCookie('accepted')
+    document.documentElement.setAttribute('data-cookie-ok', '')
     setVisible(false)
   }
 
   function decline() {
     setConsentCookie('declined')
+    document.documentElement.setAttribute('data-cookie-ok', '')
     setVisible(false)
   }
 
@@ -31,8 +33,10 @@ export default function CookieBanner() {
 
   return (
     <div
+      data-cookie-banner
       className="fixed bottom-0 left-0 right-0 z-50 p-4 sm:p-6"
       style={{ pointerEvents: 'none' }}
+      suppressHydrationWarning
     >
       <div
         className="max-w-3xl mx-auto rounded-2xl px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6"

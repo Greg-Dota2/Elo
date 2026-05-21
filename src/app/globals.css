@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide cookie banner immediately for users who already consented */
+[data-cookie-ok] [data-cookie-banner] { display: none !important; }
+
 @layer base {
   :root {
     --background: 228 32% 7%;
