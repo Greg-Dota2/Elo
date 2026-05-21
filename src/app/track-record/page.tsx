@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export const revalidate = 300
 
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 }
 
 export default async function TrackRecordPage() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const [{ data: stats }, { data: tournaments }] = await Promise.all([
     supabase.from('tournament_stats').select('*'),

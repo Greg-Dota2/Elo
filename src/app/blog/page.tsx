@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import BlogListClient from './BlogListClient'
 
 export const revalidate = 86400
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 }
 
 export default async function BlogPage() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data: posts } = await supabase
     .from('blog_posts')
     .select('title, slug, excerpt, cover_image_url, published_at, created_at, tags')

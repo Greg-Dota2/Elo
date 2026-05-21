@@ -1,4 +1,3 @@
-import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { MatchPrediction, Player, TeamAccuracy, Transfer, TournamentStats } from '@/lib/types'
 
@@ -33,7 +32,7 @@ export function sortMatchesByStatus(matches: MatchPrediction[]): MatchPrediction
 }
 
 export async function getTournaments() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('tournaments')
     .select('*, match_predictions(id)')
@@ -53,7 +52,7 @@ export async function getTournaments() {
 }
 
 export async function getTournamentBySlug(slug: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('tournaments')
     .select('*')
@@ -64,7 +63,7 @@ export async function getTournamentBySlug(slug: string) {
 }
 
 export async function getStagesByTournament(tournamentId: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('stages')
     .select('*')
@@ -77,7 +76,7 @@ export async function getStagesByTournament(tournamentId: string) {
 export async function getPredictionsByTournament(
   tournamentId: string
 ): Promise<MatchPrediction[]> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('match_predictions')
     .select(
@@ -101,7 +100,7 @@ export async function getPredictionsByTournament(
 export async function getTournamentStats(
   tournamentId: string
 ): Promise<TournamentStats | null> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('tournament_stats')
     .select('*')
@@ -115,7 +114,7 @@ export async function getTeamAccuracy(
   tournamentId: string,
   limit = 3
 ): Promise<TeamAccuracy[]> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('team_accuracy')
     .select('*')
@@ -145,7 +144,7 @@ export async function getH2HForTeams(
   teamIds: string[]
 ): Promise<Array<{ team_1_id: string; team_2_id: string; actual_winner_id: string; match_date: string | null }>> {
   if (teamIds.length === 0) return []
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data } = await supabase
     .from('match_predictions')
     .select('team_1_id, team_2_id, actual_winner_id, match_date')
@@ -183,7 +182,7 @@ export function buildH2HMap(
 }
 
 export async function getAllTeams() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('teams')
     .select('*')
@@ -194,7 +193,7 @@ export async function getAllTeams() {
 }
 
 export async function getTeamBySlug(slug: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('teams')
     .select('*')
@@ -225,7 +224,7 @@ export async function getAllTournamentsAdmin() {
 }
 
 export async function getPlayers(): Promise<Player[]> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('players')
     .select('*, team:teams(id, name, logo_url, slug)')
@@ -236,7 +235,7 @@ export async function getPlayers(): Promise<Player[]> {
 }
 
 export async function getPlayerBySlug(slug: string): Promise<Player> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('players')
     .select('*, team:teams(id, name, logo_url, slug)')
@@ -269,7 +268,7 @@ export async function getAllPlayersAdmin(): Promise<Player[]> {
 }
 
 export async function getPredictionById(id: string): Promise<MatchPrediction> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('match_predictions')
     .select(
@@ -285,7 +284,7 @@ export async function getPredictionById(id: string): Promise<MatchPrediction> {
 }
 
 export async function getTransfers(): Promise<Transfer[]> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('transfers')
     .select('*')

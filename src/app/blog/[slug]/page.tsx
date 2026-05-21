@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { draftMode } from 'next/headers'
-import { createClient } from '@/lib/supabase/server'
+
 import { createAdminClient } from '@/lib/supabase/admin'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -130,7 +130,7 @@ async function fetchGroupsForTournament(tournamentSlug: string): Promise<GroupDa
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data: post } = await supabase
     .from('blog_posts')
     .select('title, excerpt, cover_image_url')

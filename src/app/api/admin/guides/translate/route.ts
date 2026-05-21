@@ -186,8 +186,8 @@ export async function POST(req: NextRequest) {
     const { data: p } = await supabase.from('players').select('*').eq('id', body.player_id).single()
     if (!p) return NextResponse.json({ error: 'Player not found' }, { status: 404 })
     const [bio_ru, achievements_ru] = await Promise.all([
-      p.bio ? translate(client, p.bio) : Promise.resolve(null),
-      p.achievements ? translate(client, p.achievements) : Promise.resolve(null),
+      p.bio ? translateLongText(client, p.bio) : Promise.resolve(null),
+      p.achievements ? translateLongText(client, p.achievements) : Promise.resolve(null),
     ])
     await supabase.from('players').update({ bio_ru, achievements_ru, ru_synced_at: new Date().toISOString() }).eq('id', p.id)
     return NextResponse.json({ ok: true })
@@ -198,8 +198,8 @@ export async function POST(req: NextRequest) {
     const { data: t } = await supabase.from('teams').select('*').eq('id', body.team_id).single()
     if (!t) return NextResponse.json({ error: 'Team not found' }, { status: 404 })
     const [bio_ru, achievements_ru] = await Promise.all([
-      t.bio ? translate(client, t.bio) : Promise.resolve(null),
-      t.achievements ? translate(client, t.achievements) : Promise.resolve(null),
+      t.bio ? translateLongText(client, t.bio) : Promise.resolve(null),
+      t.achievements ? translateLongText(client, t.achievements) : Promise.resolve(null),
     ])
     await supabase.from('teams').update({ bio_ru, achievements_ru, ru_synced_at: new Date().toISOString() }).eq('id', t.id)
     return NextResponse.json({ ok: true })
@@ -216,8 +216,8 @@ export async function POST(req: NextRequest) {
     for (const p of rows) {
       try {
         const [bio_ru, achievements_ru] = await Promise.all([
-          p.bio ? translate(client, p.bio) : Promise.resolve(null),
-          p.achievements ? translate(client, p.achievements) : Promise.resolve(null),
+          p.bio ? translateLongText(client, p.bio) : Promise.resolve(null),
+          p.achievements ? translateLongText(client, p.achievements) : Promise.resolve(null),
         ])
         await supabase.from('players').update({ bio_ru, achievements_ru, ru_synced_at: new Date().toISOString() }).eq('id', p.id)
         translated++
@@ -237,8 +237,8 @@ export async function POST(req: NextRequest) {
     for (const t of rows) {
       try {
         const [bio_ru, achievements_ru] = await Promise.all([
-          t.bio ? translate(client, t.bio) : Promise.resolve(null),
-          t.achievements ? translate(client, t.achievements) : Promise.resolve(null),
+          t.bio ? translateLongText(client, t.bio) : Promise.resolve(null),
+          t.achievements ? translateLongText(client, t.achievements) : Promise.resolve(null),
         ])
         await supabase.from('teams').update({ bio_ru, achievements_ru, ru_synced_at: new Date().toISOString() }).eq('id', t.id)
         translated++

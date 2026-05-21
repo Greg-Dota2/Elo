@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getPlayers } from '@/lib/queries'
 import type { PrizePlacement } from '@/lib/types'
 
@@ -56,7 +56,7 @@ function bestPlaceStyle(place: string): string {
 }
 
 export default async function RuPlayerRankingsPage() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const [players, { data: tournaments }, { data: teamEptRows }] = await Promise.all([
     getPlayers(),

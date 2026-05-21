@@ -45,11 +45,13 @@ export default async function RuTournamentsPage() {
   }
 
   const tournamentsWithStats = await Promise.all(
-    tournaments.map(async (t) => ({
-      tournament: t,
-      stats: await getTournamentStats(t.id).catch(() => null),
-      teamAccuracy: await getTeamAccuracy(t.id, 3).catch(() => []),
-    }))
+    tournaments.map(async (t) => {
+      const [stats, teamAccuracy] = await Promise.all([
+        getTournamentStats(t.id).catch(() => null),
+        getTeamAccuracy(t.id, 3).catch(() => []),
+      ])
+      return { tournament: t, stats, teamAccuracy }
+    })
   )
 
   const now = new Date()
