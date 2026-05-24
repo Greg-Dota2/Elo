@@ -269,9 +269,7 @@ export default async function HomeMain({ locale = 'en' }: { locale?: 'en' | 'ru'
           >
             <p className="text-4xl mb-3">✍️</p>
             <p className="font-semibold mb-1">{T.noPredictions}</p>
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              <Link href="/admin" style={{ color: 'var(--accent)' }}>{T.writeFirst}</Link>
-            </p>
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{T.writeFirst}</p>
           </div>
         ) : null
       )}

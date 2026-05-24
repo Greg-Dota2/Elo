@@ -38,12 +38,17 @@ export async function getTournaments() {
     .select('*, match_predictions(id)')
     .eq('is_published', true)
   if (error) throw error
-  // Featured slot (index 0) must be the most recently active tournament with predictions.
-  // Sort: has predictions → by start_date desc (upcoming are pushed to the end of that group).
+  // Featured slot (index 0) must be the currently-live tournament with predictions.
+  // Sort: has predictions → live before upcoming/finished → by start_date desc.
+  const today = new Date().toISOString().slice(0, 10)
+  const isLive = (t: { start_date?: string | null; end_date?: string | null }) =>
+    !!t.start_date && t.start_date <= today && (!t.end_date || t.end_date >= today) ? 0 : 1
   return (data ?? []).sort((a, b) => {
     const aHas = (a.match_predictions?.length ?? 0) > 0 ? 0 : 1
     const bHas = (b.match_predictions?.length ?? 0) > 0 ? 0 : 1
     if (aHas !== bHas) return aHas - bHas
+    const aLive = isLive(a), bLive = isLive(b)
+    if (aLive !== bLive) return aLive - bLive
     if (!a.start_date && !b.start_date) return 0
     if (!a.start_date) return 1
     if (!b.start_date) return -1
