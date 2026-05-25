@@ -1,45 +1,108 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 
+const REGION_FLAGS: Record<string, string> = {
+  'Western Europe': '🌍',
+  'Eastern Europe': '🌍',
+  'China': '🇨🇳',
+  'Southeast Asia': '🌏',
+  'North America': '🇺🇸',
+  'South America': '🇧🇷',
+}
+
 export default async function TeamCard({ slug, locale = 'en' }: { slug: string; locale?: 'en' | 'ru' }) {
   const admin = createAdminClient()
-  const { data: team } = await admin
-    .from('teams')
-    .select('name, slug, logo_url, region, current_elo')
-    .eq('slug', slug)
-    .single()
+
+  const [{ data: team }, { data: allTeams }] = await Promise.all([
+    admin.from('teams').select('name, slug, logo_url, region, current_elo').eq('slug', slug).single(),
+    admin.from('teams').select('slug, current_elo').eq('is_active', true).order('current_elo', { ascending: false }),
+  ])
 
   if (!team) return null
 
+  const href = `${locale === 'ru' ? '/ru/teams' : '/teams'}/${slug}`
+  const elo = team.current_elo ? Math.round(team.current_elo) : null
+  const flag = team.region ? REGION_FLAGS[team.region] ?? '🌍' : null
+  const rank = allTeams ? allTeams.findIndex(t => t.slug === slug) + 1 : null
+
   return (
     <a
-      href={`${locale === 'ru' ? '/ru/teams' : '/teams'}/${slug}`}
-      className="flex items-center gap-4 rounded-2xl px-5 py-4 my-6 transition-opacity hover:opacity-80 no-underline"
-      style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', textDecoration: 'none' }}
+      href={href}
+      className="block rounded-2xl overflow-hidden my-6 no-underline group"
+      style={{ border: '1px solid var(--border)', textDecoration: 'none' }}
     >
-      {team.logo_url ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={team.logo_url}
-          alt={team.name}
-          className="w-14 h-14 rounded-xl object-contain shrink-0"
-          style={{ background: 'rgba(255,255,255,0.06)', padding: '4px' }}
+      {/* Main body */}
+      <div
+        className="relative flex items-center gap-5 px-6 py-5"
+        style={{ background: 'linear-gradient(135deg, var(--surface-2) 0%, var(--surface) 100%)' }}
+      >
+        {/* Glow */}
+        <div
+          className="pointer-events-none absolute left-0 top-0 bottom-0 w-40 opacity-20"
+          style={{ background: 'radial-gradient(ellipse at left center, hsl(var(--primary)), transparent 70%)' }}
         />
-      ) : (
-        <div className="w-14 h-14 rounded-xl shrink-0 flex items-center justify-center text-2xl font-black" style={{ background: 'var(--surface-3)' }}>
-          {team.name[0]}
+
+        {/* Logo */}
+        <div
+          className="relative w-20 h-20 rounded-2xl shrink-0 flex items-center justify-center"
+          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', padding: '10px' }}
+        >
+          {team.logo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={team.logo_url} alt={team.name} className="w-full h-full object-contain" loading="lazy" />
+          ) : (
+            <span className="text-3xl font-black" style={{ color: 'var(--text-muted)' }}>{team.name[0]}</span>
+          )}
         </div>
-      )}
-      <div className="flex-1 min-w-0">
-        <p className="font-display font-bold text-lg leading-tight truncate" style={{ color: 'var(--text)' }}>
-          {team.name}
-        </p>
-        <p className="text-xs mt-1 font-semibold" style={{ color: 'var(--text-muted)' }}>
-          {[team.region, team.current_elo ? `ELO ${Math.round(team.current_elo)}` : null].filter(Boolean).join(' · ')}
-        </p>
+
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <p className="font-display font-black text-2xl leading-tight truncate" style={{ color: 'var(--text)' }}>
+            {team.name}
+          </p>
+
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
+            {team.region && (
+              <span
+                className="text-xs px-2.5 py-1 rounded-full font-semibold flex items-center gap-1"
+                style={{ background: 'var(--surface-3)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+              >
+                {flag && <span>{flag}</span>}
+                {team.region}
+              </span>
+            )}
+            {elo && (
+              <span
+                className="text-xs px-2.5 py-1 rounded-full font-bold flex items-center gap-1.5"
+                style={{ background: 'hsl(var(--accent) / 0.12)', color: 'hsl(var(--accent))', border: '1px solid hsl(var(--accent) / 0.3)' }}
+              >
+                {rank && rank > 0 && <span style={{ opacity: 0.7 }}>#{rank}</span>}
+                <span>ELO {elo}</span>
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Arrow */}
+        <span
+          className="text-sm font-bold shrink-0 transition-transform group-hover:translate-x-1"
+          style={{ color: 'hsl(var(--primary))' }}
+        >
+          →
+        </span>
       </div>
-      <span className="ml-auto text-xs font-semibold shrink-0" style={{ color: 'hsl(var(--primary))' }}>
-        View team →
-      </span>
+
+      {/* Footer strip */}
+      <div
+        className="flex items-center justify-between px-6 py-2.5"
+        style={{ background: 'var(--surface)', borderTop: '1px solid var(--border)' }}
+      >
+        <span className="text-xs font-medium" style={{ color: 'var(--text-subtle)' }}>
+          Team profile, roster & stats
+        </span>
+        <span className="text-xs font-bold" style={{ color: 'hsl(var(--primary) / 0.7)' }}>
+          dota2protips.com
+        </span>
+      </div>
     </a>
   )
 }

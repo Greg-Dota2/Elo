@@ -5,10 +5,10 @@ import { getTeamBySlug } from '@/lib/queries'
 import { createAdminClient } from '@/lib/supabase/admin'
 import BioRenderer from '@/components/BioRenderer'
 import type { Team } from '@/lib/types'
-import { fetchUpcomingTier1Matches, fetchRunningTier1Matches, fetchRecentTier1Matches, type PSMatch } from '@/lib/pandascore'
+import { fetchUpcomingTier1Matches, fetchRunningTier1Matches, type PSMatch } from '@/lib/pandascore'
 import { TIER1_TOURNAMENTS } from '@/lib/tier1tournaments'
 
-export const revalidate = 86400
+export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -55,10 +55,9 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ slu
   }
 
   // Fetch PandaScore matches for this team
-  const [psUpcoming, psRunning, psRecent] = await Promise.all([
+  const [psUpcoming, psRunning] = await Promise.all([
     fetchUpcomingTier1Matches(100).catch(() => [] as PSMatch[]),
     fetchRunningTier1Matches(50).catch(() => [] as PSMatch[]),
-    fetchRecentTier1Matches(100).catch(() => [] as PSMatch[]),
   ])
 
   const teamNameLower = team.name.toLowerCase()
@@ -70,7 +69,6 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ slu
     })
 
   const psUpcomingTeam = [...psRunning, ...psUpcoming].filter(matchesTeam)
-  const psRecentTeam = psRecent.filter(matchesTeam)
 
   // Build a pandascore_team_id → DB slug map so upcoming match links resolve correctly
   const supabase = createAdminClient()
