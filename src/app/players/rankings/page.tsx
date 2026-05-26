@@ -56,21 +56,14 @@ function bestPlaceStyle(place: string): string {
 export default async function PlayerRankingsPage() {
   const supabase = createAdminClient()
 
-  const [players, { data: tournaments }, { data: teamEptRows }] = await Promise.all([
+  const [players, { data: tournaments }] = await Promise.all([
     getPlayers(),
     supabase
       .from('tournaments')
       .select('id, name, slug, prize_distribution, start_date')
       .eq('is_published', true)
       .not('prize_distribution', 'is', null),
-    supabase
-      .from('teams')
-      .select('id, ept_points'),
   ])
-
-  const teamEptMap = new Map<string, number>(
-    (teamEptRows ?? []).map(r => [r.id, r.ept_points ?? 0])
-  )
 
   type RankedPlayer = {
     player: (typeof players)[number]
@@ -88,7 +81,7 @@ export default async function PlayerRankingsPage() {
     if (!player.team) continue
 
     const teamName = player.team.name
-    const totalEpt = teamEptMap.get(player.team.id) ?? 0
+    let totalEpt = 0
     let totalScore = 0
     let totalPrize = 0
     let bestPlace = 999
@@ -96,13 +89,16 @@ export default async function PlayerRankingsPage() {
     let tournamentCount = 0
 
     for (const t of tournaments ?? []) {
-      const entry = (t.prize_distribution as PrizePlacement[]).find(p => p.team === teamName)
+      const entry = (t.prize_distribution as PrizePlacement[]).find(
+        p => p.team.toLowerCase() === teamName.toLowerCase()
+      )
       if (!entry) continue
 
       const placeNum = parsePlaceNum(entry.place)
       const prizeWeight = entry.prize_usd ? entry.prize_usd / 10000 : 1
       totalScore += Math.round(placementPoints(entry.place) * prizeWeight)
       totalPrize += entry.prize_usd ?? 0
+      totalEpt += entry.ept_points ?? 0
       tournamentCount++
 
       if (placeNum < bestPlace) {

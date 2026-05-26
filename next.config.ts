@@ -21,11 +21,13 @@ const nextConfig: NextConfig = {
       { source: '/xtreme-gaming',  destination: '/teams/xtreme-gaming',  permanent: true },
       { source: '/tundra-esports', destination: '/teams/tundra-esports', permanent: true },
       { source: '/og',             destination: '/teams/og',             permanent: true },
+      { source: '/og/',            destination: '/teams/og',             permanent: true },
       { source: '/team-liquid',    destination: '/teams/team-liquid',    permanent: true },
       { source: '/team-yandex',    destination: '/teams/team-yandex',    permanent: true },
       { source: '/team-spirit',    destination: '/teams/team-spirit',    permanent: true },
       { source: '/aurora-gaming',  destination: '/teams/aurora-gaming',  permanent: true },
-      { source: '/betboom-team',   destination: '/teams/betboom-team',   permanent: true },
+      { source: '/betboom-team',    destination: '/teams/betboom-team',   permanent: true },
+      { source: '/betboom-team/',   destination: '/teams/betboom-team',   permanent: true },
       { source: '/team-falcons',   destination: '/teams/team-falcons',   permanent: true },
       { source: '/parivision',     destination: '/teams/parivision',     permanent: true },
 
@@ -104,6 +106,7 @@ const nextConfig: NextConfig = {
 
       // ── Dead team slugs ───────────────────────────────────────────────────
       { source: '/teams/aurora',          destination: '/teams/aurora-gaming', permanent: true },
+      { source: '/teams/Rekonix',         destination: '/teams',               permanent: true },
 
       { source: '/teams/per-rejects',     destination: '/teams',               permanent: true },
       { source: '/teams/inner-circle',    destination: '/teams',               permanent: true },
@@ -122,6 +125,10 @@ const nextConfig: NextConfig = {
       // ── Dead tournament slugs ─────────────────────────────────────────────
       { source: '/tournaments/dl-s25',           destination: '/tournaments/dreamleague-season-25', permanent: true },
       { source: '/tournaments/blast-slam-vii',   destination: '/tournaments/blast-slam-7',          permanent: true },
+
+      // ── Common URL variants that hit the CDN as homepage ─────────────────
+      { source: '/index',    destination: '/',  permanent: true },
+      { source: '/index.html', destination: '/', permanent: true },
 
       // ── Blog/news articles with no equivalent → home ──────────────────────
       { source: '/mirana-lore',                                   destination: '/', permanent: true },

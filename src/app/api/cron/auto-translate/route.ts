@@ -182,5 +182,25 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // ── 5. transfers: notes ──────────────────────────────────────────────────
+  {
+    const { data: rows } = await supabase
+      .from('transfers')
+      .select('id, notes')
+      .not('notes', 'is', null)
+      .is('notes_ru', null)
+      .limit(isManual ? 200 : 20)
+
+    for (const row of rows ?? []) {
+      try {
+        const translated = await translateText(client, row.notes!)
+        await supabase.from('transfers').update({ notes_ru: translated }).eq('id', row.id)
+        results.push(`transfer ${row.id}: notes translated`)
+      } catch (e) {
+        results.push(`transfer ${row.id}: notes FAILED — ${e}`)
+      }
+    }
+  }
+
   return NextResponse.json({ ok: true, translated: results.length, results })
 }
