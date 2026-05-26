@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 
 const REGION_FLAG: Record<string, string> = {
-  'Western Europe': '🇪🇺',
+  'Western Europe': '🌍',
   'Eastern Europe': '🌍',
   'China': '🇨🇳',
   'Southeast Asia': '🌏',
@@ -134,23 +134,30 @@ export default function TeamsClient({ active, inactive, statsMap, locale }: Prop
                     </span>
                   </div>
                   <div className="p-4">
-                    <h3 className="font-display text-base font-bold text-foreground leading-tight mb-1">{team.name}</h3>
+                    <h3 className="font-display text-sm font-bold text-foreground leading-tight mb-0.5 truncate">{team.name}</h3>
                     {team.region && (
                       <p className="text-xs text-muted-foreground mb-3">
                         {REGION_FLAG[team.region] ?? '🌐'} {(locale === 'ru' ? REGION_RU[team.region] : null) ?? team.region}
                       </p>
                     )}
-                    <div className="flex items-center justify-between">
-                      <span className="font-display text-xl font-black tabular-nums text-foreground">{elo}</span>
+                    <div className="flex items-end justify-between gap-2">
+                      <span className="font-display text-2xl font-black tabular-nums text-amber-400">{elo}</span>
                       {winRate !== null && (
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs text-muted-foreground leading-tight text-right">
                           <span className="text-success font-bold">{s?.wins}W</span>
-                          {(s?.draws ?? 0) > 0 && <><span> · </span><span className="font-bold" style={{ color: '#f59e0b' }}>{s?.draws}D</span></>}
+                          {(s?.draws ?? 0) > 0 && <><span> · </span><span className="font-bold text-amber-400">{s?.draws}D</span></>}
                           {' · '}
                           <span className="text-destructive font-bold">{s?.losses}L</span>
                         </span>
                       )}
                     </div>
+                    {total > 0 && (
+                      <div className="flex rounded-full overflow-hidden mt-2" style={{ height: '3px', background: 'hsl(var(--border) / 0.4)' }}>
+                        <div style={{ width: `${((s?.wins ?? 0) / total) * 100}%`, background: 'hsl(var(--success))' }} />
+                        {(s?.draws ?? 0) > 0 && <div style={{ width: `${((s?.draws ?? 0) / total) * 100}%`, background: '#f59e0b' }} />}
+                        <div style={{ width: `${((s?.losses ?? 0) / total) * 100}%`, background: 'hsl(var(--destructive))' }} />
+                      </div>
+                    )}
                   </div>
                 </article>
               </Link>
