@@ -127,6 +127,24 @@ export default function Navbar() {
           )}
         </nav>
 
+        {/* Language switcher — mobile, always visible */}
+        <div className="md:hidden flex items-center gap-1 mr-2">
+          <a
+            href={getLangUrl(pathname, 'en')}
+            onClick={() => setLocaleCookie('en')}
+            className={['px-2.5 py-1.5 rounded-lg text-xs font-bold tracking-wider transition-all duration-200 border', !isRu ? 'text-blue-300 bg-blue-500/25 border-blue-400/50' : 'text-blue-400/50 bg-blue-500/8 border-blue-400/20'].join(' ')}
+          >
+            EN
+          </a>
+          <a
+            href={getLangUrl(pathname, 'ru')}
+            onClick={() => setLocaleCookie('ru')}
+            className={['px-2.5 py-1.5 rounded-lg text-xs font-bold tracking-wider transition-all duration-200 border', isRu ? 'text-red-300 bg-red-500/25 border-red-400/50' : 'text-red-400/50 bg-red-500/8 border-red-400/20'].join(' ')}
+          >
+            RU
+          </a>
+        </div>
+
         {/* Hamburger button — mobile only */}
         <button
           onClick={() => setOpen(o => !o)}
