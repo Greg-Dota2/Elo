@@ -114,5 +114,25 @@ export default async function ItemMetaPage() {
     hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Athens',
   })
 
-  return <ItemMetaClient upgradeItems={upgradeItems} neutralItems={neutralItems} updatedAt={updatedAt} />
+  const SITE_URL = 'https://www.dota2protips.com'
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Dataset',
+            name: 'Dota 2 Item Win Rates & Neutral Item Tiers',
+            description: 'Dota 2 upgrade item win rates aggregated from public matches, plus all neutral items organized by tier.',
+            url: `${SITE_URL}/items/meta`,
+            license: 'https://creativecommons.org/licenses/by-nc/4.0/',
+            creator: { '@type': 'Organization', name: 'Dota2ProTips', url: SITE_URL },
+          }),
+        }}
+      />
+      <ItemMetaClient upgradeItems={upgradeItems} neutralItems={neutralItems} updatedAt={updatedAt} />
+    </>
+  )
 }

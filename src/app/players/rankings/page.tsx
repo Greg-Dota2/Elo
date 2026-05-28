@@ -120,8 +120,24 @@ export default async function PlayerRankingsPage() {
 
   const totalDistributed = ranked.reduce((s, r) => s + r.totalPrize, 0)
 
+  const SITE_URL = 'https://www.dota2protips.com'
+
   return (
     <div className="fade-in-up">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Dataset',
+            name: 'Dota 2 Pro Player Rankings',
+            description: 'Pro player rankings by competitive performance across Tier 1 Dota 2 tournaments — placement points, prize earnings, and EPT combined.',
+            url: `${SITE_URL}/players/rankings`,
+            license: 'https://creativecommons.org/licenses/by-nc/4.0/',
+            creator: { '@type': 'Organization', name: 'Dota2ProTips', url: SITE_URL },
+          }),
+        }}
+      />
       {/* Header */}
       <div className="mb-6">
         <p className="section-label mb-2">Tier 1 Scene</p>

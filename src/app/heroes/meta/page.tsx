@@ -84,5 +84,25 @@ export default async function HeroMetaPage() {
     hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Athens',
   })
 
-  return <HeroMetaTable heroes={heroes} updatedAt={updatedAt} />
+  const SITE_URL = 'https://www.dota2protips.com'
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Dataset',
+            name: 'Dota 2 Hero Win & Pick Rates',
+            description: 'Dota 2 hero win rates, pick rates, and trend data across public match brackets.',
+            url: `${SITE_URL}/heroes/meta`,
+            license: 'https://creativecommons.org/licenses/by-nc/4.0/',
+            creator: { '@type': 'Organization', name: 'Dota2ProTips', url: SITE_URL },
+          }),
+        }}
+      />
+      <HeroMetaTable heroes={heroes} updatedAt={updatedAt} />
+    </>
+  )
 }

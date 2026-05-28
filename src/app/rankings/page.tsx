@@ -54,6 +54,7 @@ export default async function RankingsPage() {
               name: 'Dota 2 ELO Team Rankings',
               description: 'Dota 2 ELO team rankings updated after every Tier 1 series, weighted by opponent strength.',
               url: `${SITE_URL}/rankings`,
+              license: 'https://creativecommons.org/licenses/by-nc/4.0/',
               creator: {
                 '@type': 'Organization',
                 name: 'Dota2ProTips',

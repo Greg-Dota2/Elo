@@ -414,6 +414,18 @@ export default async function TournamentPage({ params }: Props) {
                   location: eventLocation,
                   url: `https://www.dota2protips.com/tournaments/${slug}`,
                   description: descParts,
+                  organizer: { '@type': 'Organization', name: tournament.name, url: `https://www.dota2protips.com/tournaments/${slug}` },
+                  performer: [
+                    { '@type': 'SportsTeam', name: p.team_1!.name, ...(p.team_1!.logo_url ? { image: p.team_1!.logo_url } : {}) },
+                    { '@type': 'SportsTeam', name: p.team_2!.name, ...(p.team_2!.logo_url ? { image: p.team_2!.logo_url } : {}) },
+                  ],
+                  offers: {
+                    '@type': 'Offer',
+                    price: '0',
+                    priceCurrency: 'USD',
+                    availability: 'https://schema.org/InStock',
+                    url: `https://www.dota2protips.com/tournaments/${slug}`,
+                  },
                 }
               }),
             {
