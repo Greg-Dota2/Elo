@@ -159,7 +159,7 @@ export default function ParticipantsGrid({ participants, locale = 'en' }: Props)
             </div>
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2" style={{ gap: '1px', background: 'hsl(var(--border) / 0.4)' }}>
-            {items.map(p => <TeamCard key={p.team} p={p} />)}
+            {items.map((p, i) => <TeamCard key={`${p.team}-${i}`} p={p} />)}
           </div>
         </div>
       ))}

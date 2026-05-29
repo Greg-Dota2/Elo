@@ -1,4 +1,5 @@
 import { notFound, redirect } from 'next/navigation'
+import { Suspense } from 'react'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import {
@@ -12,23 +13,14 @@ import {
 } from '@/lib/queries'
 import TournamentContent from '@/components/TournamentContent'
 import type { MatchPrediction } from '@/lib/types'
-import {
-  fetchUpcomingTier1Matches,
-  fetchRunningTier1Matches,
-  fetchRecentTier1Matches,
-  fetchTournamentStandings,
-  fetchMatchesForSubTournament,
-  type PSTeam,
-} from '@/lib/pandascore'
-import GroupStageView, { type GroupData } from '@/components/GroupStageView'
+import { type GroupData } from '@/components/GroupStageView'
 import PrizeTable from '@/components/PrizeTable'
 import ParticipantsGrid, { type ParticipantWithRoster } from '@/components/ParticipantsGrid'
 import { createAdminClient } from '@/lib/supabase/admin'
-import PSBracketView from '@/components/PSBracketView'
-import { fetchGroupsFromDB } from '@/lib/groupStageDB'
 import { TIER1_TOURNAMENTS } from '@/lib/tier1tournaments'
-import { format } from 'date-fns'
 import { renderWithLinks } from '@/lib/renderLinks'
+import LiveGroupStage from '@/components/LiveGroupStage'
+import LiveSchedule from '@/components/LiveSchedule'
 
 export const revalidate = 300
 
@@ -121,155 +113,15 @@ export default async function TournamentPage({ params }: Props) {
 
   const isOver = tournament.end_date ? new Date(tournament.end_date + 'T23:59:59Z') < new Date() : false
 
-  const [predictions, stats, teamAccuracy, upcomingPS, runningPS, swissMatches, playoffMatches] = await Promise.all([
+  const [predictions, stats, teamAccuracy] = await Promise.all([
     getPredictionsByTournament(tournament.id).catch(() => []),
     getTournamentStats(tournament.id).catch(() => null),
     getTeamAccuracy(tournament.id, 3).catch(() => []),
-    isOver ? Promise.resolve([]) : fetchUpcomingTier1Matches(50).catch(() => []),
-    isOver ? Promise.resolve([]) : fetchRunningTier1Matches(20).catch(() => []),
-    isOver ? Promise.resolve([]) : tier1Entry?.ps_group_stage_id
-      ? fetchMatchesForSubTournament(tier1Entry.ps_group_stage_id).catch(() => [])
-      : Promise.resolve([]),
-    isOver ? Promise.resolve([]) : tier1Entry?.ps_playoff_id
-      ? fetchMatchesForSubTournament(tier1Entry.ps_playoff_id).catch(() => [])
-      : Promise.resolve([]),
   ])
 
-  // Filter PandaScore matches to this tournament — try serie_id first (exact match),
-  // fall back to derived slug comparison (works for ESL, DreamLeague, TI).
-  const psMatches = [...runningPS, ...upcomingPS].filter(m => {
-    if (tier1Entry && 'ps_serie_id' in tier1Entry && tier1Entry.ps_serie_id) {
-      return m.serie.id === tier1Entry.ps_serie_id
-    }
-    const psSlug = `${m.league.name}-${m.serie.full_name}`
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '')
-    return psSlug === tournament.slug
-  })
-
-  // Group by PandaScore sub-tournament (group)
-  // Seed with explicitly-fetched playoff matches so the bracket always shows
-  // even when all playoff matches are finished (not in running/upcoming feeds)
-  const scheduleByGroup = [...psMatches, ...playoffMatches, ...swissMatches].reduce<Record<string, typeof psMatches>>((acc, m) => {
-    const key = String(m.tournament.id)
-    if (!acc[key]) acc[key] = []
-    acc[key].push(m)
-    return acc
-  }, {})
-
-  // Helper: build a GroupData entry from a sub-tournament ID + name + seed matches
-  const buildGroupData = async (subId: number, subName: string, seedMatches: typeof psMatches): Promise<GroupData> => {
-    const [standings, allMatches] = await Promise.all([
-      fetchTournamentStandings(subId).catch(() => []),
-      fetchMatchesForSubTournament(subId).catch(() => seedMatches),
-    ])
-
-    // Compute standings from finished matches as fallback
-    const record = new Map<number, { team: PSTeam; wins: number; draws: number; losses: number }>()
-    const ensure = (team: PSTeam) => {
-      if (!record.has(team.id)) record.set(team.id, { team, wins: 0, draws: 0, losses: 0 })
-    }
-    for (const m of allMatches) {
-      if (m.status !== 'finished' || m.results.length < 2) continue
-      const [r1, r2] = m.results
-      const t1 = m.opponents.find(o => o.opponent.id === r1.team_id)?.opponent
-      const t2 = m.opponents.find(o => o.opponent.id === r2.team_id)?.opponent
-      if (!t1 || !t2) continue
-      ensure(t1); ensure(t2)
-      if (r1.score > r2.score) { record.get(t1.id)!.wins++; record.get(t2.id)!.losses++ }
-      else if (r2.score > r1.score) { record.get(t2.id)!.wins++; record.get(t1.id)!.losses++ }
-      else { record.get(t1.id)!.draws++; record.get(t2.id)!.draws++ }
-    }
-    const computedStandings = Array.from(record.values())
-      .sort((a, b) => (b.wins * 3 + b.draws) - (a.wins * 3 + a.draws))
-      .map((r, i) => ({ rank: i + 1, team: r.team, wins: r.wins, draws: r.draws, losses: r.losses, total: r.wins + r.draws + r.losses }))
-
-    const apiHasData = standings.length > 1 && standings.some(s => s.wins > 0 || s.losses > 0)
-    const derivedStandings = apiHasData ? standings
-      : computedStandings.length > 1 ? computedStandings
-      : (() => {
-        const seen = new Map<number, PSTeam>()
-        for (const m of allMatches) {
-          for (const opp of m.opponents) {
-            if (!seen.has(opp.opponent.id)) seen.set(opp.opponent.id, opp.opponent)
-          }
-        }
-        return Array.from(seen.values()).map((team, i) => ({ rank: i + 1, team, wins: 0, draws: 0, losses: 0, total: 0 }))
-      })()
-
-    return { id: subId, name: subName, standings: derivedStandings, matches: allMatches }
-  }
-
-  // 1. Archived PandaScore data stored permanently in the DB (highest priority for completed tournaments)
   const archivedGroups = tournament.group_stage_data
     ? (tournament.group_stage_data as GroupData[])
     : null
-
-  // 2. Manually managed group stages via match_predictions + stages
-  const dbGroups = archivedGroups ? [] : await fetchGroupsFromDB(tournament.slug)
-
-  let groupsData: GroupData[]
-
-  if (archivedGroups && archivedGroups.length > 0) {
-    // Archived PandaScore snapshot — use directly, no API calls needed
-    groupsData = archivedGroups
-  } else if (dbGroups.length > 0) {
-    // DB takes priority: admin has set up stages manually
-    groupsData = dbGroups
-  } else if (Object.keys(scheduleByGroup).length > 0) {
-    // Normal PandaScore path: running/upcoming matches tell us which sub-tournaments exist
-    groupsData = await Promise.all(
-      Object.entries(scheduleByGroup).map(([subId, upcomingMatches]) =>
-        buildGroupData(Number(subId), upcomingMatches[0].tournament.name, upcomingMatches)
-      )
-    ).then(groups => groups.filter(g => g.standings.length > 1))
-  } else if (!isOver) {
-    // PandaScore fallback: no live matches — pull from recent finished (skip for completed tournaments)
-    const recentFinished = await fetchRecentTier1Matches(100).catch(() => [])
-    const finishedPsMatches = recentFinished.filter(m => {
-      const psSlug = `${m.league.name}-${m.serie.full_name}`
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '')
-      return psSlug === tournament.slug
-    })
-    const finishedByGroup = finishedPsMatches.reduce<Record<string, typeof finishedPsMatches>>((acc, m) => {
-      const key = String(m.tournament.id)
-      if (!acc[key]) acc[key] = []
-      acc[key].push(m)
-      return acc
-    }, {})
-    groupsData = await Promise.all(
-      Object.entries(finishedByGroup).map(([subId, matches]) =>
-        buildGroupData(Number(subId), matches[0].tournament.name, matches)
-      )
-    ).then(groups => groups.filter(g => g.standings.length > 1))
-  } else {
-    groupsData = []
-  }
-
-  // Build live score map from all PS sources: swissMatches, runningPS, and groupsData matches
-  // swissMatches is the same data the schedule section uses, so it's the most reliable for live scores
-  interface LiveScoreEntry { nameA: string; nameB: string; scoreA: number; scoreB: number }
-  const liveScoreMap = new Map<string, LiveScoreEntry>()
-  const liveMatchSources = [
-    ...swissMatches,
-    ...runningPS,
-    ...groupsData.flatMap(g => g.matches),
-  ]
-  for (const m of liveMatchSources) {
-    if (m.status !== 'running') continue
-    const oppA = m.opponents[0]?.opponent
-    const oppB = m.opponents[1]?.opponent
-    if (!oppA || !oppB) continue
-    const scoreA = m.results.find(r => r.team_id === oppA.id)?.score ?? 0
-    const scoreB = m.results.find(r => r.team_id === oppB.id)?.score ?? 0
-    const entry: LiveScoreEntry = { nameA: oppA.name, nameB: oppB.name, scoreA, scoreB }
-    liveScoreMap.set(String(m.id), entry)
-    const pairKey = [oppA.name.toLowerCase(), oppB.name.toLowerCase()].sort().join('|')
-    liveScoreMap.set(pairKey, entry)
-  }
 
   const allTeamIds = [...new Set(predictions.flatMap(p => [p.team_1_id, p.team_2_id]))]
   const h2hMatches = await getH2HForTeams(allTeamIds).catch(() => [])
@@ -328,17 +180,6 @@ export default async function TournamentPage({ params }: Props) {
         })),
       }
     })
-  }
-
-  // Map PandaScore match ID → DB match_date so the schedule section uses the correct date
-  const psIdToDate = new Map<number, string>()
-  const teamPairToDate = new Map<string, string>()
-  for (const p of predictions) {
-    if (p.pandascore_match_id && p.match_date) psIdToDate.set(p.pandascore_match_id, p.match_date)
-    if (p.match_date && p.team_1?.name && p.team_2?.name) {
-      const key = [p.team_1.name.toLowerCase(), p.team_2.name.toLowerCase()].sort().join('|')
-      teamPairToDate.set(key, p.match_date)
-    }
   }
 
   return (
@@ -592,199 +433,15 @@ export default async function TournamentPage({ params }: Props) {
         </>
       )}
 
-      {/* Swiss + Group Stage + Playoff Bracket moved into the Bracket tab ↓ */}
-
-      {/* ── Schedule (PandaScore) ── */}
-      {groupsData.length > 0 && (() => {
-        const psTeamSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-
-        // Merge all matches across groups, tag each with its group name, sort by time
-        const allMatches = groupsData
-          .flatMap(g => g.matches.map(m => ({ ...m, _groupName: g.name })))
-          .sort((a, b) => {
-            const ta = new Date(a.scheduled_at ?? a.begin_at ?? '').getTime()
-            const tb = new Date(b.scheduled_at ?? b.begin_at ?? '').getTime()
-            return ta - tb
-          })
-
-        // Helper: get Athens-timezone day key ('MMM d') from an ISO timestamp
-        const athensDayLabel = (iso: string) => {
-          const d = new Date(iso)
-          // 'en-CA' locale gives YYYY-MM-DD; split to build a local-midnight Date for formatting
-          const [y, mo, day] = d.toLocaleDateString('en-CA', { timeZone: 'Europe/Athens' }).split('-').map(Number)
-          return format(new Date(y, mo - 1, day), 'MMM d')
-        }
-
-        // Group by day — prefer DB match_date for accuracy, fall back to PandaScore timestamp
-        const byDay = new Map<string, typeof allMatches>()
-        for (const m of allMatches) {
-          let day: string
-          const tA = m.opponents[0]?.opponent
-          const tB = m.opponents[1]?.opponent
-          const pairKey = tA && tB ? [tA.name.toLowerCase(), tB.name.toLowerCase()].sort().join('|') : null
-          const dbDate = psIdToDate.get(m.id) ?? (pairKey ? teamPairToDate.get(pairKey) : undefined)
-          if (dbDate) {
-            // DB date is already a YYYY-MM-DD string in Athens local time
-            const [y, mo, d] = dbDate.split('-').map(Number)
-            day = format(new Date(y, mo - 1, d), 'MMM d')
-          } else {
-            const dateSource = (m.status === 'finished' && m.begin_at) ? m.begin_at : m.scheduled_at
-            day = dateSource ? athensDayLabel(dateSource) : 'TBD'
-          }
-          if (!byDay.has(day)) byDay.set(day, [])
-          byDay.get(day)!.push(m)
-        }
-
-        const firstMatch = allMatches[0]
-        const league = firstMatch?.league
-
-        // Today's label in Athens timezone — today's day is never collapsed
-        const todayLabel = athensDayLabel(new Date().toISOString())
-
-        // Sort a day's matches: running (live) first, then upcoming, finished at bottom
-        const sortDayMatches = (matches: typeof allMatches) => {
-          const p = (m: typeof allMatches[0]) => m.status === 'running' ? 0 : m.status === 'finished' ? 2 : 1
-          return [...matches].sort((a, b) => {
-            const diff = p(a) - p(b)
-            if (diff !== 0) return diff
-            return new Date(a.scheduled_at ?? '').getTime() - new Date(b.scheduled_at ?? '').getTime()
-          })
-        }
-
-        // Split: past days (all finished, not today) collapse; today + days with live/upcoming stay expanded
-        const activeDays: [string, typeof allMatches][] = []
-        const finishedDays: [string, typeof allMatches][] = []
-        for (const entry of byDay.entries()) {
-          const [day, dayMatches] = entry
-          const allFinished = dayMatches.every(m => m.status === 'finished')
-          if (allFinished && day !== todayLabel) finishedDays.push([day, dayMatches])
-          else activeDays.push([day, sortDayMatches(dayMatches)])
-        }
-        activeDays.reverse()
-        finishedDays.reverse()
-        const totalFinished = finishedDays.reduce((n, [, ms]) => n + ms.length, 0)
-
-        const renderDayRows = (dayMatches: typeof allMatches) =>
-          dayMatches.map((m, i) => {
-            const teamA = m.opponents[0]?.opponent
-            const teamB = m.opponents[1]?.opponent
-            const time = m.scheduled_at
-              ? new Date(m.scheduled_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Athens' })
-              : '–'
-            const scoreA = m.results.find(r => r.team_id === teamA?.id)?.score
-            const scoreB = m.results.find(r => r.team_id === teamB?.id)?.score
-            const isLiveMatch = m.status === 'running'
-            const hasScore = (m.status === 'finished' || isLiveMatch) && scoreA !== undefined && scoreB !== undefined
-            const aWon = hasScore && !isLiveMatch && scoreA! > scoreB!
-            const bWon = hasScore && !isLiveMatch && scoreB! > scoreA!
-            const drew = hasScore && !isLiveMatch && scoreA === scoreB
-            return (
-              <div key={`${m.id}-${i}`} className="px-5 py-2.5 flex items-center gap-3 text-sm" style={{ borderBottom: i < dayMatches.length - 1 ? '1px solid hsl(var(--border) / 0.4)' : 'none', background: i % 2 !== 0 ? 'hsl(var(--secondary) / 0.2)' : 'transparent' }}>
-                <span className="w-12 text-xs shrink-0 tabular-nums text-muted-foreground">{time}</span>
-                <div className="flex items-center gap-1.5 flex-1 justify-end min-w-0">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  {teamA?.image_url && <img loading="lazy" src={teamA.image_url} alt={teamA.name} className="w-4 h-4 object-contain shrink-0 rounded" style={{ background: 'rgba(255,255,255,0.08)' }} />}
-                  {teamA ? (
-                    <Link href={`/teams/${psTeamSlug(teamA.name)}`} className="font-semibold truncate hover:text-primary transition-colors text-foreground">{teamA.name}</Link>
-                  ) : <span className="font-semibold truncate text-foreground">TBD</span>}
-                </div>
-                {hasScore ? (
-                  <div className="flex flex-col items-center shrink-0 px-2">
-                    <span className="text-sm font-black tabular-nums">
-                      <span style={{ color: isLiveMatch ? 'hsl(var(--destructive))' : drew ? '#f59e0b' : aWon ? 'var(--correct)' : 'var(--wrong)' }}>{scoreA}</span>
-                      <span className="text-muted-foreground/40">:</span>
-                      <span style={{ color: isLiveMatch ? 'hsl(var(--destructive))' : drew ? '#f59e0b' : bWon ? 'var(--correct)' : 'var(--wrong)' }}>{scoreB}</span>
-                    </span>
-                    {isLiveMatch && (
-                      <span className="text-[9px] font-bold px-1 py-0.5 rounded leading-none" style={{ background: 'hsl(var(--destructive) / 0.15)', color: 'hsl(var(--destructive))' }}>LIVE</span>
-                    )}
-                  </div>
-                ) : (
-                  <span className="text-xs font-black px-2 shrink-0 text-muted-foreground/40">VS</span>
-                )}
-                <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  {teamB?.image_url && <img loading="lazy" src={teamB.image_url} alt={teamB.name} className="w-4 h-4 object-contain shrink-0 rounded" style={{ background: 'rgba(255,255,255,0.08)' }} />}
-                  {teamB ? (
-                    <Link href={`/teams/${psTeamSlug(teamB.name)}`} className="font-semibold truncate hover:text-primary transition-colors text-foreground">{teamB.name}</Link>
-                  ) : <span className="font-semibold truncate text-foreground">TBD</span>}
-                </div>
-                <span className="text-[10px] shrink-0 tabular-nums text-muted-foreground/50">{m._groupName}</span>
-                <span className="text-xs shrink-0 px-2 py-0.5 rounded" style={{ background: 'hsl(var(--secondary))', color: 'hsl(var(--muted-foreground))' }}>BO{m.number_of_games}</span>
-              </div>
-            )
-          })
-
-        const totalMatches = allMatches.length
-        return (
-          <div className="mb-6">
-            <details className="group/schedule">
-              <summary className="flex items-center justify-between gap-3 mb-4 cursor-pointer select-none list-none">
-                <h2 className="section-label">Schedule & Results</h2>
-                <span className="text-xs font-semibold px-3 py-1 rounded-full transition-colors"
-                  style={{ background: 'hsl(var(--primary) / 0.1)', color: 'hsl(var(--primary))' }}>
-                  <span className="group-open/schedule:hidden">{totalMatches} matches · Show ▾</span>
-                  <span className="hidden group-open/schedule:inline">Hide ▴</span>
-                </span>
-              </summary>
-            <div className="rounded-2xl overflow-hidden" style={{ background: 'hsl(var(--card) / 0.6)', border: '1px solid hsl(var(--border) / 0.6)' }}>
-              {league && (
-                <div className="px-5 py-3 flex items-center gap-3" style={{ borderBottom: '1px solid hsl(var(--border) / 0.5)' }}>
-                  {league.image_url && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img loading="lazy" src={league.image_url} alt={league.name} className="w-5 h-5 object-contain shrink-0" />
-                  )}
-                  <p className="text-xs font-bold tracking-widest uppercase" style={{ color: 'hsl(var(--primary))' }}>{league.name}</p>
-                </div>
-              )}
-
-              {/* Active days (upcoming / live) */}
-              {activeDays.map(([day, dayMatches]) => (
-                <div key={day}>
-                  <div className="px-5 py-2 text-xs font-bold uppercase tracking-widest" style={{ background: 'hsl(var(--secondary) / 0.35)', borderBottom: '1px solid hsl(var(--border) / 0.4)', color: 'hsl(var(--primary))' }}>
-                    {day}
-                  </div>
-                  {renderDayRows(dayMatches)}
-                </div>
-              ))}
-
-              {/* Finished days — collapsible */}
-              {finishedDays.length > 0 && (
-                <details className="group">
-                  <summary
-                    className="flex items-center justify-between gap-3 px-5 py-3 cursor-pointer select-none"
-                    style={{ background: 'hsl(var(--secondary) / 0.2)', borderTop: activeDays.length > 0 ? '1px solid hsl(var(--border) / 0.5)' : 'none' }}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <span
-                        className="flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-black tabular-nums shrink-0"
-                        style={{ background: 'hsl(var(--muted))', color: 'var(--text-muted)' }}
-                      >
-                        {totalFinished}
-                      </span>
-                      <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
-                        Completed matches ({finishedDays.map(([d]) => d).join(', ')})
-                      </span>
-                    </div>
-                    <span className="text-xs font-semibold px-3 py-1 rounded-full group-open:opacity-0 transition-opacity" style={{ background: 'hsl(var(--primary) / 0.1)', color: 'hsl(var(--primary))' }}>
-                      Show ▾
-                    </span>
-                  </summary>
-                  {finishedDays.map(([day, dayMatches]) => (
-                    <div key={day}>
-                      <div className="px-5 py-2 text-xs font-bold uppercase tracking-widest" style={{ background: 'hsl(var(--secondary) / 0.35)', borderTop: '1px solid hsl(var(--border) / 0.4)', borderBottom: '1px solid hsl(var(--border) / 0.4)', color: 'hsl(var(--muted-foreground))' }}>
-                        {day}
-                      </div>
-                      {renderDayRows(dayMatches)}
-                    </div>
-                  ))}
-                </details>
-              )}
-            </div>
-            </details>
-          </div>
-        )
-      })()}
+      <Suspense fallback={null}>
+        <LiveSchedule
+          slug={slug}
+          tier1Entry={tier1Entry}
+          isOver={isOver}
+          archivedGroups={archivedGroups}
+          predictions={predictions}
+        />
+      </Suspense>
 
       <TournamentContent
         tournament={tournament}
@@ -792,14 +449,17 @@ export default async function TournamentPage({ params }: Props) {
         stats={stats}
         teamAccuracy={teamAccuracy}
         h2hMap={h2hMap}
-        liveScoreMap={liveScoreMap}
         bracketExtra={
-          <>
-            <GroupStageView groups={groupsData.filter(g =>
-              !/upper|lower|bracket|playoff|elimination|grand.?final/i.test(g.name) || /group/i.test(g.name)
-            )} />
-            <PSBracketView groups={groupsData} />
-          </>
+          <Suspense fallback={
+            <div className="rounded-2xl animate-pulse mb-6" style={{ background: 'hsl(var(--card) / 0.4)', border: '1px solid hsl(var(--border) / 0.4)', height: '180px' }} />
+          }>
+            <LiveGroupStage
+              slug={slug}
+              tier1Entry={tier1Entry}
+              isOver={isOver}
+              archivedGroups={archivedGroups}
+            />
+          </Suspense>
         }
       />
     </div>
