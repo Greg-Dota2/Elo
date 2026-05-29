@@ -206,7 +206,7 @@ export default async function TournamentPage({ params }: Props) {
               ...(tournament.end_date ? { endDate: tournament.end_date } : {}),
               ...(tournament.logo_url ? { image: tournament.logo_url } : {}),
               ...(tournament.overview ? { description: tournament.overview } : {}),
-              eventStatus: 'https://schema.org/EventScheduled',
+              eventStatus: isOver ? 'https://schema.org/EventCompleted' : 'https://schema.org/EventScheduled',
               ...(tournament.location_type === 'lan' && tournament.location_name
                 ? {
                     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
@@ -238,7 +238,7 @@ export default async function TournamentPage({ params }: Props) {
                   '@type': 'SportsEvent',
                   name: `${p.team_1!.name} vs ${p.team_2!.name}`,
                   sport: 'Dota 2',
-                  eventStatus: 'https://schema.org/EventScheduled',
+                  eventStatus: isFinished ? 'https://schema.org/EventCompleted' : 'https://schema.org/EventScheduled',
                   eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
                   ...(startDate ? { startDate } : {}),
                   ...(tournament.logo_url ? { image: tournament.logo_url } : {}),
@@ -262,7 +262,7 @@ export default async function TournamentPage({ params }: Props) {
                   ],
                   offers: {
                     '@type': 'Offer',
-                    price: '0',
+                    price: 0,
                     priceCurrency: 'USD',
                     availability: 'https://schema.org/InStock',
                     url: `https://www.dota2protips.com/tournaments/${slug}`,
