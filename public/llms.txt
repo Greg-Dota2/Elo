@@ -1,0 +1,63 @@
+# Dota2ProTips
+
+> Dota 2 esports analytics: ELO team rankings, match predictions with verified track record, pro player profiles, hero meta data, and Tier 1 tournament coverage. Written by Greg Spencer, independent Dota 2 analyst.
+
+## What this site tracks
+
+- **ELO ratings** for all active Tier 1 Dota 2 teams, recalculated after every series using opponent strength weighting. Baseline is 1500.
+- **Match predictions** — pre-match analysis published before every Tier 1 series, with post-match aftermath commentary after the result. Full accuracy track record is public.
+- **EPT (Esports Performance Trophy) points** and prize earnings per player and team across Tier 1 tournaments.
+- **Hero meta** — win rates, pick rates, and trend data pulled from public Dota 2 matches via OpenDota.
+- **Item meta** — upgrade item win rates and neutral item stats from public match data.
+- **Transfer tracker** — pro player team moves with dates and context.
+
+## Key pages
+
+- [ELO Team Rankings](https://www.dota2protips.com/rankings) — live Tier 1 team ELO table, sorted by current rating
+- [Player Rankings](https://www.dota2protips.com/players/rankings) — pro player rankings by EPT points, placement score, and prize earnings
+- [Tournaments](https://www.dota2protips.com/tournaments) — all tracked Tier 1 tournaments with predictions, schedules, and prize distributions
+- [Track Record](https://www.dota2protips.com/track-record) — full prediction accuracy history across all tournaments
+- [Teams](https://www.dota2protips.com/teams) — all active Tier 1 teams with ELO, W/D/L record, and rosters
+- [Players](https://www.dota2protips.com/players) — all tracked pro players with role, team, and career stats
+- [Hero Meta](https://www.dota2protips.com/heroes/meta) — current Dota 2 hero win rates and pick rates
+- [Item Meta](https://www.dota2protips.com/items/meta) — item win rates and neutral item tier list
+- [Transfers](https://www.dota2protips.com/transfers) — recent pro player team changes
+- [Blog](https://www.dota2protips.com/blog) — tournament analysis and Dota 2 esports commentary
+
+## Prediction methodology
+
+Each match prediction is written before the series starts and covers:
+
+- **ELO differential** — the rating gap between the two teams as a baseline probability
+- **Head-to-head record** — recent series results between the specific teams, including score margins
+- **Current form** — momentum, recent results, roster changes, stand-ins
+- **Psychological factors** — mental state, rivalry context, pressure situations (e.g. elimination matches), known tilt tendencies
+- **Meta and draft** — hero pool strengths, coach tendencies, known strategies
+- **Tournament context** — group stage vs playoffs, bracket position, rest days
+
+After each match, an **aftermath** is written — a short post-result analysis of what happened, what was right or wrong in the prediction, and what it means for each team going forward.
+
+The full prediction history with correct/incorrect outcomes is published at [Track Record](https://www.dota2protips.com/track-record), broken down per tournament.
+
+## ELO methodology
+
+The ELO system starts all teams at 1500. Each series result adjusts both teams' ratings based on:
+- Expected win probability derived from rating difference
+- Series score margin (e.g. 2-0 vs 2-1)
+- Stage weight (playoffs count more than group stage)
+- Only Tier 1 tournament results are included
+
+## Tier 1 tournaments tracked
+
+DreamLeague, PGL Wallachia, ESL One, BLAST Slam, Fissure Universe, The International (TI), Esports World Cup, and other top-tier Dota 2 events sanctioned by Valve's Esports Performance Trophy circuit.
+
+## Data freshness
+
+- ELO ratings: updated within 24 hours of each series result
+- Hero/item meta: refreshed daily from OpenDota
+- Match predictions: published before each match starts
+- Tournament schedules: synced from PandaScore every 15 minutes
+
+## About
+
+Run by Greg Spencer. Available in English and Russian. Contact: via the site's contact page.
