@@ -68,32 +68,35 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Resolve tournament — prefer the canonical slug from TIER1_TOURNAMENTS (matched by
-    // league_id + scheduled date falling within the known window) over the PandaScore-derived slug.
+    // Resolve tournament — prefer ps_serie_id exact match, then date window, then derived slug.
     const tournamentName = `${match.league.name} ${match.serie.full_name}`
     const derivedSlug = `${match.league.name}-${match.serie.full_name}`
       .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
     const scheduledAt = match.scheduled_at ? new Date(match.scheduled_at) : null
-    const knownByDate = scheduledAt
+    const knownBySerie = TIER1_TOURNAMENTS.find(t =>
+      'ps_serie_id' in t && (t as { ps_serie_id?: number }).ps_serie_id === match.serie.id
+    )
+    const knownByDate = !knownBySerie && scheduledAt
       ? TIER1_TOURNAMENTS.find(t =>
           t.league_id === match.league.id &&
           new Date(t.start_date) <= scheduledAt &&
           scheduledAt <= new Date(t.end_date + 'T23:59:59Z')
         )
       : undefined
-    const slug = (knownByDate && tournamentBySlug.has(knownByDate.slug))
-      ? knownByDate.slug
+    const known = knownBySerie ?? knownByDate
+    const slug = (known && tournamentBySlug.has(known.slug))
+      ? known.slug
       : derivedSlug
 
     if (!tournamentBySlug.has(slug)) {
-      const known = knownByDate ?? TIER1_TOURNAMENTS.find(t => t.league_id === match.league.id)
+      const knownFallback = known ?? TIER1_TOURNAMENTS.find(t => t.league_id === match.league.id)
       newTournaments.push({
         name: tournamentName,
         slug,
         tier: 1,
         logo_url: null,
         is_published: false,
-        ...(known ? { start_date: known.start_date, end_date: known.end_date } : {}),
+        ...(knownFallback ? { start_date: knownFallback.start_date, end_date: knownFallback.end_date } : {}),
       })
     }
   }
