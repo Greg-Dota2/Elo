@@ -83,7 +83,10 @@ export async function GET(req: NextRequest) {
           scheduledAt <= new Date(t.end_date + 'T23:59:59Z')
         )
       : undefined
-    const known = knownBySerie ?? knownByDate
+    const knownByLeague = !knownBySerie && !knownByDate
+      ? TIER1_TOURNAMENTS.filter(t => t.league_id === match.league.id).at(-1)
+      : undefined
+    const known = knownBySerie ?? knownByDate ?? knownByLeague
     const slug = (known && tournamentBySlug.has(known.slug))
       ? known.slug
       : derivedSlug
