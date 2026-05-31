@@ -47,14 +47,14 @@ export const metadata: Metadata = {
     siteName: 'Dota2ProTips',
     title: 'Dota2ProTips — Dota 2 Match Predictions',
     description: 'Expert Dota 2 match predictions for Tier 1 pro tournaments — pre-match analysis, ELO rankings, and accuracy tracked across every pick.',
-    images: [{ url: `${SITE_URL}/og.png`, width: 1200, height: 630, alt: 'Dota2ProTips — Dota 2 Match Predictions' }],
+    images: [{ url: `${SITE_URL}/1.png`, width: 512, height: 512, alt: 'Dota2ProTips — Dota 2 Match Predictions' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Dota2ProTips — Dota 2 Match Predictions',
     description: 'Expert Dota 2 match predictions for Tier 1 pro tournaments — pre-match analysis, ELO rankings, accuracy tracked.',
     creator: '@dota2protips',
-    images: [`${SITE_URL}/og.png`],
+    images: [`${SITE_URL}/1.png`],
   },
   robots: {
     index: true,
@@ -64,9 +64,11 @@ export const metadata: Metadata = {
   alternates: { canonical: SITE_URL },
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const { headers } = await import('next/headers')
+  const locale = (await headers()).get('x-locale') ?? 'en'
   return (
-    <html lang="en" suppressHydrationWarning className={`dark ${manrope.variable} ${oxanium.variable}`}>
+    <html lang={locale} suppressHydrationWarning className={`dark ${manrope.variable} ${oxanium.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: `try{if(localStorage.getItem('cookie_consent'))document.documentElement.setAttribute('data-cookie-ok','')}catch(e){}` }} />
         <script

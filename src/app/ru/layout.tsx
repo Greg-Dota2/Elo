@@ -42,8 +42,6 @@ const jsonLd = [
 export default function RuLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      {/* Set html lang before React hydration */}
-      <script dangerouslySetInnerHTML={{ __html: "document.documentElement.lang='ru'" }} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
