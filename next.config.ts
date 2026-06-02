@@ -9,6 +9,17 @@ const nextConfig: NextConfig = {
     // External CDNs that already serve optimized images — skip Vercel transformation
     unoptimized: true,
   },
+  async headers() {
+    return [
+      {
+        // Build assets are not pages. noindex keeps them crawlable for rendering
+        // (NOT a robots.txt block) but drops them from Google's index, clearing
+        // the "Crawled - currently not indexed" report noise.
+        source: '/_next/static/:path*',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex' }],
+      },
+    ]
+  },
   async rewrites() {
     return [
       { source: '/sitemap.xml', destination: '/sitemap-gen' },

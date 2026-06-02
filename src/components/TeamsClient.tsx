@@ -177,9 +177,13 @@ export default function TeamsClient({ active, inactive, statsMap, locale }: Prop
       {filteredInactive.length > 0 && (
         <div>
           <p className="section-label mb-4">{L.inactive}</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 opacity-50">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {filteredInactive.map(team => (
-              <div key={team.id} className="rounded-xl border border-border/40 bg-card/30 p-3 flex items-center gap-3">
+              <Link
+                key={team.id}
+                href={team.slug ? `${prefix}/teams/${team.slug}` : '#'}
+                className="rounded-xl border border-border/40 bg-card/30 p-3 flex items-center gap-3 opacity-60 hover:opacity-100 hover:border-border hover:bg-card/60 transition-all"
+              >
                 {team.logo_url && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img loading="lazy" src={team.logo_url} alt={team.name} className="w-7 h-7 object-contain shrink-0" />
@@ -188,7 +192,7 @@ export default function TeamsClient({ active, inactive, statsMap, locale }: Prop
                   <p className="text-sm font-semibold truncate">{team.name}</p>
                   {team.region && <p className="text-xs text-muted-foreground truncate">{(locale === 'ru' ? REGION_RU[team.region] : null) ?? team.region}</p>}
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
