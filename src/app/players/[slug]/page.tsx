@@ -9,6 +9,7 @@ import { fetchPlayerRadarStats } from '@/lib/opendota'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { Suspense } from 'react'
 import LiveUpcomingMatches from '@/components/LiveUpcomingMatches'
+import { computePlayerPlacements, type TournamentPrizeRow, type PlayerTransferRow } from '@/lib/playerResults'
 
 export const revalidate = 3600
 
@@ -67,7 +68,7 @@ export default async function PlayerPage({ params }: Props) {
   const posColor = player.position ? POSITION_COLOR[player.position] : ''
   const supabase = createAdminClient()
 
-  const [allHeroes, radarStats, teamMatchesResult, tournamentsWithPrize] = await Promise.all([
+  const [allHeroes, radarStats, teamMatchesResult, tournamentsWithPrize, playerTransfersResult] = await Promise.all([
     fetchAllHeroes().catch(() => []),
     player.opendota_id ? fetchPlayerRadarStats(player.opendota_id) : Promise.resolve(null),
     player.team?.id ? supabase
@@ -92,6 +93,11 @@ export default async function PlayerPage({ params }: Props) {
       .not('prize_distribution', 'is', null)
       .order('end_date', { ascending: false })
     : Promise.resolve({ data: [] }),
+    supabase
+      .from('transfers')
+      .select('from_team, to_team, transfer_date')
+      .eq('player_slug', slug)
+      .order('transfer_date', { ascending: true }),
   ])
 
   type TeamMatch = {
@@ -105,28 +111,13 @@ export default async function PlayerPage({ params }: Props) {
   const teamMatches = (teamMatchesResult.data ?? []) as unknown as TeamMatch[]
   const heroByName = new Map(allHeroes.map(h => [h.localized_name, h]))
 
-  type TournamentPlacement = {
-    tournament: { name: string; slug: string; logo_url: string | null }
-    place: string
-    prize_usd?: number
-    ept_points?: number
-    club_reward?: number
-  }
-  const tournamentPlacements: TournamentPlacement[] = []
-  if (player.team) {
-    for (const t of (tournamentsWithPrize.data ?? []) as { name: string; slug: string; logo_url: string | null; prize_distribution: { place: string; team: string; prize_usd?: number; ept_points?: number; club_reward?: number }[] }[]) {
-      const entry = t.prize_distribution?.find(p => p.team === player.team!.name)
-      if (entry) {
-        tournamentPlacements.push({
-          tournament: { name: t.name, slug: t.slug, logo_url: t.logo_url },
-          place: entry.place,
-          prize_usd: entry.prize_usd,
-          ept_points: entry.ept_points,
-          club_reward: entry.club_reward,
-        })
-      }
-    }
-  }
+  const tournamentPlacements = player.team
+    ? computePlayerPlacements(
+        (tournamentsWithPrize.data ?? []) as TournamentPrizeRow[],
+        (playerTransfersResult.data ?? []) as PlayerTransferRow[],
+        player.team.name,
+      )
+    : []
 
   return (
     <div className="fade-in-up">
