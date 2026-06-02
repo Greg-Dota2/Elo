@@ -284,8 +284,8 @@ export default function ItemMetaClient({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             {topWR     && <SpotlightCard item={topWR}      label={L.spotlightWR}           stat={`${topWR.winRate.toFixed(1)}%`}                                            statColor="text-emerald-400" accent="bg-emerald-400" href={`${itemPrefix}/${topWR.key}`} />}
             {mostBought && <SpotlightCard item={mostBought} label={L.spotlightBought}       stat={`${(mostBought.games/1000).toFixed(1)}k games`}                            statColor="text-sky-400"     accent="bg-sky-400"     href={`${itemPrefix}/${mostBought.key}`} />}
-            {bestBudget && <SpotlightCard item={bestBudget} label={L.spotlightBudget}       stat={`${bestBudget.winRate.toFixed(1)}% · ${bestBudget.cost.toLocaleString()}g`} statColor="text-emerald-400" accent="bg-violet-400"  href={`${itemPrefix}/${bestBudget.key}`} />}
-            {bestLate   && <SpotlightCard item={bestLate}   label={L.spotlightLate}         stat={`${bestLate.winRate.toFixed(1)}% · ${bestLate.cost.toLocaleString()}g`}    statColor="text-amber-400"   accent="bg-amber-400"   href={`${itemPrefix}/${bestLate.key}`} />}
+            {bestBudget && <SpotlightCard item={bestBudget} label={L.spotlightBudget}       stat={`${bestBudget.winRate.toFixed(1)}% · ${bestBudget.cost.toLocaleString('en-US')}g`} statColor="text-emerald-400" accent="bg-violet-400"  href={`${itemPrefix}/${bestBudget.key}`} />}
+            {bestLate   && <SpotlightCard item={bestLate}   label={L.spotlightLate}         stat={`${bestLate.winRate.toFixed(1)}% · ${bestLate.cost.toLocaleString('en-US')}g`}    statColor="text-amber-400"   accent="bg-amber-400"   href={`${itemPrefix}/${bestLate.key}`} />}
           </div>
 
           {/* Controls */}
@@ -365,7 +365,7 @@ export default function ItemMetaClient({
                         </Link>
                       </td>
                       <td className="px-4 py-2.5 text-right font-mono text-xs text-amber-400 tabular-nums">
-                        {item.cost.toLocaleString()} g
+                        {item.cost.toLocaleString('en-US')} g
                       </td>
                       <td className="px-4 py-2.5 text-right">
                         <span className={`font-mono font-bold text-sm ${winRateColor(item.winRate)}`}>
@@ -373,7 +373,7 @@ export default function ItemMetaClient({
                         </span>
                       </td>
                       <td className="px-4 py-2.5 text-right font-mono text-xs text-muted-foreground tabular-nums">
-                        {item.games.toLocaleString()}
+                        {item.games.toLocaleString('en-US')}
                       </td>
                       <td className="px-4 py-2.5 text-right font-mono text-xs text-muted-foreground tabular-nums">
                         {formatTiming(item.peakTiming)}
@@ -443,7 +443,7 @@ export default function ItemMetaClient({
                           : <span className="text-muted-foreground/30 text-xs">—</span>}
                       </td>
                       <td className="px-4 py-2.5 text-right font-mono text-xs text-muted-foreground tabular-nums">
-                        {item.games !== null ? item.games.toLocaleString() : <span className="opacity-30">—</span>}
+                        {item.games !== null ? item.games.toLocaleString('en-US') : <span className="opacity-30">—</span>}
                       </td>
                     </tr>
                   ))}

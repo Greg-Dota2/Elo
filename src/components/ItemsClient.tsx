@@ -47,6 +47,28 @@ const CATEGORY_STYLES: Record<string, { inactive: string; active: string }> = {
 
 const CATEGORY_ORDER: Record<string, number> = { upgrade: 0, basic: 1, neutral: 2, consumable: 3 }
 
+// Function-based color buckets — classify each item by its dominant stat bonuses
+// so the grid is varied AND meaningful (red = damage, green = tanky, etc.)
+const FUNCTION_HEX: Record<string, string> = {
+  damage: '#f87171', durability: '#4ade80', magic: '#60a5fa', mobility: '#2dd4bf', utility: '#c084fc',
+}
+const FUNC_PATTERNS: { fn: string; re: RegExp }[] = [
+  { fn: 'damage',     re: /attack_damage|bonus_damage|^damage$|crit_|cleave|lifesteal|attack_speed|aspd/ },
+  { fn: 'durability', re: /armor|health|^hp|hp_regen|health_regen|strength|^str$|bonus_str|evasion|magic_res|status_res|barrier|damage_block/ },
+  { fn: 'magic',      re: /mana|intellect|intelligence|^int$|bonus_int|spell_amp|spell_damage|spell_lifesteal|cast_range|cooldown_reduction/ },
+  { fn: 'mobility',   re: /agility|^agi$|bonus_agi|move_?speed|movement|attack_range/ },
+]
+function classifyItem(item: ItemData): string {
+  const scores: Record<string, number> = {}
+  for (const a of item.attrib ?? []) {
+    const k = (a.key || '').toLowerCase()
+    for (const { fn, re } of FUNC_PATTERNS) if (re.test(k)) scores[fn] = (scores[fn] ?? 0) + 1
+  }
+  let best = 'utility', bestScore = 0
+  for (const { fn } of FUNC_PATTERNS) if ((scores[fn] ?? 0) > bestScore) { best = fn; bestScore = scores[fn] }
+  return best
+}
+
 const L = {
   en: {
     search: 'Search items…',
@@ -142,25 +164,34 @@ export default function ItemsClient({ items: allItems, locale = 'en' }: { items:
         </div>
       ) : (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
-          {filtered.map(item => (
+          {filtered.map(item => {
+            const hex = FUNCTION_HEX[classifyItem(item)]
+            return (
             <Link
               key={item.key}
               href={`${prefix}/items/${item.key}`}
-              className="group relative rounded-xl border border-border/50 bg-card/60 overflow-hidden hover:border-primary/40 hover:bg-card/80 transition-all duration-200"
+              className="group relative rounded-xl border border-border/50 bg-card/60 overflow-hidden transition-all duration-200 hover:-translate-y-1"
               title={item.dname}
             >
               <div className="relative aspect-[88/64] bg-secondary/40 overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={itemIconUrl(item.key)} alt={item.dname} className="w-full h-full object-cover" loading="lazy" />
+                <img src={itemIconUrl(item.key)} alt={item.dname} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" loading="lazy" />
+                {/* depth scrim */}
+                <div className="absolute inset-x-0 bottom-0 h-1/2 pointer-events-none" style={{ background: 'linear-gradient(to top, rgba(8,10,14,0.6), transparent)' }} />
               </div>
               <div className="px-2 py-1.5">
-                <p className="text-[10px] font-semibold leading-tight text-foreground line-clamp-2 mb-1">{item.dname}</p>
+                <p className="text-[10px] font-semibold leading-tight text-foreground line-clamp-2 mb-1 group-hover:text-primary transition-colors">{item.dname}</p>
                 {item.cost > 0 && (
-                  <p className="text-[10px] font-bold text-amber-400 tabular-nums">{item.cost.toLocaleString()} g</p>
+                  <p className="text-[10px] font-bold text-amber-400 tabular-nums">{item.cost.toLocaleString('en-US')} g</p>
                 )}
               </div>
+              {/* category accent bar */}
+              {hex && <div className="h-[3px] w-full" style={{ background: hex, opacity: 0.6 }} />}
+              {/* hover glow + ring in category color */}
+              {hex && <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" style={{ boxShadow: `inset 0 0 0 1px ${hex}, 0 0 16px ${hex}40` }} />}
             </Link>
-          ))}
+            )
+          })}
         </div>
       )}
     </>

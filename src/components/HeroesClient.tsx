@@ -20,6 +20,17 @@ const ATTR_TABS = [
   { value: 'all', label: 'Universal',    labelRu: 'Универсальный', icon: 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/hero_universal.png' },
 ]
 
+// Raw hex per attribute for inline accent bars / glows (card cosmetics)
+const ATTR_HEX: Record<string, string> = {
+  str: '#f87171', agi: '#4ade80', int: '#60a5fa', all: '#c084fc',
+}
+const ATTR_ICON: Record<string, string> = {
+  str: 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/hero_strength.png',
+  agi: 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/hero_agility.png',
+  int: 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/hero_intelligence.png',
+  all: 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/hero_universal.png',
+}
+
 const ATTR_TAB_STYLES: Record<string, { inactive: string; active: string }> = {
   str: {
     inactive: 'text-red-400/80 bg-red-400/10 border-red-400/30 hover:text-red-400 hover:bg-red-400/15 hover:border-red-400/50',
@@ -161,22 +172,33 @@ export default function HeroesClient({ heroes, locale = 'en' }: { heroes: HeroDa
           {filtered.map(hero => {
             const slug = heroSlug(hero.name)
             const cfg = ATTR_CONFIG[hero.primary_attr]
+            const hex = ATTR_HEX[hero.primary_attr]
             return (
               <Link key={hero.id} href={`${prefix}/heroes/${slug}`}>
-                <article className="group rounded-xl border border-border/60 bg-card/60 overflow-hidden hover:border-primary/40 hover:bg-card/80 transition-all duration-200 hover:-translate-y-0.5">
+                <article className="group relative rounded-xl border border-border/60 bg-card/60 overflow-hidden transition-all duration-200 hover:-translate-y-1">
                   <div className="relative overflow-hidden bg-secondary/60" style={{ aspectRatio: '256/144' }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={heroPortraitUrl(slug)} alt={hero.localized_name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
-                    <span className={`absolute top-1 right-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${cfg.color} ${cfg.bg} ${cfg.border}`}>{cfg.short}</span>
+                    <img src={heroPortraitUrl(slug)} alt={hero.localized_name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" loading="lazy" />
+                    {/* depth scrim */}
+                    <div className="absolute inset-x-0 bottom-0 h-2/3 pointer-events-none" style={{ background: 'linear-gradient(to top, rgba(8,10,14,0.8), transparent)' }} />
+                    {/* attribute icon badge */}
+                    <span className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center border" style={{ background: 'rgba(0,0,0,0.55)', borderColor: `${hex}66` }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={ATTR_ICON[hero.primary_attr]} alt={cfg.short} className="w-3 h-3 object-contain" loading="lazy" />
+                    </span>
                   </div>
                   <div className="px-2 py-1.5">
-                    <p className="font-display text-[11px] font-bold text-foreground leading-tight line-clamp-1">{hero.localized_name}</p>
+                    <p className="font-display text-[11px] font-bold text-foreground leading-tight line-clamp-1 group-hover:text-primary transition-colors">{hero.localized_name}</p>
                     <p className="text-[10px] text-muted-foreground/60 truncate">
                       {(locale === 'ru' ? ATTACK_RU[hero.attack_type] : null) ?? hero.attack_type}
                       {' · '}
                       {(locale === 'ru' ? ROLES_RU[hero.roles[0]] : null) ?? hero.roles[0]}
                     </p>
                   </div>
+                  {/* attribute accent bar */}
+                  <div className="h-[3px] w-full" style={{ background: hex, opacity: 0.65 }} />
+                  {/* hover glow + ring in attribute color */}
+                  <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" style={{ boxShadow: `inset 0 0 0 1px ${hex}, 0 0 18px ${hex}40` }} />
                 </article>
               </Link>
             )
