@@ -323,7 +323,7 @@ export default async function PlayerPage({ params }: Props) {
         {/* Tournament Results */}
         {tournamentPlacements.length > 0 && (
           <div className="rounded-2xl border border-border/60 bg-card/40 p-5 md:col-span-2">
-            <p className="section-label mb-3">Tournament Results — {player.team?.name}</p>
+            <p className="section-label mb-3">Tournament Results</p>
             <div className="grid gap-2">
               {tournamentPlacements.map(p => {
                 const medal = p.place === '1st' ? '🥇' : p.place === '2nd' ? '🥈' : p.place === '3rd' || p.place === '3rd-4th' ? '🥉' : null
@@ -350,6 +350,7 @@ export default async function PlayerPage({ params }: Props) {
                         {p.tournament.name}
                       </Link>
                       <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-xs text-muted-foreground">{p.team}</span>
                         {p.ept_points != null && (
                           <span className="text-xs tabular-nums" style={{ color: 'hsl(var(--primary))' }}>
                             {p.ept_points.toLocaleString()} EPT

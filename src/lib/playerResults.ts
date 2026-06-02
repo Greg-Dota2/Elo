@@ -21,6 +21,7 @@ export interface PlayerTransferRow {
 
 export interface PlayerPlacement {
   tournament: { name: string; slug: string; logo_url: string | null }
+  team: string
   place: string
   prize_usd?: number
   ept_points?: number
@@ -64,6 +65,7 @@ export function computePlayerPlacements(
     if (entry) {
       out.push({
         tournament: { name: t.name, slug: t.slug, logo_url: t.logo_url },
+        team: entry.team,
         place: entry.place,
         prize_usd: entry.prize_usd,
         ept_points: entry.ept_points,
