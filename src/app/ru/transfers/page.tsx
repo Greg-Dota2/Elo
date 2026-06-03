@@ -110,7 +110,7 @@ function TransferRow({ t, teamMap, hideNotes = false }: { t: Transfer; teamMap: 
 
       {/* Teams row */}
       <div className="flex items-center justify-center gap-2 mt-2">
-        <TeamChip name={t.from_team} logo={t.from_team_logo_url} slug={fromSlug} fallback="Неизвестно" />
+        <TeamChip name={t.from_team} logo={t.from_team_logo_url} slug={fromSlug} fallback="Свободный агент" />
         <svg width="16" height="10" viewBox="0 0 20 12" fill="none" className="shrink-0" style={{ color: 'var(--text-muted)' }}>
           <path d="M0 6h16M11 1l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>

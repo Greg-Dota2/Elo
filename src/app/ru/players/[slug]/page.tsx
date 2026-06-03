@@ -99,7 +99,7 @@ export default async function RuPlayerPage({ params }: Props) {
     : Promise.resolve({ data: [] }),
     supabase
       .from('transfers')
-      .select('from_team, to_team, transfer_date')
+      .select('from_team, to_team, transfer_date, type')
       .eq('player_slug', slug)
       .order('transfer_date', { ascending: true }),
   ])
@@ -122,6 +122,12 @@ export default async function RuPlayerPage({ params }: Props) {
         player.team.name,
       )
     : []
+
+  // Status for teamless players — latest transfer type decides retired vs free agent
+  const transferRows = (playerTransfersResult.data ?? []) as { type?: string }[]
+  const teamlessStatus = player.team
+    ? null
+    : transferRows[transferRows.length - 1]?.type === 'retired' ? 'Завершил карьеру' : 'Свободный агент'
 
   const teamNameLower = player.team?.name.toLowerCase() ?? ''
   const psUpcomingTeam = player.team ? [...psRunning, ...psUpcoming].filter(m =>
@@ -184,7 +190,7 @@ export default async function RuPlayerPage({ params }: Props) {
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-sm">
-              {player.team && (
+              {player.team ? (
                 <div>
                   <p className="section-label mb-1">Команда</p>
                   <div className="flex items-center gap-2">
@@ -200,6 +206,18 @@ export default async function RuPlayerPage({ params }: Props) {
                       <span className="font-semibold text-foreground">{player.team.name}</span>
                     )}
                   </div>
+                </div>
+              ) : teamlessStatus && (
+                <div>
+                  <p className="section-label mb-1">Статус</p>
+                  <span
+                    className="inline-block text-xs font-bold px-2.5 py-1 rounded-full border"
+                    style={teamlessStatus === 'Завершил карьеру'
+                      ? { color: 'var(--text-muted)', background: 'hsl(var(--muted))', borderColor: 'hsl(var(--border))' }
+                      : { color: 'hsl(var(--primary))', background: 'hsl(var(--primary) / 0.1)', borderColor: 'hsl(var(--primary) / 0.25)' }}
+                  >
+                    {teamlessStatus}
+                  </span>
                 </div>
               )}
               {player.position && (

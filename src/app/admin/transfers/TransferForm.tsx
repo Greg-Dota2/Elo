@@ -33,6 +33,9 @@ function TeamPicker({
   teamOptions,
   defaultName,
   defaultLogo,
+  showSpecial,
+  defaultSpecial,
+  onSpecial,
 }: {
   label: string
   nameField: string
@@ -40,6 +43,9 @@ function TeamPicker({
   teamOptions: TeamOption[]
   defaultName?: string | null
   defaultLogo?: string | null
+  showSpecial?: boolean
+  defaultSpecial?: 'free_agent' | 'retired'
+  onSpecial?: (kind: 'free_agent' | 'retired') => void
 }) {
   const isKnown = defaultName ? teamOptions.some(t => t.name === defaultName) : false
   const [custom, setCustom] = useState(!isKnown && !!defaultName)
@@ -48,6 +54,13 @@ function TeamPicker({
 
   function handleSelect(e: React.ChangeEvent<HTMLSelectElement>) {
     const val = e.target.value
+    if (val === '__free_agent__' || val === '__retired__') {
+      setCustom(false)
+      setSelectedName('')   // to_team stays empty; display falls back to the type label
+      setLogoUrl('')
+      onSpecial?.(val === '__retired__' ? 'retired' : 'free_agent')
+      return
+    }
     if (val === '__custom__') {
       setCustom(true)
       setSelectedName('')
@@ -66,13 +79,19 @@ function TeamPicker({
     setLogoUrl(team?.logo_url ?? '')
   }
 
-  const initialSelectValue = custom ? '__custom__' : (isKnown ? (defaultName ?? '') : '')
+  const initialSelectValue = custom
+    ? '__custom__'
+    : isKnown
+      ? (defaultName ?? '')
+      : (showSpecial && defaultSpecial && !defaultName ? `__${defaultSpecial}__` : '')
 
   return (
     <div className="grid gap-2">
       <label className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>{label}</label>
       <select onChange={handleSelect} defaultValue={initialSelectValue} className={inputClass}>
-        <option value="">— Free agent / unknown —</option>
+        <option value="">— None / unknown —</option>
+        {showSpecial && <option value="__free_agent__">🆓 Free Agent</option>}
+        {showSpecial && <option value="__retired__">🏁 Retired</option>}
         {teamOptions.map(t => (
           <option key={t.name} value={t.name}>{t.name}</option>
         ))}
@@ -113,6 +132,7 @@ export default function TransferForm({ transfer, playerOptions, teamOptions }: P
   const [error, setError] = useState('')
   const [playerSlug, setPlayerSlug] = useState(transfer?.player_slug ?? '')
   const [playerPhoto, setPlayerPhoto] = useState(transfer?.player_photo_url ?? '')
+  const [type, setType] = useState<Transfer['type']>(transfer?.type ?? 'permanent')
   const [notesRu, setNotesRu] = useState(transfer?.notes_ru ?? '')
   const [translating, setTranslating] = useState(false)
   const notesRef = useRef<HTMLTextAreaElement>(null)
@@ -218,6 +238,9 @@ export default function TransferForm({ transfer, playerOptions, teamOptions }: P
           teamOptions={teamOptions}
           defaultName={transfer?.to_team}
           defaultLogo={transfer?.to_team_logo_url}
+          showSpecial
+          defaultSpecial={transfer?.type === 'free_agent' || transfer?.type === 'retired' ? transfer.type : undefined}
+          onSpecial={setType}
         />
       </div>
 
@@ -225,8 +248,8 @@ export default function TransferForm({ transfer, playerOptions, teamOptions }: P
         <Field label="Transfer Date *">
           <input name="transfer_date" type="date" required defaultValue={transfer?.transfer_date ?? new Date().toISOString().slice(0, 10)} className={inputClass} />
         </Field>
-        <Field label="Type *">
-          <select name="type" defaultValue={transfer?.type ?? 'permanent'} className={inputClass}>
+        <Field label="Type *" hint="Auto-set when you pick Free Agent / Retired as the To Team.">
+          <select name="type" value={type} onChange={e => setType(e.target.value as Transfer['type'])} className={inputClass}>
             <option value="permanent">Permanent signing</option>
             <option value="loan">Loan</option>
             <option value="stand-in">Stand-in</option>
