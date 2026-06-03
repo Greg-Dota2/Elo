@@ -10,6 +10,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { fetchUpcomingTier1Matches, fetchRunningTier1Matches, type PSMatch } from '@/lib/pandascore'
 import { TIER1_TOURNAMENTS } from '@/lib/tier1tournaments'
 import { computePlayerPlacements, type TournamentPrizeRow, type PlayerTransferRow } from '@/lib/playerResults'
+import { autoLinkBio } from '@/lib/autoLinkBio'
 
 export const revalidate = 3600
 
@@ -70,7 +71,7 @@ export default async function RuPlayerPage({ params }: Props) {
   const resolveTeamLink = (psId: number | undefined, psName: string) =>
     (psId && psTeamSlugMap.get(psId)) ?? psName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 
-  const [allHeroes, radarStats, teamMatchesResult, psUpcoming, psRunning, tournamentsWithPrize, playerTransfersResult] = await Promise.all([
+  const [allHeroes, radarStats, teamMatchesResult, psUpcoming, psRunning, tournamentsWithPrize, playerTransfersResult, allTeamsResult, allPlayersResult] = await Promise.all([
     fetchAllHeroes().catch(() => []),
     player.opendota_id ? fetchPlayerRadarStats(player.opendota_id) : Promise.resolve(null),
     player.team?.id ? supabase
@@ -102,6 +103,8 @@ export default async function RuPlayerPage({ params }: Props) {
       .select('from_team, to_team, transfer_date, type')
       .eq('player_slug', slug)
       .order('transfer_date', { ascending: true }),
+    supabase.from('teams').select('name, slug').not('slug', 'is', null),
+    supabase.from('players').select('ign, slug').eq('is_published', true).not('slug', 'is', null),
   ])
 
   type TeamMatch = {
@@ -128,6 +131,14 @@ export default async function RuPlayerPage({ params }: Props) {
   const teamlessStatus = player.team
     ? null
     : transferRows[transferRows.length - 1]?.type === 'retired' ? 'Завершил карьеру' : 'Свободный агент'
+
+  // Auto-link known teams/players in the bio prose (max 5, names >= 5 chars)
+  const bioEntities = [
+    ...((allTeamsResult.data ?? []) as { name: string; slug: string }[]).map(t => ({ name: t.name, url: `/ru/teams/${t.slug}` })),
+    ...((allPlayersResult.data ?? []) as { ign: string; slug: string }[]).filter(p => p.slug !== player.slug).map(p => ({ name: p.ign, url: `/ru/players/${p.slug}` })),
+  ]
+  const bioText = (player.bio_ru ?? player.bio) ?? null
+  const linkedBio = bioText ? autoLinkBio(bioText, bioEntities, 5) : null
 
   const teamNameLower = player.team?.name.toLowerCase() ?? ''
   const psUpcomingTeam = player.team ? [...psRunning, ...psUpcoming].filter(m =>
@@ -345,10 +356,10 @@ export default async function RuPlayerPage({ params }: Props) {
         )}
 
         {/* Bio */}
-        {(player.bio_ru ?? player.bio) && (
+        {bioText && (
           <div className="rounded-2xl border border-border/60 bg-card/40 p-5 md:col-span-2">
             <p className="section-label mb-3">Биография</p>
-            <BioRenderer text={(player.bio_ru ?? player.bio)!} />
+            <BioRenderer text={linkedBio ?? bioText} />
           </div>
         )}
 

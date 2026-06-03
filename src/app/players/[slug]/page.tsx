@@ -10,6 +10,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { Suspense } from 'react'
 import LiveUpcomingMatches from '@/components/LiveUpcomingMatches'
 import { computePlayerPlacements, type TournamentPrizeRow, type PlayerTransferRow } from '@/lib/playerResults'
+import { autoLinkBio } from '@/lib/autoLinkBio'
 
 export const revalidate = 3600
 
@@ -68,7 +69,7 @@ export default async function PlayerPage({ params }: Props) {
   const posColor = player.position ? POSITION_COLOR[player.position] : ''
   const supabase = createAdminClient()
 
-  const [allHeroes, radarStats, teamMatchesResult, tournamentsWithPrize, playerTransfersResult] = await Promise.all([
+  const [allHeroes, radarStats, teamMatchesResult, tournamentsWithPrize, playerTransfersResult, allTeamsResult, allPlayersResult] = await Promise.all([
     fetchAllHeroes().catch(() => []),
     player.opendota_id ? fetchPlayerRadarStats(player.opendota_id) : Promise.resolve(null),
     player.team?.id ? supabase
@@ -98,6 +99,8 @@ export default async function PlayerPage({ params }: Props) {
       .select('from_team, to_team, transfer_date, type')
       .eq('player_slug', slug)
       .order('transfer_date', { ascending: true }),
+    supabase.from('teams').select('name, slug').not('slug', 'is', null),
+    supabase.from('players').select('ign, slug').eq('is_published', true).not('slug', 'is', null),
   ])
 
   type TeamMatch = {
@@ -124,6 +127,13 @@ export default async function PlayerPage({ params }: Props) {
   const teamlessStatus = player.team
     ? null
     : transferRows[transferRows.length - 1]?.type === 'retired' ? 'Retired' : 'Free Agent'
+
+  // Auto-link known teams/players in the bio prose (max 5, names >= 5 chars)
+  const bioEntities = [
+    ...((allTeamsResult.data ?? []) as { name: string; slug: string }[]).map(t => ({ name: t.name, url: `/teams/${t.slug}` })),
+    ...((allPlayersResult.data ?? []) as { ign: string; slug: string }[]).filter(p => p.slug !== player.slug).map(p => ({ name: p.ign, url: `/players/${p.slug}` })),
+  ]
+  const linkedBio = player.bio ? autoLinkBio(player.bio, bioEntities, 5) : null
 
   return (
     <div className="fade-in-up">
@@ -403,7 +413,7 @@ export default async function PlayerPage({ params }: Props) {
         {player.bio && (
           <div className="rounded-2xl border border-border/60 bg-card/40 p-5 md:col-span-2">
             <p className="section-label mb-3">Biography</p>
-            <BioRenderer text={player.bio} />
+            <BioRenderer text={linkedBio ?? player.bio} />
           </div>
         )}
 

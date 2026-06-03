@@ -5,6 +5,7 @@ import { getTeamBySlug } from '@/lib/queries'
 import { createAdminClient } from '@/lib/supabase/admin'
 import BioRenderer from '@/components/BioRenderer'
 import type { Team } from '@/lib/types'
+import { autoLinkBio } from '@/lib/autoLinkBio'
 import { fetchUpcomingTier1Matches, fetchRunningTier1Matches, fetchRecentTier1Matches, type PSMatch } from '@/lib/pandascore'
 import { TIER1_TOURNAMENTS } from '@/lib/tier1tournaments'
 
@@ -121,6 +122,18 @@ export default async function RuTeamDetailPage({ params }: { params: Promise<{ s
     .eq('is_published', true)
     .not('prize_distribution', 'is', null)
     .order('end_date', { ascending: false })
+
+  // Auto-link known teams/players in the bio prose (max 5, names >= 5 chars)
+  const [{ data: allTeamsRows }, { data: allPlayersRows }] = await Promise.all([
+    supabase.from('teams').select('name, slug').not('slug', 'is', null),
+    supabase.from('players').select('ign, slug').eq('is_published', true).not('slug', 'is', null),
+  ])
+  const bioEntities = [
+    ...((allTeamsRows ?? []) as { name: string; slug: string }[]).filter(t => t.slug !== team.slug).map(t => ({ name: t.name, url: `/ru/teams/${t.slug}` })),
+    ...((allPlayersRows ?? []) as { ign: string; slug: string }[]).map(p => ({ name: p.ign, url: `/ru/players/${p.slug}` })),
+  ]
+  const teamBioText = (team.bio_ru ?? team.bio) ?? null
+  const linkedTeamBio = teamBioText ? autoLinkBio(teamBioText, bioEntities, 5) : null
 
   type TournamentPlacement = {
     tournament: { name: string; slug: string; logo_url: string | null }
@@ -287,10 +300,10 @@ export default async function RuTeamDetailPage({ params }: { params: Promise<{ s
         {/* Left column */}
         <div className="grid gap-6">
           {/* Bio */}
-          {(team.bio_ru ?? team.bio) && (
+          {teamBioText && (
             <div className="rounded-2xl border border-border/60 p-5" style={{ background: 'hsl(var(--card) / 0.6)' }}>
               <p className="section-label mb-3">О команде</p>
-              <BioRenderer text={(team.bio_ru ?? team.bio)!} />
+              <BioRenderer text={linkedTeamBio ?? teamBioText} />
             </div>
           )}
 

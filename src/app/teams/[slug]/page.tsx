@@ -7,6 +7,7 @@ import BioRenderer from '@/components/BioRenderer'
 import type { Team } from '@/lib/types'
 import { Suspense } from 'react'
 import LiveUpcomingMatches from '@/components/LiveUpcomingMatches'
+import { autoLinkBio } from '@/lib/autoLinkBio'
 
 export const dynamic = 'force-dynamic'
 
@@ -90,6 +91,17 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ slu
     .eq('is_published', true)
     .not('prize_distribution', 'is', null)
     .order('end_date', { ascending: false })
+
+  // Auto-link known teams/players in the bio prose (max 5, names >= 5 chars)
+  const [{ data: allTeamsRows }, { data: allPlayersRows }] = await Promise.all([
+    supabase.from('teams').select('name, slug').not('slug', 'is', null),
+    supabase.from('players').select('ign, slug').eq('is_published', true).not('slug', 'is', null),
+  ])
+  const bioEntities = [
+    ...((allTeamsRows ?? []) as { name: string; slug: string }[]).filter(t => t.slug !== team.slug).map(t => ({ name: t.name, url: `/teams/${t.slug}` })),
+    ...((allPlayersRows ?? []) as { ign: string; slug: string }[]).map(p => ({ name: p.ign, url: `/players/${p.slug}` })),
+  ]
+  const linkedTeamBio = team.bio ? autoLinkBio(team.bio, bioEntities, 5) : null
 
   type TournamentPlacement = {
     tournament: { name: string; slug: string; logo_url: string | null }
@@ -257,7 +269,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ slu
           {team.bio && (
             <div className="rounded-2xl border border-border/60 p-5" style={{ background: 'hsl(var(--card) / 0.6)' }}>
               <p className="section-label mb-3">About</p>
-              <BioRenderer text={team.bio} />
+              <BioRenderer text={linkedTeamBio ?? team.bio} />
             </div>
           )}
 
