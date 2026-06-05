@@ -173,7 +173,7 @@ export function interpolateAbilityDesc(
 }
 
 export async function fetchAllHeroes(opts?: { revalidate?: number }): Promise<HeroData[]> {
-  if (!opts?.revalidate) {
+  if (opts?.revalidate === undefined) {
     try {
       const { getCachedHeroes } = await import('./game-cache')
       const cached = await getCachedHeroes()

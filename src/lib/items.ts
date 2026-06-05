@@ -29,7 +29,7 @@ const REMOVED_ITEMS = new Set([
 ])
 
 export async function fetchAllItems(opts?: { revalidate?: number }): Promise<ItemData[]> {
-  if (!opts?.revalidate) {
+  if (opts?.revalidate === undefined) {
     try {
       const { getCachedItems } = await import('@/lib/game-cache')
       const cached = await getCachedItems()
