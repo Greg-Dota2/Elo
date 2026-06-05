@@ -1,6 +1,6 @@
 const OPENDOTA_BASE = 'https://api.opendota.com/api/constants'
 
-export type ItemCategory = 'consumable' | 'basic' | 'upgrade' | 'neutral'
+export type ItemCategory = 'consumable' | 'basic' | 'upgrade' | 'neutral' | 'enchantment'
 
 export interface ItemData {
   key: string
@@ -57,9 +57,21 @@ export async function fetchAllItems(opts?: { revalidate?: number }): Promise<Ite
     if (ROSHAN_DROPS.has(key)) continue
     // Skip removed items and old cosmetic/event key prefixes
     if (REMOVED_ITEMS.has(key)) continue
-    if (key.startsWith('river_painter') || key.startsWith('enhancement_')) continue
-    // Skip null-qual cost=0 items without abilities — these are pre-7.28 removed neutral items
-    if ((v.cost === 0 || v.cost == null) && !v.qual && !v.abilities) continue
+    if (key.startsWith('river_painter')) continue
+
+    // Enchantments — the neutral "enhancement" buffs (Alert, Timeless, Titanic, Vital…)
+    if (key.startsWith('enhancement_')) {
+      items.push({
+        key, id: v.id, dname: v.dname, cost: 0, img: v.img ?? '', qual: null,
+        lore: v.lore || null, cd: v.cd ?? false, mc: v.mc ?? false,
+        category: 'enchantment', tier: v.tier, abilities: v.abilities ?? [],
+        attrib: v.attrib ?? [], components: null,
+      })
+      continue
+    }
+
+    // Skip null-qual cost=0 items without abilities or tier — pre-7.28 removed neutral items
+    if ((v.cost === 0 || v.cost == null) && !v.qual && !v.abilities && v.tier == null) continue
 
     const qual = v.qual?.split(';')[0] ?? null
 
@@ -70,6 +82,8 @@ export async function fetchAllItems(opts?: { revalidate?: number }): Promise<Ite
       category = 'basic'
     } else if (qual === 'common' || qual === 'rare' || qual === 'epic') {
       category = 'upgrade'
+    } else if (typeof v.tier === 'number') {
+      category = 'neutral' // Artifacts — the tiered neutral items
     } else if (v.cost === 0 || v.cost == null) {
       category = 'neutral'
     } else {

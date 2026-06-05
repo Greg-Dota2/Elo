@@ -7,18 +7,20 @@ import { itemIconUrl, type ItemData } from '@/lib/items'
 
 const CATEGORIES = {
   en: [
-    { key: 'all',        label: 'All' },
-    { key: 'upgrade',    label: 'Upgrades' },
-    { key: 'basic',      label: 'Basic' },
-    { key: 'neutral',    label: 'Neutral' },
-    { key: 'consumable', label: 'Consumables' },
+    { key: 'all',         label: 'All' },
+    { key: 'upgrade',     label: 'Upgrades' },
+    { key: 'basic',       label: 'Basic' },
+    { key: 'neutral',     label: 'Artifacts' },
+    { key: 'enchantment', label: 'Enchantments' },
+    { key: 'consumable',  label: 'Consumables' },
   ],
   ru: [
-    { key: 'all',        label: 'Все' },
-    { key: 'upgrade',    label: 'Улучшения' },
-    { key: 'basic',      label: 'Базовые' },
-    { key: 'neutral',    label: 'Нейтральные' },
-    { key: 'consumable', label: 'Расходники' },
+    { key: 'all',         label: 'Все' },
+    { key: 'upgrade',     label: 'Улучшения' },
+    { key: 'basic',       label: 'Базовые' },
+    { key: 'neutral',     label: 'Артефакты' },
+    { key: 'enchantment', label: 'Чары' },
+    { key: 'consumable',  label: 'Расходники' },
   ],
 }
 
@@ -43,9 +45,13 @@ const CATEGORY_STYLES: Record<string, { inactive: string; active: string }> = {
     inactive: 'text-rose-400/80 bg-rose-400/10 border-rose-400/30 hover:text-rose-400 hover:bg-rose-400/15 hover:border-rose-400/50',
     active:   'text-rose-400 bg-rose-400/20 border-rose-400/50',
   },
+  enchantment: {
+    inactive: 'text-violet-400/80 bg-violet-400/10 border-violet-400/30 hover:text-violet-400 hover:bg-violet-400/15 hover:border-violet-400/50',
+    active:   'text-violet-400 bg-violet-400/20 border-violet-400/50',
+  },
 }
 
-const CATEGORY_ORDER: Record<string, number> = { upgrade: 0, basic: 1, neutral: 2, consumable: 3 }
+const CATEGORY_ORDER: Record<string, number> = { upgrade: 0, basic: 1, neutral: 2, enchantment: 3, consumable: 4 }
 
 // Function-based color buckets — classify each item by its dominant stat bonuses
 // so the grid is varied AND meaningful (red = damage, green = tanky, etc.)
@@ -99,11 +105,12 @@ export default function ItemsClient({ items: allItems, locale = 'en' }: { items:
     .sort((a, b) => (CATEGORY_ORDER[a.category] ?? 99) - (CATEGORY_ORDER[b.category] ?? 99))
 
   const counts: Record<string, number> = {
-    all:        allItems.length,
-    upgrade:    allItems.filter(i => i.category === 'upgrade').length,
-    basic:      allItems.filter(i => i.category === 'basic').length,
-    neutral:    allItems.filter(i => i.category === 'neutral').length,
-    consumable: allItems.filter(i => i.category === 'consumable').length,
+    all:         allItems.length,
+    upgrade:     allItems.filter(i => i.category === 'upgrade').length,
+    basic:       allItems.filter(i => i.category === 'basic').length,
+    neutral:     allItems.filter(i => i.category === 'neutral').length,
+    enchantment: allItems.filter(i => i.category === 'enchantment').length,
+    consumable:  allItems.filter(i => i.category === 'consumable').length,
   }
 
   const setCategory = (cat: string) => {
