@@ -6,8 +6,8 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import BioRenderer from '@/components/BioRenderer'
 import type { Team } from '@/lib/types'
 import { autoLinkBio } from '@/lib/autoLinkBio'
-import { fetchUpcomingTier1Matches, fetchRunningTier1Matches, fetchRecentTier1Matches, type PSMatch } from '@/lib/pandascore'
-import { TIER1_TOURNAMENTS } from '@/lib/tier1tournaments'
+import { Suspense } from 'react'
+import LiveUpcomingMatches from '@/components/LiveUpcomingMatches'
 
 export const revalidate = 86400
 
@@ -60,35 +60,7 @@ export default async function RuTeamDetailPage({ params }: { params: Promise<{ s
     notFound()
   }
 
-  const [psUpcoming, psRunning, psRecent] = await Promise.all([
-    fetchUpcomingTier1Matches(100).catch(() => [] as PSMatch[]),
-    fetchRunningTier1Matches(50).catch(() => [] as PSMatch[]),
-    fetchRecentTier1Matches(100).catch(() => [] as PSMatch[]),
-  ])
-
-  const teamNameLower = team.name.toLowerCase()
-  const matchesTeam = (m: PSMatch) =>
-    m.opponents.some(o => {
-      const ps = o.opponent.name.toLowerCase()
-      return ps === teamNameLower || ps.startsWith(teamNameLower + ' ') || teamNameLower.startsWith(ps + ' ')
-    })
-
-  const psUpcomingTeam = [...psRunning, ...psUpcoming].filter(matchesTeam)
-  const psRecentTeam = psRecent.filter(matchesTeam)
-  void psRecentTeam
-
   const supabase = createAdminClient()
-  const { data: psTeamRows } = await supabase
-    .from('teams')
-    .select('pandascore_team_id, slug')
-    .not('pandascore_team_id', 'is', null)
-    .not('slug', 'is', null)
-  const psTeamSlugMap = new Map<number, string>(
-    (psTeamRows ?? []).map(t => [t.pandascore_team_id as number, t.slug as string])
-  )
-  const resolveTeamLink = (psId: number | undefined, psName: string) =>
-    (psId && psTeamSlugMap.get(psId)) ?? psName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-
   const { data: players } = await supabase
     .from('players')
     .select('id, slug, ign, full_name, photo_url, position')
@@ -376,52 +348,9 @@ export default async function RuTeamDetailPage({ params }: { params: Promise<{ s
           )}
 
           {/* Upcoming / live matches from PandaScore */}
-          {psUpcomingTeam.length > 0 && (
-            <div className="rounded-2xl border border-border/60 p-5" style={{ background: 'hsl(var(--card) / 0.6)' }}>
-              <p className="section-label mb-3">Предстоящие матчи</p>
-              <div className="grid gap-2">
-                {psUpcomingTeam.map(m => {
-                  const tA = m.opponents[0]?.opponent
-                  const tB = m.opponents[1]?.opponent
-                  const isLive = m.status === 'running'
-                  return (
-                    <div key={m.id} className="flex items-center gap-3 py-2 border-t border-border/40 first:border-0">
-                      {isLive && (
-                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded shrink-0" style={{ background: 'hsl(var(--destructive) / 0.15)', color: 'hsl(var(--destructive))' }}>LIVE</span>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 flex-wrap text-sm font-semibold text-foreground">
-                          {tA?.image_url && <img loading="lazy" src={tA.image_url} alt={tA.name} className="w-5 h-5 object-contain shrink-0" />}
-                          <Link href={`/ru/teams/${resolveTeamLink(tA?.id, tA?.name ?? '')}`} className="hover:text-primary transition-colors">{tA?.name ?? 'TBD'}</Link>
-                          <span className="text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded" style={{ color: 'var(--text-muted)', background: 'hsl(var(--muted))' }}>VS</span>
-                          {tB?.image_url && <img loading="lazy" src={tB.image_url} alt={tB.name} className="w-5 h-5 object-contain shrink-0" />}
-                          <Link href={`/ru/teams/${resolveTeamLink(tB?.id, tB?.name ?? '')}`} className="hover:text-primary transition-colors">{tB?.name ?? 'TBD'}</Link>
-                        </div>
-                        {(() => {
-                          const d = m.scheduled_at ? new Date(m.scheduled_at) : null
-                          const known = d ? TIER1_TOURNAMENTS.find(t =>
-                            t.league_id === m.league.id &&
-                            new Date(t.start_date) <= d &&
-                            d <= new Date(t.end_date + 'T23:59:59Z')
-                          ) : undefined
-                          const label = known?.name ?? `${m.league.name} · ${m.tournament.name}`
-                          return known?.slug
-                            ? <Link href={`/ru/tournaments/${known.slug}`} className="text-xs text-muted-foreground hover:text-primary transition-colors truncate">{label}</Link>
-                            : <div className="text-xs text-muted-foreground truncate">{label}</div>
-                        })()}
-                      </div>
-                      <div className="text-right shrink-0">
-                        <div className="text-xs text-muted-foreground">
-                          {m.scheduled_at ? new Date(m.scheduled_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', timeZone: 'Europe/Moscow' }) : '–'}
-                        </div>
-                        <div className="text-xs font-medium text-muted-foreground/60">BO{m.number_of_games}</div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
+          <Suspense fallback={null}>
+            <LiveUpcomingMatches teamName={team.name} label="Предстоящие матчи" locale="ru" />
+          </Suspense>
 
           {/* Match history */}
           {completedMatches.length > 0 && (

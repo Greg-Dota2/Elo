@@ -6,9 +6,11 @@ import { createAdminClient } from '@/lib/supabase/admin'
 interface Props {
   teamName: string
   label?: string
+  locale?: 'en' | 'ru'
 }
 
-export default async function LiveUpcomingMatches({ teamName, label = 'Upcoming Matches' }: Props) {
+export default async function LiveUpcomingMatches({ teamName, label = 'Upcoming Matches', locale = 'en' }: Props) {
+  const prefix = locale === 'ru' ? '/ru' : ''
   const [psUpcoming, psRunning] = await Promise.all([
     fetchUpcomingTier1Matches(100).catch(() => []),
     fetchRunningTier1Matches(50).catch(() => []),
@@ -58,14 +60,14 @@ export default async function LiveUpcomingMatches({ teamName, label = 'Upcoming 
                 <div className="flex items-center gap-1.5 flex-wrap text-sm font-semibold text-foreground">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   {tA?.image_url && <img loading="lazy" src={tA.image_url} alt={tA.name} className="w-5 h-5 object-contain shrink-0" />}
-                  <Link href={`/teams/${resolveTeamLink(tA?.id, tA?.name ?? '')}`} className="hover:text-primary transition-colors">{tA?.name ?? 'TBD'}</Link>
+                  <Link href={`${prefix}/teams/${resolveTeamLink(tA?.id, tA?.name ?? '')}`} className="hover:text-primary transition-colors">{tA?.name ?? 'TBD'}</Link>
                   <span className="text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded" style={{ color: 'var(--text-muted)', background: 'hsl(var(--muted))' }}>VS</span>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   {tB?.image_url && <img loading="lazy" src={tB.image_url} alt={tB.name} className="w-5 h-5 object-contain shrink-0" />}
-                  <Link href={`/teams/${resolveTeamLink(tB?.id, tB?.name ?? '')}`} className="hover:text-primary transition-colors">{tB?.name ?? 'TBD'}</Link>
+                  <Link href={`${prefix}/teams/${resolveTeamLink(tB?.id, tB?.name ?? '')}`} className="hover:text-primary transition-colors">{tB?.name ?? 'TBD'}</Link>
                 </div>
                 {known?.slug
-                  ? <Link href={`/tournaments/${known.slug}`} className="text-xs text-muted-foreground hover:text-primary transition-colors truncate">{tournamentLabel}</Link>
+                  ? <Link href={`${prefix}/tournaments/${known.slug}`} className="text-xs text-muted-foreground hover:text-primary transition-colors truncate">{tournamentLabel}</Link>
                   : <div className="text-xs text-muted-foreground truncate">{tournamentLabel}</div>
                 }
               </div>
