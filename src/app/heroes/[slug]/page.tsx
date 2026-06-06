@@ -1,12 +1,10 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { Suspense } from 'react'
 import Link from 'next/link'
 import {
   fetchAllHeroes,
   fetchHeroDetail,
-  fetchHeroMatchups,
-  fetchHeroItemPopularity,
-  fetchHeroNeutralItems,
   heroSlug,
   heroPortraitUrl,
   ATTR_CONFIG,
@@ -18,13 +16,12 @@ import {
   type ValveAbility,
   type HeroData,
 } from '@/lib/heroes'
-import { fetchItemIdMap, fetchAllItems, itemIconUrl } from '@/lib/items'
+import { fetchAllItems } from '@/lib/items'
 import { getPlayersBySignatureHero, getPlayers } from '@/lib/queries'
-import { fetchHeroRadarStats } from '@/lib/opendota'
 import { fetchHeroGuide } from '@/lib/guides'
 import type { Player } from '@/lib/types'
 import AbilityIcon from '@/components/AbilityIcon'
-import HeroRadar from '@/components/HeroRadar'
+import { HeroRadarSection, HeroMatchupsItems } from '@/components/HeroLiveStats'
 import { getCachedHeroes } from '@/lib/game-cache'
 import { renderWithLinks } from '@/lib/renderLinks'
 
@@ -259,31 +256,17 @@ export default async function HeroPage({
   const hero = heroes.find(h => heroSlug(h.name) === slug)
   if (!hero) notFound()
 
-  const [itemIdMap, allItems] = await Promise.all([fetchItemIdMap(), fetchAllItems()])
-  const basicItemKeys = new Set(
-    allItems.filter(i => i.category === 'basic' || i.category === 'consumable').map(i => i.key)
-  )
-  const componentsMap = new Map(
-    allItems.filter(i => i.components?.length).map(i => [i.key, i.components!])
-  )
+  const allItems = await fetchAllItems()
 
-  const [detailResult, matchupsResult, signaturePlayersResult, itemsResult, neutralItemsResult, heroRadarResult, heroGuideResult, allPlayersResult] = await Promise.allSettled([
+  const [detailResult, signaturePlayersResult, heroGuideResult, allPlayersResult] = await Promise.allSettled([
     fetchHeroDetail(hero.id),
-    fetchHeroMatchups(hero.id),
     getPlayersBySignatureHero(hero.localized_name),
-    fetchHeroItemPopularity(hero.id, itemIdMap, basicItemKeys, componentsMap),
-    fetchHeroNeutralItems(hero.id),
-    fetchHeroRadarStats(hero.id),
     fetchHeroGuide(hero.id),
     getPlayers(),
   ])
 
   const detail = detailResult.status === 'fulfilled' ? detailResult.value : null
-  const matchups = matchupsResult.status === 'fulfilled' ? matchupsResult.value : []
   const signaturePlayers: Player[] = signaturePlayersResult.status === 'fulfilled' ? signaturePlayersResult.value : []
-  const itemPhases = itemsResult.status === 'fulfilled' ? itemsResult.value : []
-  const neutralItemIds = neutralItemsResult.status === 'fulfilled' ? neutralItemsResult.value : []
-  const heroRadarStats = heroRadarResult.status === 'fulfilled' ? heroRadarResult.value : null
   const heroGuide = heroGuideResult.status === 'fulfilled' ? heroGuideResult.value : null
   const allPlayers = allPlayersResult.status === 'fulfilled' ? allPlayersResult.value : []
 
@@ -298,14 +281,6 @@ export default async function HeroPage({
       right: rawTalents[j * 2 + 1] ? resolveTalentName(rawTalents[j * 2 + 1].name_loc, rawTalents[j * 2 + 1], talentValueMap) : '',
     }
   })
-  const neutralItems = neutralItemIds
-    .map(({ itemId }) => allItems.find(i => i.id === itemId))
-    .filter(Boolean) as typeof allItems
-
-  const heroById = Object.fromEntries(heroes.map(h => [h.id, h]))
-  const sorted = [...matchups].sort((a, b) => b.win_rate - a.win_rate)
-  const bestAgainst = sorted.slice(0, 5).map(m => heroById[m.hero_id]).filter(Boolean)
-  const worstAgainst = sorted.slice(-5).reverse().map(m => heroById[m.hero_id]).filter(Boolean)
 
   const cfg = ATTR_CONFIG[hero.primary_attr]
 
@@ -676,7 +651,9 @@ export default async function HeroPage({
       )}
 
       {/* Hero Performance Radar */}
-      {heroRadarStats && <HeroRadar stats={heroRadarStats} />}
+      <Suspense fallback={null}>
+        <HeroRadarSection heroId={hero.id} />
+      </Suspense>
 
       {/* Guide */}
       {heroGuide && (heroGuide.when_to_pick || heroGuide.tips.length > 0 || heroGuide.summary) && (() => {
@@ -723,96 +700,10 @@ export default async function HeroPage({
         )
       })()}
 
-      {/* Matchups */}
-      {(bestAgainst.length > 0 || worstAgainst.length > 0) && (
-        <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {bestAgainst.length > 0 && (
-            <div className="rounded-2xl border border-border/60 bg-card/60 p-4">
-              <p className="section-label mb-3 text-green-400">Strong Against</p>
-              <div className="grid grid-cols-5 gap-2">
-                {bestAgainst.map(h => {
-                  const hSlug = heroSlug(h.name)
-                  return (
-                    <Link key={h.id} href={`/heroes/${hSlug}`} className="group flex flex-col items-center gap-1.5 rounded-xl hover:bg-secondary/40 transition-colors p-1">
-                      <div className="w-full aspect-video rounded-lg overflow-hidden border border-border/40 bg-secondary/60">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={heroPortraitUrl(hSlug)} alt={h.localized_name} className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-200" />
-                      </div>
-                      <span className="text-[10px] font-semibold text-center leading-tight text-foreground/85 line-clamp-2 w-full">{h.localized_name}</span>
-                    </Link>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-          {worstAgainst.length > 0 && (
-            <div className="rounded-2xl border border-border/60 bg-card/60 p-4">
-              <p className="section-label mb-3 text-red-400">Weak Against</p>
-              <div className="grid grid-cols-5 gap-2">
-                {worstAgainst.map(h => {
-                  const hSlug = heroSlug(h.name)
-                  return (
-                    <Link key={h.id} href={`/heroes/${hSlug}`} className="group flex flex-col items-center gap-1.5 rounded-xl hover:bg-secondary/40 transition-colors p-1">
-                      <div className="w-full aspect-video rounded-lg overflow-hidden border border-border/40 bg-secondary/60">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={heroPortraitUrl(hSlug)} alt={h.localized_name} className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-200" />
-                      </div>
-                      <span className="text-[10px] font-semibold text-center leading-tight text-foreground/85 line-clamp-2 w-full">{h.localized_name}</span>
-                    </Link>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Popular Items */}
-      {itemPhases.length > 0 && (
-        <div className="mb-6">
-          <p className="section-label mb-3">Popular Items</p>
-          <div className="rounded-2xl border border-border/60 bg-card/60 divide-y divide-border/40">
-            {itemPhases.map(({ phase, label, items }) => (
-              <div key={phase} className="px-5 py-4">
-                <p className="text-xs font-semibold text-muted-foreground mb-3">{label}</p>
-                <div className="flex flex-wrap gap-2">
-                  {items.map(({ key }) => {
-                    const itemData = allItems.find(i => i.key === key)
-                    const name = itemData?.dname ?? key.replace(/_/g, ' ')
-                    return (
-                      <Link key={key} href={`/items/${key}`}
-                        className="group flex flex-col items-center gap-1 rounded-xl border border-border/50 bg-secondary/40 p-1.5 hover:border-primary/40 hover:bg-card/80 transition-all w-[60px]">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={itemIconUrl(key)} alt={name} className="w-full h-[33px] object-cover rounded-lg" />
-                        <span className="text-[9px] text-muted-foreground text-center leading-tight line-clamp-2 w-full">{name}</span>
-                      </Link>
-                    )
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Neutral Items */}
-      {neutralItems.length > 0 && (
-        <div className="mb-6">
-          <p className="section-label mb-3">Popular Neutral Items</p>
-          <div className="rounded-2xl border border-border/60 bg-card/60 px-5 py-4">
-            <div className="flex flex-wrap gap-2">
-              {neutralItems.map(item => (
-                <Link key={item.key} href={`/items/${item.key}`}
-                  className="group flex flex-col items-center gap-1 rounded-xl border border-border/50 bg-secondary/40 p-1.5 hover:border-primary/40 hover:bg-card/80 transition-all w-[60px]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={itemIconUrl(item.key)} alt={item.dname} className="w-full h-[33px] object-cover rounded-lg" />
-                  <span className="text-[9px] text-muted-foreground text-center leading-tight line-clamp-2 w-full">{item.dname}</span>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Matchups + popular items + neutral items (OpenDota — streamed) */}
+      <Suspense fallback={null}>
+        <HeroMatchupsItems heroId={hero.id} />
+      </Suspense>
 
       {/* Signature players */}
       {signaturePlayers.length > 0 && (

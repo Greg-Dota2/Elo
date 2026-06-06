@@ -3,9 +3,8 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import BioRenderer from '@/components/BioRenderer'
-import PlayerRadar from '@/components/PlayerRadar'
+import PlayerRadarSection from '@/components/PlayerRadarSection'
 import { heroDisplayNameToSlug, heroPortraitUrl, fetchAllHeroes, ATTR_CONFIG } from '@/lib/heroes'
-import { fetchPlayerRadarStats } from '@/lib/opendota'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { Suspense } from 'react'
 import LiveUpcomingMatches from '@/components/LiveUpcomingMatches'
@@ -69,9 +68,8 @@ export default async function PlayerPage({ params }: Props) {
   const posColor = player.position ? POSITION_COLOR[player.position] : ''
   const supabase = createAdminClient()
 
-  const [allHeroes, radarStats, teamMatchesResult, tournamentsWithPrize, playerTransfersResult, allTeamsResult, allPlayersResult] = await Promise.all([
+  const [allHeroes, teamMatchesResult, tournamentsWithPrize, playerTransfersResult, allTeamsResult, allPlayersResult] = await Promise.all([
     fetchAllHeroes().catch(() => []),
-    player.opendota_id ? fetchPlayerRadarStats(player.opendota_id) : Promise.resolve(null),
     player.team?.id ? supabase
       .from('match_predictions')
       .select(`
@@ -418,7 +416,11 @@ export default async function PlayerPage({ params }: Props) {
         )}
 
         {/* Radar stats */}
-        {radarStats && <PlayerRadar stats={radarStats} />}
+        {player.opendota_id && (
+          <Suspense fallback={null}>
+            <PlayerRadarSection opendotaId={player.opendota_id} />
+          </Suspense>
+        )}
 
         {/* Upcoming matches from PandaScore */}
         {player.team && (
