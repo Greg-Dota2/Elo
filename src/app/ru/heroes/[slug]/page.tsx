@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { Suspense } from 'react'
 import Link from 'next/link'
 import {
@@ -209,6 +209,7 @@ function UpgradeCard({ ability, type }: { ability: ValveAbility; type: 'scepter'
 
 export default async function RuHeroPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
+  if (slug !== slug.toLowerCase()) redirect(`/ru/heroes/${slug.toLowerCase()}`)
 
   let heroes
   try { heroes = await fetchAllHeroes() } catch { notFound() }

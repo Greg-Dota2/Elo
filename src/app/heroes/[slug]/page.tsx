@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { Suspense } from 'react'
 import Link from 'next/link'
 import {
@@ -245,6 +245,7 @@ export default async function HeroPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
+  if (slug !== slug.toLowerCase()) redirect(`/heroes/${slug.toLowerCase()}`)
 
   let heroes
   try {

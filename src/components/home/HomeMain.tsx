@@ -75,7 +75,7 @@ export default async function HomeMain({ locale = 'en' }: { locale?: 'en' | 'ru'
   const restLive     = tournaments.filter(t => t.id !== latest?.id && tournamentStatus(t) === 'live')
   const restUpcoming = tournaments.filter(t => t.id !== latest?.id && tournamentStatus(t) === 'upcoming')
     .sort((a, b) => (a.start_date ?? '').localeCompare(b.start_date ?? ''))
-  const restFinished = tournaments.filter(t => t.id !== latest?.id && (tournamentStatus(t) === 'finished' || tournamentStatus(t) === 'unknown'))
+  const restFinished = tournaments.filter(t => (t.id !== latest?.id || isLatestOver) && (tournamentStatus(t) === 'finished' || tournamentStatus(t) === 'unknown'))
     .sort((a, b) => (b.start_date ?? '').localeCompare(a.start_date ?? ''))
 
   const tier1Entry = latest
