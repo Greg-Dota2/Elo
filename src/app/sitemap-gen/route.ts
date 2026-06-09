@@ -170,25 +170,43 @@ export async function GET() {
     bilingualAlts(`${SITE_URL}/blog`, `${SITE_URL}/ru/blog`),
   )
 
-  // Static EN-only pages
-  xml += urlBlock(`${SITE_URL}/teams`, teamsLastMod, 'weekly', 0.8)
-  xml += urlBlock(`${SITE_URL}/players`, playersLastMod, 'weekly', 0.8)
-  xml += urlBlock(`${SITE_URL}/rankings`, teamsLastMod, 'daily', 0.7)
-  xml += urlBlock(`${SITE_URL}/track-record`, tournamentsLastMod, 'daily', 0.8)
-  xml += urlBlock(`${SITE_URL}/heroes`, heroLastMod, 'weekly', 0.8)
-  xml += urlBlock(`${SITE_URL}/items`, itemLastMod, 'weekly', 0.8)
-  xml += urlBlock(`${SITE_URL}/transfers`, teamsLastMod, 'weekly', 0.7)
-  xml += urlBlock(`${SITE_URL}/about`, now, 'monthly', 0.5)
+  // Index pages (EN + RU bilingual)
+  const indexPages: { path: string; lastmod: Date; freq: string; pri: number }[] = [
+    { path: '/teams',        lastmod: teamsLastMod,       freq: 'weekly',  pri: 0.8 },
+    { path: '/players',      lastmod: playersLastMod,     freq: 'weekly',  pri: 0.8 },
+    { path: '/rankings',     lastmod: teamsLastMod,       freq: 'daily',   pri: 0.7 },
+    { path: '/track-record', lastmod: tournamentsLastMod, freq: 'daily',   pri: 0.8 },
+    { path: '/heroes',       lastmod: heroLastMod,        freq: 'weekly',  pri: 0.8 },
+    { path: '/items',        lastmod: itemLastMod,        freq: 'weekly',  pri: 0.8 },
+    { path: '/transfers',    lastmod: teamsLastMod,       freq: 'weekly',  pri: 0.7 },
+    { path: '/about',        lastmod: now,                freq: 'monthly', pri: 0.5 },
+  ]
+  for (const pg of indexPages) {
+    const enUrl = `${SITE_URL}${pg.path}`
+    const ruUrl = `${SITE_URL}/ru${pg.path}`
+    const alts = bilingualAlts(enUrl, ruUrl)
+    xml += urlBlock(enUrl, pg.lastmod, pg.freq, pg.pri, alts)
+    xml += urlBlock(ruUrl, pg.lastmod, pg.freq, Math.max(0.1, pg.pri - 0.05), alts)
+  }
+  // EN-only (no RU route)
   xml += urlBlock(`${SITE_URL}/terms-of-use`, now, 'monthly', 0.3)
 
-  // Individual hero pages (EN only — no /ru/heroes routes exist)
+  // Individual hero pages (EN + RU bilingual)
   for (const slug of heroSlugs) {
-    xml += urlBlock(`${SITE_URL}/heroes/${slug}`, heroLastMod, 'weekly', 0.75)
+    const enUrl = `${SITE_URL}/heroes/${slug}`
+    const ruUrl = `${SITE_URL}/ru/heroes/${slug}`
+    const alts = bilingualAlts(enUrl, ruUrl)
+    xml += urlBlock(enUrl, heroLastMod, 'weekly', 0.75, alts)
+    xml += urlBlock(ruUrl, heroLastMod, 'weekly', 0.7, alts)
   }
 
-  // Individual item pages (EN only — no /ru/items routes exist)
+  // Individual item pages (EN + RU bilingual)
   for (const key of itemKeys) {
-    xml += urlBlock(`${SITE_URL}/items/${key}`, itemLastMod, 'weekly', 0.6)
+    const enUrl = `${SITE_URL}/items/${key}`
+    const ruUrl = `${SITE_URL}/ru/items/${key}`
+    const alts = bilingualAlts(enUrl, ruUrl)
+    xml += urlBlock(enUrl, itemLastMod, 'weekly', 0.6, alts)
+    xml += urlBlock(ruUrl, itemLastMod, 'weekly', 0.55, alts)
   }
 
   // Individual tournament pages (EN + RU bilingual)
@@ -201,22 +219,24 @@ export async function GET() {
     xml += urlBlock(ruUrl, lastMod, 'daily', 0.8, alts)
   }
 
-  // Team pages (EN only)
+  // Team pages (EN + RU bilingual)
   for (const t of teams ?? []) {
-    xml += urlBlock(
-      `${SITE_URL}/teams/${t.slug}`,
-      t.created_at ? new Date(t.created_at) : now,
-      'weekly', 0.7,
-    )
+    const lastMod = t.created_at ? new Date(t.created_at) : now
+    const enUrl = `${SITE_URL}/teams/${t.slug}`
+    const ruUrl = `${SITE_URL}/ru/teams/${t.slug}`
+    const alts = bilingualAlts(enUrl, ruUrl)
+    xml += urlBlock(enUrl, lastMod, 'weekly', 0.7, alts)
+    xml += urlBlock(ruUrl, lastMod, 'weekly', 0.65, alts)
   }
 
-  // Player pages (EN only)
+  // Player pages (EN + RU bilingual)
   for (const p of players ?? []) {
-    xml += urlBlock(
-      `${SITE_URL}/players/${p.slug}`,
-      p.created_at ? new Date(p.created_at) : now,
-      'weekly', 0.6,
-    )
+    const lastMod = p.created_at ? new Date(p.created_at) : now
+    const enUrl = `${SITE_URL}/players/${p.slug}`
+    const ruUrl = `${SITE_URL}/ru/players/${p.slug}`
+    const alts = bilingualAlts(enUrl, ruUrl)
+    xml += urlBlock(enUrl, lastMod, 'weekly', 0.6, alts)
+    xml += urlBlock(ruUrl, lastMod, 'weekly', 0.55, alts)
   }
 
   // Blog posts (EN + RU bilingual)
