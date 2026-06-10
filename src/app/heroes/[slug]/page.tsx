@@ -228,7 +228,7 @@ function UpgradeCard({ ability, type }: { ability: ValveAbility; type: 'scepter'
           {upgradeDesc ? (
             <p
               className="text-sm text-foreground/80 leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: interpolateAbilityDesc(upgradeDesc, ability.special_values) }}
+              dangerouslySetInnerHTML={{ __html: interpolateAbilityDesc(upgradeDesc, ability.special_values, type) }}
             />
           ) : (
             <p className="text-sm text-muted-foreground/60 italic">Upgrades this ability.</p>
@@ -478,9 +478,10 @@ export default async function HeroPage({
 
           {/* Bio */}
           {detail?.bio_loc && (
-            <p className="text-sm text-muted-foreground leading-relaxed mb-5 max-w-3xl">
-              {detail.bio_loc}
-            </p>
+            <p
+              className="text-sm text-muted-foreground leading-relaxed mb-5 max-w-3xl"
+              dangerouslySetInnerHTML={{ __html: detail.bio_loc }}
+            />
           )}
 
           {/* Stat grid */}

@@ -29,6 +29,8 @@ export interface ValveSpecialValue {
   name: string
   heading_loc: string
   values_float: number[]
+  values_shard?: number[]
+  values_scepter?: number[]
   is_percentage: boolean
   required_facet?: string
   facet_bonus?: { name: string; values: number[]; operation: number }
@@ -154,14 +156,22 @@ export function formatLevelValues(values: number[]): string {
 /** Replace %var_name% tokens in ability description text with values from special_values */
 export function interpolateAbilityDesc(
   text: string,
-  specialValues: ValveSpecialValue[]
+  specialValues: ValveSpecialValue[],
+  variant: 'base' | 'shard' | 'scepter' = 'base'
 ): string {
   if (!text) return text
   const lookup = Object.fromEntries(specialValues.map(sv => [sv.name.toLowerCase(), sv]))
   const resolve = (key: string, match: string) => {
     const sv = lookup[key.toLowerCase()]
     if (!sv) return match
-    const vals = sv.values_float.map(v => Math.round(v * 100) / 100)
+    // Shard/scepter upgrade descriptions reference stats that only exist with the
+    // upgrade — those live in values_shard / values_scepter (values_float is 0).
+    const variantVals =
+      variant === 'shard' ? sv.values_shard
+      : variant === 'scepter' ? sv.values_scepter
+      : undefined
+    const source = (variantVals && variantVals.length > 0) ? variantVals : sv.values_float
+    const vals = source.map(v => Math.round(v * 100) / 100)
     const formatted = formatLevelValues(vals)
     return sv.is_percentage ? formatted + '%' : formatted
   }

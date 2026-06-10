@@ -197,7 +197,7 @@ function UpgradeCard({ ability, type }: { ability: ValveAbility; type: 'scepter'
           <h3 className="font-display font-bold text-base leading-tight mb-1.5 text-foreground">{ability.name_loc}</h3>
           {upgradeDesc ? (
             <p className="text-sm text-foreground/80 leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: interpolateAbilityDesc(upgradeDesc, ability.special_values) }} />
+              dangerouslySetInnerHTML={{ __html: interpolateAbilityDesc(upgradeDesc, ability.special_values, type) }} />
           ) : (
             <p className="text-sm text-muted-foreground/60 italic">Улучшает эту способность.</p>
           )}
@@ -398,7 +398,7 @@ export default async function RuHeroPage({ params }: { params: Promise<{ slug: s
           </div>
 
           {detail?.bio_loc && (
-            <p className="text-sm text-muted-foreground leading-relaxed mb-5 max-w-3xl">{detail.bio_loc}</p>
+            <p className="text-sm text-muted-foreground leading-relaxed mb-5 max-w-3xl" dangerouslySetInnerHTML={{ __html: detail.bio_loc }} />
           )}
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
