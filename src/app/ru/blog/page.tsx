@@ -34,7 +34,7 @@ export default async function RuBlogPage() {
     .order('created_at', { ascending: false })
 
   return (
-    <div className="fade-in-up max-w-3xl mx-auto py-8">
+    <div className="fade-in-up max-w-5xl mx-auto py-8">
 
       <div className="flex items-start justify-between mb-6 gap-4">
         <div>
@@ -57,7 +57,7 @@ export default async function RuBlogPage() {
       {!posts || posts.length === 0 ? (
         <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Статей пока нет — заходите позже.</p>
       ) : (
-        <div className="flex flex-col gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {posts.map(post => {
             const title = post.title_ru ?? post.title
             const excerpt = post.excerpt_ru ?? post.excerpt
@@ -65,20 +65,21 @@ export default async function RuBlogPage() {
               <Link
                 key={post.slug}
                 href={`/ru/blog/${post.slug}`}
-                className="group rounded-2xl overflow-hidden transition-opacity hover:opacity-90"
+                className="group flex flex-col h-full rounded-2xl overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:border-primary/40"
                 style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
               >
-                {post.cover_image_url && (
+                {post.cover_image_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     loading="lazy"
                     src={post.cover_image_url}
                     alt={title}
-                    className="w-full object-cover"
-                    style={{ maxHeight: 220 }}
+                    className="w-full h-44 object-cover shrink-0 transition-transform duration-300 group-hover:scale-105"
                   />
+                ) : (
+                  <div className="w-full h-44 shrink-0" style={{ background: 'linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--card)))' }} />
                 )}
-                <div className="p-6">
+                <div className="p-5 flex flex-col flex-1">
                   {post.tags && post.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mb-3">
                       {(post.tags as string[]).map((tag: string) => (
@@ -94,15 +95,15 @@ export default async function RuBlogPage() {
                       day: 'numeric', month: 'long', year: 'numeric',
                     })}
                   </p>
-                  <h2 className="font-display text-xl font-black mb-2 group-hover:text-primary transition-colors">
+                  <h2 className="font-display text-lg font-black leading-tight mb-2 line-clamp-2 group-hover:text-primary transition-colors">
                     {title}
                   </h2>
                   {excerpt && (
-                    <p className="text-sm leading-6 line-clamp-2 mb-4" style={{ color: 'var(--text-muted)' }}>
+                    <p className="text-sm leading-6 line-clamp-3 mb-4" style={{ color: 'var(--text-muted)' }}>
                       {excerpt}
                     </p>
                   )}
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mt-auto pt-2">
                     <div className="flex items-center gap-2">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src="/Greg.jpg" alt="Greg Spencer" className="w-7 h-7 rounded-full object-cover shrink-0" />

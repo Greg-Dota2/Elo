@@ -38,7 +38,7 @@ export default async function BlogPage() {
     .order('created_at', { ascending: false })
 
   return (
-    <div className="fade-in-up max-w-3xl mx-auto py-8">
+    <div className="fade-in-up max-w-5xl mx-auto py-8">
       <p className="section-label mb-3">Articles</p>
       <h1 className="font-display text-4xl font-black tracking-tight mb-2">Blog</h1>
       <p className="text-sm mb-8" style={{ color: 'var(--text-muted)' }}>

@@ -114,25 +114,26 @@ export default function BlogListClient({ posts }: { posts: Post[] }) {
         </p>
       )}
 
-      <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {filtered.map(post => (
           <Link
             key={post.slug}
             href={`/blog/${post.slug}`}
-            className="group rounded-2xl overflow-hidden transition-opacity hover:opacity-90"
+            className="group flex flex-col h-full rounded-2xl overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:border-primary/40"
             style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
           >
-            {post.cover_image_url && (
+            {post.cover_image_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 loading="lazy"
                 src={post.cover_image_url}
                 alt={post.title}
-                className="w-full object-cover"
-                style={{ maxHeight: 220 }}
+                className="w-full h-44 object-cover shrink-0 transition-transform duration-300 group-hover:scale-105"
               />
+            ) : (
+              <div className="w-full h-44 shrink-0" style={{ background: 'linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--card)))' }} />
             )}
-            <div className="p-6">
+            <div className="p-5 flex flex-col flex-1">
               {/* Tags row */}
               {post.tags && post.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mb-3">
@@ -151,15 +152,15 @@ export default function BlogListClient({ posts }: { posts: Post[] }) {
                   day: 'numeric', month: 'long', year: 'numeric',
                 })}
               </p>
-              <h2 className="font-display text-xl font-black mb-2 group-hover:text-primary transition-colors">
+              <h2 className="font-display text-lg font-black leading-tight mb-2 line-clamp-2 group-hover:text-primary transition-colors">
                 {post.title}
               </h2>
               {post.excerpt && (
-                <p className="text-sm leading-6 line-clamp-2 mb-4" style={{ color: 'var(--text-muted)' }}>
+                <p className="text-sm leading-6 line-clamp-3 mb-4" style={{ color: 'var(--text-muted)' }}>
                   {post.excerpt}
                 </p>
               )}
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mt-auto pt-2">
                 <div className="flex items-center gap-2">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src="/Greg.jpg" alt="Greg Spencer" className="w-7 h-7 rounded-full object-cover shrink-0" />
