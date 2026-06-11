@@ -37,6 +37,19 @@ type Segment =
   | { type: 'player'; slug: string }
   | { type: 'item'; key: string }
 
+// [rank:legend-3] / [rank:immortal] -> inline markdown image the `img` renderer
+// composes into a medal+star badge. Medal num in src, star encoded in alt.
+const RANK_MEDALS: Record<string, number> = {
+  herald: 1, guardian: 2, crusader: 3, archon: 4, legend: 5, ancient: 6, divine: 7, immortal: 8,
+}
+function processRanks(text: string): string {
+  return text.replace(/\[rank:([a-z]+)(?:-([1-5]))?\]/gi, (m, name: string, star?: string) => {
+    const n = RANK_MEDALS[name.toLowerCase()]
+    if (!n) return m
+    return `![rank:${star ?? '0'}](https://www.opendota.com/assets/images/dota2/rank_icons/rank_icon_${n}.png)`
+  })
+}
+
 function parseSegments(content: string): Segment[] {
   const segments: Segment[] = []
   const rx = /\[(group-stage|playoff-bracket):([^\]]+)\]|\[tweet:([^\]]+)\]|\[hero:([^\]]+)\]|\[team:([^\]]+)\]|\[player:([^\]]+)\]|\[item:([^\]]+)\]/g
@@ -288,10 +301,25 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     hr: () => <hr className="my-8" style={{ borderColor: 'var(--border)' }} />,
     a: ({ href, children }: any) => <a href={href} className="underline hover:opacity-70 transition-opacity" style={{ color: 'hsl(var(--primary))' }}>{children}</a>,
     code: ({ children }: any) => <code className="px-1.5 py-0.5 rounded text-sm font-mono" style={{ background: 'var(--surface-2)', color: 'hsl(var(--primary))' }}>{children}</code>,
-    img: ({ src, alt }: any) => (
+    img: ({ src, alt }: any) => {
+      // Rank medal badge: [rank:legend-3] -> composed medal + star overlay (inline)
+      const rank = typeof alt === 'string' ? alt.match(/^rank:([0-5])$/) : null
+      if (rank) {
+        const star = rank[1]
+        return (
+          <span className="relative inline-block align-middle mx-0.5" style={{ width: 34, height: 34 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={src} alt="" className="w-full h-full object-contain" loading="lazy" />
+            {star !== '0' && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={`https://www.opendota.com/assets/images/dota2/rank_icons/rank_star_${star}.png`} alt="" className="absolute inset-0 w-full h-full object-contain" loading="lazy" />
+            )}
+          </span>
+        )
+      }
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={src} alt={alt ?? ''} className="max-w-full h-auto rounded-xl my-6 block mx-auto" loading="lazy" />
-    ),
+      return <img src={src} alt={alt ?? ''} className="max-w-full h-auto rounded-xl my-6 block mx-auto" loading="lazy" />
+    },
     table: ({ children }: any) => (
       <div className="overflow-x-auto mb-6">
         <table className="w-full text-sm border-collapse">{children}</table>
@@ -427,7 +455,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         if (seg.type === 'markdown') {
           return (
             <ReactMarkdown key={i} remarkPlugins={[remarkGfm]} components={mdComponents}>
-              {useAutoLink ? autoLink(seg.content, allEntities) : seg.content}
+              {processRanks(useAutoLink ? autoLink(seg.content, allEntities) : seg.content)}
             </ReactMarkdown>
           )
         }

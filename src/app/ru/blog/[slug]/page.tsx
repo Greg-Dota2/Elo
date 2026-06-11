@@ -38,6 +38,17 @@ type Segment =
   | { type: 'player'; slug: string }
   | { type: 'item'; key: string }
 
+const RANK_MEDALS: Record<string, number> = {
+  herald: 1, guardian: 2, crusader: 3, archon: 4, legend: 5, ancient: 6, divine: 7, immortal: 8,
+}
+function processRanks(text: string): string {
+  return text.replace(/\[rank:([a-z]+)(?:-([1-5]))?\]/gi, (m, name: string, star?: string) => {
+    const n = RANK_MEDALS[name.toLowerCase()]
+    if (!n) return m
+    return `![rank:${star ?? '0'}](https://www.opendota.com/assets/images/dota2/rank_icons/rank_icon_${n}.png)`
+  })
+}
+
 function parseSegments(content: string): Segment[] {
   const segments: Segment[] = []
   const rx = /\[(group-stage|playoff-bracket):([^\]]+)\]|\[tweet:([^\]]+)\]|\[hero:([^\]]+)\]|\[team:([^\]]+)\]|\[player:([^\]]+)\]|\[item:([^\]]+)\]/g
@@ -154,10 +165,24 @@ export default async function RuBlogPostPage({ params }: { params: Promise<{ slu
         : href
       return <a href={finalHref} className="underline hover:opacity-70 transition-opacity" style={{ color: 'hsl(var(--primary))' }}>{children}</a>
     },
-    img: ({ src, alt }: any) => (
+    img: ({ src, alt }: any) => {
+      const rank = typeof alt === 'string' ? alt.match(/^rank:([0-5])$/) : null
+      if (rank) {
+        const star = rank[1]
+        return (
+          <span className="relative inline-block align-middle mx-0.5" style={{ width: 34, height: 34 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={src} alt="" className="w-full h-full object-contain" loading="lazy" />
+            {star !== '0' && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={`https://www.opendota.com/assets/images/dota2/rank_icons/rank_star_${star}.png`} alt="" className="absolute inset-0 w-full h-full object-contain" loading="lazy" />
+            )}
+          </span>
+        )
+      }
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={src} alt={alt ?? ''} className="max-w-full h-auto rounded-xl my-6 block mx-auto" loading="lazy" />
-    ),
+      return <img src={src} alt={alt ?? ''} className="max-w-full h-auto rounded-xl my-6 block mx-auto" loading="lazy" />
+    },
     table: ({ children }: any) => (
       <div className="overflow-x-auto mb-6">
         <table className="w-full text-sm border-collapse">{children}</table>
@@ -237,7 +262,7 @@ export default async function RuBlogPostPage({ params }: { params: Promise<{ slu
         if (seg.type === 'markdown') {
           return (
             <ReactMarkdown key={i} remarkPlugins={[remarkGfm]} components={mdComponents}>
-              {useAutoLink ? autoLink(seg.content, allEntities) : seg.content}
+              {processRanks(useAutoLink ? autoLink(seg.content, allEntities) : seg.content)}
             </ReactMarkdown>
           )
         }
