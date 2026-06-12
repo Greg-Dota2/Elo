@@ -438,7 +438,7 @@ export default async function HeroPage({
           <img
             src={heroPortraitUrl(slug)}
             alt={hero.localized_name}
-            className="w-full h-full object-cover object-center"
+            className="w-full h-full object-contain object-bottom"
           />
           <div
             className="absolute inset-0"
