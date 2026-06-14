@@ -24,6 +24,7 @@ export const metadata: Metadata = {
     title: 'Прогнозы Dota 2 — Турниры',
     description: 'Прогнозы и аналитика всех Tier 1 турниров по Dota 2 — матч за матчем, с разбором и результатами.',
     url: `${SITE_URL}/ru/tournaments`,
+    images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }],
   },
 }
 

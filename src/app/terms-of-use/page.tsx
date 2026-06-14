@@ -7,6 +7,7 @@ export const metadata: Metadata = {
     title: 'Terms of Use | Dota2ProTips',
     description: 'Terms of use, disclaimers, and site rules for Dota2ProTips — including how match predictions are made and how ELO ratings are calculated.',
     url: '/terms-of-use',
+    images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }],
   },
   twitter: {
     card: 'summary',

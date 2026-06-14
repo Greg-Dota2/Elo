@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Мета героев Dota 2 — процент побед и популярность',
   description: 'Актуальные данные по проценту побед и популярности героев Dota 2 из публичных матчей всех уровней. Кто растёт, кто падает в текущей мете.',
   alternates: { canonical: '/ru/heroes/meta', languages: { 'x-default': '/heroes/meta', 'en': '/heroes/meta', 'ru': '/ru/heroes/meta' } },
-  openGraph: { title: 'Мета героев Dota 2 — процент побед и популярность', description: 'Актуальные данные по проценту побед и популярности героев Dota 2 из публичных матчей всех уровней.', url: '/ru/heroes/meta' },
+  openGraph: { title: 'Мета героев Dota 2 — процент побед и популярность', description: 'Актуальные данные по проценту побед и популярности героев Dota 2 из публичных матчей всех уровней.', url: '/ru/heroes/meta', images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }] },
   twitter: { card: 'summary', title: 'Мета героев Dota 2 — процент побед и популярность', description: 'Актуальные данные по проценту побед и популярности героев Dota 2 из публичных матчей всех уровней.' },
 }
 

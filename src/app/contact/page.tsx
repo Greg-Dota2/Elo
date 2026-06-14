@@ -12,6 +12,7 @@ export const metadata: Metadata = {
     title: 'Contact Greg — Dota2ProTips',
     description: 'Got a Dota insight, found a mistake, or just want to say hi? Drop me a message.',
     url: '/contact',
+    images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }],
   },
 }
 

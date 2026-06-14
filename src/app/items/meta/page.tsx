@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: 'Item Meta — Dota 2 Win Rates & Neutral Tiers',
   description: 'Dota 2 upgrade item win rates aggregated from public matches, plus all neutral items organized by tier.',
   alternates: { canonical: '/items/meta', languages: { 'x-default': '/items/meta', 'en': '/items/meta', 'ru': '/ru/items/meta' } },
-  openGraph: { title: 'Item Meta — Dota 2 Win Rates & Neutral Tiers', description: 'Dota 2 upgrade item win rates aggregated from public matches, plus all neutral items organized by tier.', url: '/items/meta' },
+  openGraph: { title: 'Item Meta — Dota 2 Win Rates & Neutral Tiers', description: 'Dota 2 upgrade item win rates aggregated from public matches, plus all neutral items organized by tier.', url: '/items/meta', images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }] },
   twitter: { card: 'summary', title: 'Item Meta — Dota 2 Win Rates & Neutral Tiers', description: 'Dota 2 upgrade item win rates aggregated from public matches, plus all neutral items organized by tier.' },
 }
 

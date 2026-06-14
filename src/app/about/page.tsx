@@ -8,6 +8,7 @@ export const metadata: Metadata = {
     title: 'About Greg — The Person Behind the Picks',
     description: 'Semi-pro player, two-time tournament tracker, full-time Dota 2 watcher. Greg writes every pick, every ranking, every word on this site.',
     url: '/about',
+    images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }],
   },
   twitter: {
     card: 'summary',

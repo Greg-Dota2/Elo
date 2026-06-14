@@ -17,7 +17,7 @@ export const metadata: Metadata = {
       'x-default': 'https://www.dota2protips.com/tournaments',
     },
   },
-  openGraph: { title: 'Dota 2 Tournament Predictions & Results', description: 'Every Tier 1 Dota 2 tournament covered — pre-match picks, match-by-match analysis, and full results. No backdating. No excuses.', url: '/tournaments' },
+  openGraph: { title: 'Dota 2 Tournament Predictions & Results', description: 'Every Tier 1 Dota 2 tournament covered — pre-match picks, match-by-match analysis, and full results. No backdating. No excuses.', url: '/tournaments', images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }] },
   twitter: { card: 'summary', title: 'Dota 2 Tournament Predictions & Results', description: 'Every Tier 1 Dota 2 tournament covered — pre-match picks, match-by-match analysis, and full results.' },
 }
 

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: 'Трансферы и переходы игроков Dota 2',
   description: 'Последние изменения составов и переходы игроков в профессиональной сцене Dota 2. Подписания, уходы, аренды и завершения карьеры.',
   alternates: { canonical: '/ru/transfers', languages: { 'x-default': '/transfers', 'en': '/transfers', 'ru': '/ru/transfers' } },
-  openGraph: { title: 'Трансферы и переходы игроков Dota 2', description: 'Последние изменения составов и переходы игроков в профессиональной сцене Dota 2. Подписания, уходы, аренды и завершения карьеры.', url: '/ru/transfers' },
+  openGraph: { title: 'Трансферы и переходы игроков Dota 2', description: 'Последние изменения составов и переходы игроков в профессиональной сцене Dota 2. Подписания, уходы, аренды и завершения карьеры.', url: '/ru/transfers', images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }] },
   twitter: { card: 'summary', title: 'Трансферы и переходы игроков Dota 2', description: 'Последние изменения составов и переходы игроков в профессиональной сцене Dota 2.' },
 }
 

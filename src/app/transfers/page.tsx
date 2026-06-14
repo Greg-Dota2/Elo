@@ -15,6 +15,7 @@ export const metadata: Metadata = {
     title: 'Dota 2 Roster Moves & Player Transfers',
     description: 'The latest Dota 2 roster changes and player transfers — tracked as they happen.',
     url: '/transfers',
+    images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }],
   },
 }
 

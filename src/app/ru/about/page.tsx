@@ -8,6 +8,7 @@ export const metadata: Metadata = {
     title: 'О Греге — Человек за прогнозами',
     description: 'Полупрофессиональный игрок, аналитик турниров, преданный зритель про-Dota. Грег пишет каждый прогноз, каждый рейтинг, каждое слово на этом сайте.',
     url: '/ru/about',
+    images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }],
   },
   twitter: {
     card: 'summary',

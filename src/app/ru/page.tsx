@@ -15,6 +15,7 @@ export const metadata: Metadata = {
     title: 'Прогнозы на матчи Dota 2 | Dota2ProTips',
     description: 'Экспертные прогнозы на матчи Dota 2 Tier 1 — написанные до драфта, публично отслеживаемые, с честным разбором после каждого матча. ~70% точность.',
     url: '/ru',
+    images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }],
   },
   twitter: { card: 'summary', title: 'Прогнозы на матчи Dota 2 | Dota2ProTips', description: 'Экспертные прогнозы на матчи Dota 2 Tier 1 — написанные до драфта, публично отслеживаемые, с честным разбором после каждого матча. ~70% точность.' },
 }

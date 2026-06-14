@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Мои прогнозы на Dota 2 — статистика',
   description: 'Открытая статистика прогнозов по турнирам Tier 1. Каждый верный и каждый неверный прогноз — здесь, без правок и без удалений.',
   alternates: { canonical: '/ru/track-record', languages: { 'x-default': '/track-record', 'en': '/track-record', 'ru': '/ru/track-record' } },
-  openGraph: { title: 'Мои прогнозы на Dota 2 — статистика', description: 'Открытая статистика прогнозов по турнирам Tier 1. Каждый верный и каждый неверный прогноз — здесь, без правок и без удалений.', url: '/ru/track-record' },
+  openGraph: { title: 'Мои прогнозы на Dota 2 — статистика', description: 'Открытая статистика прогнозов по турнирам Tier 1. Каждый верный и каждый неверный прогноз — здесь, без правок и без удалений.', url: '/ru/track-record', images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }] },
   twitter: { card: 'summary', title: 'Мои прогнозы на Dota 2 — статистика', description: 'Открытая статистика прогнозов по турнирам Tier 1. Каждый верный и каждый неверный прогноз — здесь, без правок и без удалений.' },
 }
 
@@ -48,7 +48,7 @@ export default async function RuTrackRecordPage() {
         <div className="pointer-events-none absolute -top-10 -right-10 w-64 h-64 rounded-full blur-3xl opacity-15" style={{ background: 'hsl(var(--primary))' }} />
         <div className="pointer-events-none absolute -bottom-10 -left-10 w-48 h-48 rounded-full blur-3xl opacity-10" style={{ background: 'hsl(var(--accent))' }} />
 
-        <div className="flex items-start justify-between gap-6 flex-wrap relative">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 relative">
           <div className="flex-1 min-w-0">
             <p className="section-label mb-3">Все турниры</p>
             <h1 className="font-display text-4xl font-black tracking-tight mb-4">Статистика прогнозов</h1>
@@ -61,7 +61,7 @@ export default async function RuTrackRecordPage() {
           </div>
 
           {/* Big accuracy number */}
-          <div className="shrink-0 flex flex-col items-center justify-center rounded-2xl px-7 py-5 text-center" style={{ background: accuracyBg, border: `1px solid ${accuracyBorder}` }}>
+          <div className="shrink-0 flex flex-col items-center justify-center rounded-2xl px-7 py-5 text-center self-start sm:self-auto" style={{ background: accuracyBg, border: `1px solid ${accuracyBorder}` }}>
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Общая точность</p>
             <p className={`font-display text-5xl font-black tabular-nums leading-none ${accuracyColor}`}>
               {overallPct}%
@@ -136,7 +136,8 @@ export default async function RuTrackRecordPage() {
       {rows.length === 0 ? (
         <p className="text-sm text-muted-foreground">Данных пока нет.</p>
       ) : (
-        <div className="rounded-2xl overflow-hidden border border-border/50">
+        <div className="rounded-2xl overflow-x-auto border border-border/50">
+          <div className="min-w-[520px]">
           {/* Header */}
           <div className="grid grid-cols-[1fr_60px_68px_60px_68px_96px] px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground" style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
             <span>Турнир</span>
@@ -225,6 +226,7 @@ export default async function RuTrackRecordPage() {
                 <div className="h-full rounded-full" style={{ width: `${overallPct}%`, background: overallPct >= 65 ? 'var(--correct)' : '#f59e0b' }} />
               </div>
             </div>
+          </div>
           </div>
         </div>
       )}

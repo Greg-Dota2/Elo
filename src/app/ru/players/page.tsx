@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: 'Игроки Dota 2 — Профили и статистика',
   description: 'Профили всех отслеживаемых про-игроков Dota 2 — роли, герои, достижения и результаты турниров.',
   alternates: { canonical: '/ru/players', languages: { 'x-default': '/players', 'en': '/players', 'ru': '/ru/players' } },
-  openGraph: { title: 'Игроки Dota 2 — Профили и статистика', description: 'Профили всех отслеживаемых про-игроков Dota 2 — роли, герои, достижения и результаты турниров.', url: '/ru/players' },
+  openGraph: { title: 'Игроки Dota 2 — Профили и статистика', description: 'Профили всех отслеживаемых про-игроков Dota 2 — роли, герои, достижения и результаты турниров.', url: '/ru/players', images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }] },
   twitter: { card: 'summary', title: 'Игроки Dota 2 — Профили и статистика', description: 'Профили всех отслеживаемых про-игроков Dota 2 — роли, герои, достижения и результаты турниров.' },
 }
 

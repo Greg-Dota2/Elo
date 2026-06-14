@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: 'ELO Рейтинг команд Dota 2 2026',
   description: 'ELO рейтинг команд Dota 2, обновляемый после каждой серии Tier 1. Взвешен по силе соперника — актуальный снапшот того, кто реально показывает результат прямо сейчас.',
   alternates: { canonical: '/ru/rankings', languages: { 'x-default': '/rankings', 'en': '/rankings', 'ru': '/ru/rankings' } },
-  openGraph: { title: 'ELO Рейтинг команд Dota 2 2026', description: 'ELO рейтинг команд Dota 2, обновляемый после каждой серии Tier 1. Взвешен по силе соперника.', url: '/ru/rankings' },
+  openGraph: { title: 'ELO Рейтинг команд Dota 2 2026', description: 'ELO рейтинг команд Dota 2, обновляемый после каждой серии Tier 1. Взвешен по силе соперника.', url: '/ru/rankings', images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }] },
   twitter: { card: 'summary', title: 'ELO Рейтинг команд Dota 2 2026', description: 'ELO рейтинг команд Dota 2, обновляемый после каждой серии Tier 1. Взвешен по силе соперника.' },
 }
 

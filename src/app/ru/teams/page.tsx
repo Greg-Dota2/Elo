@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: 'Команды Dota 2 — Профили и результаты',
   description: 'Профили, составы, рейтинги ELO и результаты турниров всех отслеживаемых команд Dota 2 Tier 1.',
   alternates: { canonical: '/ru/teams', languages: { 'x-default': '/teams', 'en': '/teams', 'ru': '/ru/teams' } },
-  openGraph: { title: 'Команды Dota 2 — Профили и результаты', description: 'Профили, составы, рейтинги ELO и результаты турниров всех отслеживаемых команд Dota 2 Tier 1.', url: '/ru/teams' },
+  openGraph: { title: 'Команды Dota 2 — Профили и результаты', description: 'Профили, составы, рейтинги ELO и результаты турниров всех отслеживаемых команд Dota 2 Tier 1.', url: '/ru/teams', images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }] },
   twitter: { card: 'summary', title: 'Команды Dota 2 — Профили и результаты', description: 'Профили, составы, рейтинги ELO и результаты турниров всех отслеживаемых команд Dota 2 Tier 1.' },
 }
 

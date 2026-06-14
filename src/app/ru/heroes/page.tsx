@@ -14,6 +14,7 @@ export const metadata: Metadata = {
     title: 'Герои Dota 2 — Способности, Характеристики и Таланты',
     description: 'Полная база героев Dota 2 — способности, базовые характеристики, таланты и профессиональные игроки, известные каждым героем.',
     url: '/ru/heroes',
+    images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }],
   },
   twitter: { card: 'summary', title: 'Герои Dota 2 — Способности, Характеристики и Таланты', description: 'Полная база героев Dota 2 — способности, базовые характеристики, таланты и профессиональные игроки, известные каждым героем.' },
 }

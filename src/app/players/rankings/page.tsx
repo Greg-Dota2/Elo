@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: 'Dota 2 Player Rankings — Tournament Performance Score',
   description: 'Pro player rankings by competitive performance across Tier 1 Dota 2 tournaments — placement points, prize earnings, and EPT combined.',
   alternates: { canonical: '/players/rankings', languages: { 'x-default': '/players/rankings', 'en': '/players/rankings', 'ru': '/ru/players/rankings' } },
-  openGraph: { title: 'Dota 2 Player Rankings — Tournament Performance', description: 'Pro player rankings by competitive performance across Tier 1 Dota 2 tournaments.', url: '/players/rankings' },
+  openGraph: { title: 'Dota 2 Player Rankings — Tournament Performance', description: 'Pro player rankings by competitive performance across Tier 1 Dota 2 tournaments.', url: '/players/rankings', images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }] },
 }
 
 const POSITION_LABEL: Record<number, string> = { 1: 'Carry', 2: 'Mid', 3: 'Offlane', 4: 'Soft Sup', 5: 'Hard Sup' }

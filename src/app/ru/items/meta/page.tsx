@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: 'Мета предметов Dota 2 — процент побед',
   description: 'Процент побед улучшений Dota 2 из публичных матчей, нейтральные предметы по тирам и статистике.',
   alternates: { canonical: '/ru/items/meta', languages: { 'x-default': '/items/meta', 'en': '/items/meta', 'ru': '/ru/items/meta' } },
-  openGraph: { title: 'Мета предметов Dota 2 — процент побед', description: 'Процент побед улучшений Dota 2 из публичных матчей, нейтральные предметы по тирам и статистике.', url: '/ru/items/meta' },
+  openGraph: { title: 'Мета предметов Dota 2 — процент побед', description: 'Процент побед улучшений Dota 2 из публичных матчей, нейтральные предметы по тирам и статистике.', url: '/ru/items/meta', images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }] },
   twitter: { card: 'summary', title: 'Мета предметов Dota 2 — процент побед', description: 'Процент побед улучшений Dota 2 из публичных матчей, нейтральные предметы по тирам и статистике.' },
 }
 

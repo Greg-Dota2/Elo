@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     'ESL One prediction', 'The International prediction', 'Dota 2 Major',
   ],
   alternates: { canonical: '/', languages: { 'x-default': '/', 'en': '/', 'ru': '/ru' } },
-  openGraph: { title: 'Dota 2 Pro Match Predictions & Analysis', description: 'Expert Dota 2 match predictions for every Tier 1 tournament — written before the draft, tracked publicly, with honest aftermath on every call. ~70% accuracy.', url: '/' },
+  openGraph: { title: 'Dota 2 Pro Match Predictions & Analysis', description: 'Expert Dota 2 match predictions for every Tier 1 tournament — written before the draft, tracked publicly, with honest aftermath on every call. ~70% accuracy.', url: '/', images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }] },
   twitter: { card: 'summary', title: 'Dota 2 Pro Match Predictions & Analysis', description: 'Expert Dota 2 match predictions for every Tier 1 tournament — written before the draft, tracked publicly, with honest aftermath on every call. ~70% accuracy.' },
 }
 

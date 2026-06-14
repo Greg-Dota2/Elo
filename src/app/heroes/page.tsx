@@ -14,6 +14,7 @@ export const metadata: Metadata = {
     title: 'Dota 2 Heroes — Abilities, Stats & Pro Usage',
     description: 'Full hero database for Dota 2 — abilities, base stats, talents, and which pro players are known for each one.',
     url: '/heroes',
+    images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }],
   },
   twitter: { card: 'summary', title: 'Dota 2 Heroes — Abilities, Stats & Pro Usage', description: 'Full hero database for Dota 2 — abilities, base stats, talents, and which pro players are known for each one.' },
   alternates: { canonical: '/heroes', languages: { 'x-default': '/heroes', 'en': '/heroes', 'ru': '/ru/heroes' } },

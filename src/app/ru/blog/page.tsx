@@ -21,6 +21,7 @@ export const metadata: Metadata = {
     title: 'Аналитика Dota 2 — Блог',
     description: 'Разборы матчей, аналитика меты и обзоры турниров от человека, который смотрит каждую игру.',
     url: `${SITE_URL}/ru/blog`,
+    images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }],
   },
 }
 

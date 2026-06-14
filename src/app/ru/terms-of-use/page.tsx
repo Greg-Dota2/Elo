@@ -7,6 +7,7 @@ export const metadata: Metadata = {
     title: 'Условия использования | Dota2ProTips',
     description: 'Условия использования, отказ от ответственности и правила сайта Dota2ProTips.',
     url: '/ru/terms-of-use',
+    images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }],
   },
   twitter: {
     card: 'summary',

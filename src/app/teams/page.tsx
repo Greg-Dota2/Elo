@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: 'Profiles, rosters, ELO ratings, and tournament results for every tracked Dota 2 pro team. Find out who\'s hot, who\'s struggling, and who I\'m picking in the next series.',
   keywords: ['Dota 2 teams', 'pro Dota 2 teams', 'Dota 2 team ELO', 'Dota 2 rosters', 'Team Spirit', 'Team Liquid', 'Gaimin Gladiators', 'Tundra Esports'],
   alternates: { canonical: '/teams', languages: { 'x-default': '/teams', 'en': '/teams', 'ru': '/ru/teams' } },
-  openGraph: { title: 'Dota 2 Pro Teams — Profiles & Results', description: 'Profiles, rosters, ELO ratings, and tournament results for every tracked Dota 2 pro team.', url: '/teams' },
+  openGraph: { title: 'Dota 2 Pro Teams — Profiles & Results', description: 'Profiles, rosters, ELO ratings, and tournament results for every tracked Dota 2 pro team.', url: '/teams', images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }] },
   twitter: { card: 'summary', title: 'Dota 2 Pro Teams — Profiles & Results', description: 'Profiles, rosters, ELO ratings, and tournament results for every tracked Dota 2 pro team.' },
 }
 

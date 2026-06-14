@@ -12,6 +12,7 @@ export const metadata: Metadata = {
     title: 'Dota 2 Analysis & Tournament Breakdowns',
     description: 'Match breakdowns, meta analysis, and tournament recaps from someone who watches every single game. No generic takes — just honest Dota 2 writing from Greg at Dota2ProTips.',
     url: '/blog',
+    images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }],
   },
   twitter: {
     card: 'summary',

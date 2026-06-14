@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Hero Meta — Dota 2 Win & Pick Rates',
   description: 'Live Dota 2 hero win rates, pick rates and trend data across all public match brackets. See which heroes are rising and falling in the current meta.',
   alternates: { canonical: '/heroes/meta', languages: { 'x-default': '/heroes/meta', 'en': '/heroes/meta', 'ru': '/ru/heroes/meta' } },
-  openGraph: { title: 'Hero Meta — Dota 2 Win & Pick Rates', description: 'Live Dota 2 hero win rates, pick rates and trend data across all public match brackets.', url: '/heroes/meta' },
+  openGraph: { title: 'Hero Meta — Dota 2 Win & Pick Rates', description: 'Live Dota 2 hero win rates, pick rates and trend data across all public match brackets.', url: '/heroes/meta', images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }] },
   twitter: { card: 'summary', title: 'Hero Meta — Dota 2 Win & Pick Rates', description: 'Live Dota 2 hero win rates, pick rates and trend data across all public match brackets.' },
 }
 

@@ -11,6 +11,7 @@ export const metadata: Metadata = {
     title: 'My Dota 2 Prediction Track Record',
     description: '154 picks across 4 Tier 1 tournaments. 67% accuracy overall. Every correct and every wrong call is here — no edits, no hiding.',
     url: '/track-record',
+    images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }],
   },
   twitter: {
     card: 'summary',
@@ -56,7 +57,7 @@ export default async function TrackRecordPage() {
         <div className="pointer-events-none absolute -top-10 -right-10 w-64 h-64 rounded-full blur-3xl opacity-15" style={{ background: 'hsl(var(--primary))' }} />
         <div className="pointer-events-none absolute -bottom-10 -left-10 w-48 h-48 rounded-full blur-3xl opacity-10" style={{ background: 'hsl(var(--accent))' }} />
 
-        <div className="flex items-start justify-between gap-6 flex-wrap relative">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 relative">
           <div className="flex-1 min-w-0">
             <p className="section-label mb-3">All Tournaments</p>
             <h1 className="font-display text-4xl font-black tracking-tight mb-4">Track Record</h1>
@@ -69,7 +70,7 @@ export default async function TrackRecordPage() {
           </div>
 
           {/* Big accuracy number */}
-          <div className="shrink-0 flex flex-col items-center justify-center rounded-2xl px-7 py-5 text-center" style={{ background: accuracyBg, border: `1px solid ${accuracyBorder}` }}>
+          <div className="shrink-0 flex flex-col items-center justify-center rounded-2xl px-7 py-5 text-center self-start sm:self-auto" style={{ background: accuracyBg, border: `1px solid ${accuracyBorder}` }}>
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Overall accuracy</p>
             <p className={`font-display text-5xl font-black tabular-nums leading-none ${accuracyColor}`}>
               {overallPct}%
@@ -144,7 +145,8 @@ export default async function TrackRecordPage() {
       {rows.length === 0 ? (
         <p className="text-sm text-muted-foreground">No data yet.</p>
       ) : (
-        <div className="rounded-2xl overflow-hidden border border-border/50">
+        <div className="rounded-2xl overflow-x-auto border border-border/50">
+          <div className="min-w-[520px]">
           {/* Header */}
           <div className="grid grid-cols-[1fr_60px_68px_60px_68px_96px] px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground" style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
             <span>Tournament</span>
@@ -233,6 +235,7 @@ export default async function TrackRecordPage() {
                 <div className="h-full rounded-full" style={{ width: `${overallPct}%`, background: overallPct >= 65 ? 'var(--correct)' : '#f59e0b' }} />
               </div>
             </div>
+          </div>
           </div>
         </div>
       )}

@@ -14,6 +14,7 @@ export const metadata: Metadata = {
     title: 'Предметы Dota 2 — Характеристики, Стоимость и Гайды',
     description: 'Все предметы Dota 2 в одном месте — стоимость, активные и пассивные способности, пути сборки и когда их покупать.',
     url: '/ru/items',
+    images: [{ url: 'https://www.dota2protips.com/1.png', width: 512, height: 512, alt: 'Dota2ProTips' }],
   },
   twitter: { card: 'summary', title: 'Предметы Dota 2 — Характеристики, Стоимость и Гайды', description: 'Все предметы Dota 2 в одном месте — стоимость, активные и пассивные способности, пути сборки и когда их покупать.' },
 }
