@@ -74,33 +74,36 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify([
-              {
-                '@context': 'https://schema.org',
-                '@type': 'WebSite',
-                name: 'Dota2ProTips',
-                url: SITE_URL,
-                inLanguage: 'en',
-                description: 'Expert Dota 2 match predictions for Tier 1 pro tournaments — pre-match analysis, ELO rankings, and accuracy tracked across every pick.',
-                potentialAction: {
-                  '@type': 'SearchAction',
-                  target: { '@type': 'EntryPoint', urlTemplate: `${SITE_URL}/players?q={search_term_string}` },
-                  'query-input': 'required name=search_term_string',
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@graph': [
+                {
+                  '@type': 'WebSite',
+                  '@id': `${SITE_URL}/#website`,
+                  name: 'Dota2ProTips',
+                  url: SITE_URL,
+                  inLanguage: 'en',
+                  description: 'Expert Dota 2 match predictions for Tier 1 pro tournaments — pre-match analysis, ELO rankings, and accuracy tracked across every pick.',
+                  potentialAction: {
+                    '@type': 'SearchAction',
+                    target: { '@type': 'EntryPoint', urlTemplate: `${SITE_URL}/players?q={search_term_string}` },
+                    'query-input': 'required name=search_term_string',
+                  },
                 },
-              },
-              {
-                '@context': 'https://schema.org',
-                '@type': 'Organization',
-                name: 'Dota2ProTips',
-                url: SITE_URL,
-                logo: `${SITE_URL}/1.png`,
-                sameAs: [
-                  'https://x.com/Dota2ProTips',
-                  'https://www.facebook.com/Dota2ProTips',
-                  'https://t.me/dota2protips',
-                ],
-              },
-            ]),
+                {
+                  '@type': 'Organization',
+                  '@id': `${SITE_URL}/#organization`,
+                  name: 'Dota2ProTips',
+                  url: SITE_URL,
+                  logo: `${SITE_URL}/1.png`,
+                  sameAs: [
+                    'https://x.com/Dota2ProTips',
+                    'https://www.facebook.com/Dota2ProTips',
+                    'https://t.me/dota2protips',
+                  ],
+                },
+              ],
+            }),
           }}
         />
       </head>

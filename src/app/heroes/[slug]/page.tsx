@@ -398,29 +398,27 @@ export default async function HeroPage({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([
-            {
-              '@context': 'https://schema.org',
-              '@type': 'Article',
-              headline: `${hero.localized_name} — Dota 2 Hero Guide`,
-              url: `${SITE_URL}/heroes/${slug}`,
-              image: { '@type': 'ImageObject', url: heroPortraitUrl(slug), width: 256, height: 144 },
-              author: { '@type': 'Person', name: 'Greg Spencer', url: SITE_URL },
-              publisher: {
-                '@type': 'Organization',
-                name: 'Dota2ProTips',
-                logo: { '@type': 'ImageObject', url: `${SITE_URL}/1.png` },
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@graph': [
+              {
+                '@type': 'Article',
+                '@id': `${SITE_URL}/heroes/${slug}#article`,
+                headline: `${hero.localized_name} — Dota 2 Hero Guide`,
+                url: `${SITE_URL}/heroes/${slug}`,
+                image: { '@type': 'ImageObject', url: heroPortraitUrl(slug), width: 256, height: 144 },
+                author: { '@type': 'Person', '@id': `${SITE_URL}/about#author`, name: 'Greg Spencer', url: `${SITE_URL}/about` },
+                publisher: { '@id': `${SITE_URL}/#organization` },
               },
-            },
-            {
-              '@context': 'https://schema.org',
-              '@type': 'BreadcrumbList',
-              itemListElement: [
-                { '@type': 'ListItem', position: 1, name: 'Heroes', item: `${SITE_URL}/heroes` },
-                { '@type': 'ListItem', position: 2, name: hero.localized_name, item: `${SITE_URL}/heroes/${slug}` },
-              ],
-            },
-          ]),
+              {
+                '@type': 'BreadcrumbList',
+                itemListElement: [
+                  { '@type': 'ListItem', position: 1, name: 'Heroes', item: `${SITE_URL}/heroes` },
+                  { '@type': 'ListItem', position: 2, name: hero.localized_name, item: `${SITE_URL}/heroes/${slug}` },
+                ],
+              },
+            ],
+          }),
         }}
       />
       {/* Breadcrumb */}

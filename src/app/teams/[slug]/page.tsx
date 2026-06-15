@@ -170,23 +170,25 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ slu
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([
-            {
-              '@context': 'https://schema.org',
-              '@type': 'SportsTeam',
-              name: team.name,
-              url: `https://www.dota2protips.com/teams/${slug}`,
-              ...(team.logo_url ? { logo: team.logo_url, image: team.logo_url } : {}),
-            },
-            {
-              '@context': 'https://schema.org',
-              '@type': 'BreadcrumbList',
-              itemListElement: [
-                { '@type': 'ListItem', position: 1, name: 'Teams', item: 'https://www.dota2protips.com/teams' },
-                { '@type': 'ListItem', position: 2, name: team.name, item: `https://www.dota2protips.com/teams/${slug}` },
-              ],
-            },
-          ]),
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@graph': [
+              {
+                '@type': 'SportsTeam',
+                '@id': `https://www.dota2protips.com/teams/${slug}#team`,
+                name: team.name,
+                url: `https://www.dota2protips.com/teams/${slug}`,
+                ...(team.logo_url ? { logo: team.logo_url, image: team.logo_url } : {}),
+              },
+              {
+                '@type': 'BreadcrumbList',
+                itemListElement: [
+                  { '@type': 'ListItem', position: 1, name: 'Teams', item: 'https://www.dota2protips.com/teams' },
+                  { '@type': 'ListItem', position: 2, name: team.name, item: `https://www.dota2protips.com/teams/${slug}` },
+                ],
+              },
+            ],
+          }),
         }}
       />
       {/* Back */}
