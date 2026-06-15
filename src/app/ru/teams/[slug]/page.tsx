@@ -176,23 +176,25 @@ export default async function RuTeamDetailPage({ params }: { params: Promise<{ s
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([
-            {
-              '@context': 'https://schema.org',
-              '@type': 'SportsTeam',
-              name: team.name,
-              url: `${SITE_URL}/ru/teams/${slug}`,
-              ...(team.logo_url ? { logo: team.logo_url, image: team.logo_url } : {}),
-            },
-            {
-              '@context': 'https://schema.org',
-              '@type': 'BreadcrumbList',
-              itemListElement: [
-                { '@type': 'ListItem', position: 1, name: 'Команды', item: `${SITE_URL}/ru/teams` },
-                { '@type': 'ListItem', position: 2, name: team.name, item: `${SITE_URL}/ru/teams/${slug}` },
-              ],
-            },
-          ]),
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@graph': [
+              {
+                '@type': 'SportsTeam',
+                '@id': `${SITE_URL}/teams/${slug}#team`,
+                name: team.name,
+                url: `${SITE_URL}/ru/teams/${slug}`,
+                ...(team.logo_url ? { logo: team.logo_url, image: team.logo_url } : {}),
+              },
+              {
+                '@type': 'BreadcrumbList',
+                itemListElement: [
+                  { '@type': 'ListItem', position: 1, name: 'Команды', item: `${SITE_URL}/ru/teams` },
+                  { '@type': 'ListItem', position: 2, name: team.name, item: `${SITE_URL}/ru/teams/${slug}` },
+                ],
+              },
+            ],
+          }),
         }}
       />
 

@@ -136,10 +136,39 @@ export default async function RuPlayerPage({ params }: Props) {
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             '@context': 'https://schema.org',
-            '@type': 'BreadcrumbList',
-            itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Игроки', item: `${SITE_URL}/ru/players` },
-              { '@type': 'ListItem', position: 2, name: player.ign, item: `${SITE_URL}/ru/players/${slug}` },
+            '@graph': [
+              {
+                '@type': 'BreadcrumbList',
+                itemListElement: [
+                  { '@type': 'ListItem', position: 1, name: 'Игроки', item: `${SITE_URL}/ru/players` },
+                  { '@type': 'ListItem', position: 2, name: player.ign, item: `${SITE_URL}/ru/players/${slug}` },
+                ],
+              },
+              {
+                '@type': 'Person',
+                '@id': `${SITE_URL}/players/${slug}#player`,
+                name: player.full_name ?? player.ign,
+                alternateName: player.ign,
+                url: `${SITE_URL}/ru/players/${slug}`,
+                sport: 'Dota 2',
+                jobTitle: 'Professional Dota 2 Player',
+                ...(player.photo_url ? { image: player.photo_url } : {}),
+                ...(player.nationality ? { nationality: player.nationality } : {}),
+                ...(player.date_of_birth ? { birthDate: player.date_of_birth } : {}),
+                ...(player.bio ? { description: player.bio.replace(/^#+\s*/gm, '').slice(0, 300) } : {}),
+                ...(player.signature_heroes?.length ? { knowsAbout: player.signature_heroes } : {}),
+                ...(player.team?.name ? {
+                  memberOf: {
+                    '@type': 'SportsTeam',
+                    '@id': player.team.slug ? `${SITE_URL}/teams/${player.team.slug}#team` : undefined,
+                    name: player.team.name,
+                    sport: 'Dota 2',
+                    ...(player.team.logo_url ? { logo: player.team.logo_url } : {}),
+                    ...(player.team.slug ? { url: `${SITE_URL}/teams/${player.team.slug}` } : {}),
+                  }
+                } : {}),
+                ...(player.liquipedia_url ? { sameAs: [player.liquipedia_url] } : {}),
+              },
             ],
           }),
         }}
