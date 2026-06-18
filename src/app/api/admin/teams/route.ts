@@ -47,7 +47,7 @@ export async function PATCH(req: NextRequest) {
   const { id, ...fields } = body
   const supabase = createAdminClient()
   const update: Record<string, unknown> = {}
-  const strings = ['name','short_name','region','logo_url','banner_url','liquipedia_url','website_url','bio','achievements','slug','opendota_team_id']
+  const strings = ['name','short_name','region','logo_url','banner_url','liquipedia_url','website_url','bio','achievements','slug','opendota_team_id','pandascore_team_id']
   for (const k of strings) { if (fields[k] !== undefined) update[k] = fields[k] || null }
   if (fields.is_active !== undefined) update.is_active = fields.is_active
   if (fields.founded_year !== undefined) update.founded_year = fields.founded_year ? Number(fields.founded_year) : null

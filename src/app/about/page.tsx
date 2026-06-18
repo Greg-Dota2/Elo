@@ -97,6 +97,14 @@ export default function AboutPage() {
           about what I saw, and writing it down.
         </p>
         <p>
+          If you want to know exactly how I approach predictions — the model, the form reads, the
+          playstyle matchups, the draft tendencies, the traps I try to avoid — I wrote it all out
+          in detail:{' '}
+          <a href="/blog/how-to-predict-dota-2-matches" className="font-semibold underline hover:opacity-70 transition-opacity" style={{ color: 'hsl(var(--primary))' }}>
+            How to predict Dota 2 matches
+          </a>.
+        </p>
+        <p>
           I hope you find it useful. And if you love pro Dota even half as much as I do —{' '}
           <span className="font-semibold" style={{ color: 'var(--text)' }}>welcome. You&apos;re in the right place.</span>
         </p>

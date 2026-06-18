@@ -98,6 +98,14 @@ export default function RuAboutPage() {
           о том, что видел, и пишу об этом.
         </p>
         <p>
+          Если хочешь узнать, как именно я подхожу к прогнозам — модель, анализ формы, разбор
+          стилей игры, тенденции в драфте, ловушки которые стараюсь избегать — я подробно
+          описал всё это здесь:{' '}
+          <a href="/ru/blog/how-to-predict-dota-2-matches" className="font-semibold underline hover:opacity-70 transition-opacity" style={{ color: 'hsl(var(--primary))' }}>
+            Как предсказывать матчи Dota 2
+          </a>.
+        </p>
+        <p>
           Надеюсь, тебе это пригодится. И если ты любишь про-Dota хотя бы вполовину так же, как я —{' '}
           <span className="font-semibold" style={{ color: 'var(--text)' }}>добро пожаловать. Ты попал куда надо.</span>
         </p>

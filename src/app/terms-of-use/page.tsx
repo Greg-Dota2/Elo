@@ -53,9 +53,18 @@ export default function HowItWorksPage() {
           Before each series starts, I write down who I think is going to win and why. That&apos;s it.
         </p>
         <p>
-          There are no algorithms picking for me. No machine learning. No paid tipsters. Just one guy
-          who has followed pro Dota for years, formed an opinion, and committed to it in writing
-          before the draft even begins.
+          I use an internal model — ELO-style team ratings combined with recent results and momentum
+          signals — that gives me a baseline win probability for each match. It&apos;s a useful
+          discipline tool, a sanity check against my own biases. But it&apos;s a starting point,
+          not the answer. The final call is always mine, based on what I&apos;ve actually watched.
+        </p>
+        <p>
+          The model is great at the macro picture. It cannot account for specific matchup dynamics,
+          current form, or the micro-realities of a given match. That part is on me. For a full
+          breakdown of how I approach each prediction,{' '}
+          <a href="/blog/how-to-predict-dota-2-matches" className="font-semibold underline hover:opacity-70 transition-opacity" style={{ color: 'hsl(var(--primary))' }}>
+            read this
+          </a>.
         </p>
         <p>
           Every prediction is public, every result is tracked, and my accuracy is visible to anyone who visits.
@@ -80,7 +89,9 @@ export default function HowItWorksPage() {
         <ul className="list-none space-y-3 my-2">
           {[
             ['Recent form', 'How has each team performed in the last 2–4 weeks? Momentum matters more than historical prestige.'],
-            ['Head-to-head', 'How have these two teams matched up before, especially at this level of competition?'],
+            ['Playstyle matchup', 'How does each team want to win, and whose plan is more likely to succeed against the other? Fast vs. slow, skirmish vs. farm — the interaction matters more than raw rating.'],
+            ['Draft tendencies', 'Narrow hero pools, patch comfort, and historical drafting patterns. I never flip a pick after seeing the draft, but long-term drafting trends are factored in before the match.'],
+            ['Head-to-head', 'How have these two teams matched up before, especially at this level of competition? Only relevant if the roster and meta are comparable.'],
             ['Roster changes', 'Any recent stand-ins, bootcamps, or roster shifts that could affect performance?'],
             ['Tournament stage', 'Groups play differently than playoffs. Teams sometimes sandbag in groups to hide strategies.'],
             ['ELO rating', 'My custom rating system gives a structured view of where each team stands relative to each other.'],
